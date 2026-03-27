@@ -1,3 +1,3 @@
-# Welcome to your Lovable project
+# NFL — Courtier & service.
 
-TODO: Document your project here
+Plateforme de gestion de tickets et d'événements pour NFL Courtier & service.

@@ -1,86 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
-
 @layer base {
   :root {
-    --background: 35 30% 96%;
-    --foreground: 25 40% 12%;
+    /* NFL Brand: Dark Olive + Orange accent */
+    --background: 60 40% 96%;
+    --foreground: 60 60% 10%;
 
-    --card: 35 25% 93%;
-    --card-foreground: 25 40% 12%;
+    --card: 60 30% 92%;
+    --card-foreground: 60 60% 10%;
 
-    --popover: 35 30% 96%;
-    --popover-foreground: 25 40% 12%;
+    --popover: 60 40% 96%;
+    --popover-foreground: 60 60% 10%;
 
-    --primary: 25 50% 22%;
-    --primary-foreground: 40 50% 92%;
+    --primary: 60 80% 12%;       /* dark olive like logo bg */
+    --primary-foreground: 40 80% 96%;
 
-    --secondary: 35 20% 88%;
-    --secondary-foreground: 25 40% 15%;
+    --secondary: 60 20% 88%;
+    --secondary-foreground: 60 50% 15%;
 
-    --muted: 35 15% 90%;
-    --muted-foreground: 25 15% 45%;
+    --muted: 60 15% 88%;
+    --muted-foreground: 60 15% 45%;
 
-    --accent: 43 75% 50%;
-    --accent-foreground: 25 50% 10%;
+    --accent: 32 90% 56%;        /* orange like logo text */
+    --accent-foreground: 60 80% 10%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 30 20% 82%;
-    --input: 30 20% 82%;
-    --ring: 43 75% 50%;
+    --border: 60 20% 82%;
+    --input: 60 20% 82%;
+    --ring: 32 90% 56%;
 
     --radius: 0.75rem;
 
-    --gold: 43 75% 50%;
-    --gold-light: 43 60% 70%;
-    --gold-dark: 40 70% 35%;
-    --brown: 25 50% 22%;
-    --brown-light: 25 35% 35%;
-    --cream: 35 40% 95%;
+    /* NFL color tokens */
+    --gold: 32 90% 56%;          /* orange "Courtier & service" */
+    --gold-light: 32 80% 72%;
+    --gold-dark: 32 90% 38%;
+    --brown: 60 80% 12%;         /* dark olive bg */
+    --brown-light: 60 50% 22%;
+    --cream: 60 40% 96%;
 
-    --sidebar-background: 25 45% 15%;
-    --sidebar-foreground: 35 30% 90%;
-    --sidebar-primary: 43 75% 50%;
-    --sidebar-primary-foreground: 25 50% 10%;
-    --sidebar-accent: 25 40% 22%;
-    --sidebar-accent-foreground: 35 30% 90%;
-    --sidebar-border: 25 30% 25%;
-    --sidebar-ring: 43 75% 50%;
+    --sidebar-background: 60 80% 10%;
+    --sidebar-foreground: 40 50% 90%;
+    --sidebar-primary: 32 90% 56%;
+    --sidebar-primary-foreground: 60 80% 10%;
+    --sidebar-accent: 60 60% 18%;
+    --sidebar-accent-foreground: 40 50% 90%;
+    --sidebar-border: 60 40% 20%;
+    --sidebar-ring: 32 90% 56%;
   }
 
   .dark {
-    --background: 25 40% 8%;
-    --foreground: 35 30% 92%;
-    --card: 25 35% 12%;
-    --card-foreground: 35 30% 92%;
-    --popover: 25 35% 12%;
-    --popover-foreground: 35 30% 92%;
-    --primary: 43 75% 50%;
-    --primary-foreground: 25 50% 10%;
-    --secondary: 25 30% 18%;
-    --secondary-foreground: 35 30% 90%;
-    --muted: 25 25% 15%;
-    --muted-foreground: 35 15% 55%;
-    --accent: 43 75% 50%;
-    --accent-foreground: 25 50% 10%;
+    --background: 60 80% 6%;
+    --foreground: 40 40% 92%;
+    --card: 60 70% 10%;
+    --card-foreground: 40 40% 92%;
+    --popover: 60 70% 10%;
+    --popover-foreground: 40 40% 92%;
+    --primary: 32 90% 56%;
+    --primary-foreground: 60 80% 8%;
+    --secondary: 60 40% 16%;
+    --secondary-foreground: 40 40% 90%;
+    --muted: 60 30% 13%;
+    --muted-foreground: 40 20% 55%;
+    --accent: 32 90% 56%;
+    --accent-foreground: 60 80% 8%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 25 25% 20%;
-    --input: 25 25% 20%;
-    --ring: 43 75% 50%;
-    --sidebar-background: 25 45% 8%;
-    --sidebar-foreground: 35 30% 90%;
-    --sidebar-primary: 43 75% 50%;
-    --sidebar-primary-foreground: 25 50% 10%;
-    --sidebar-accent: 25 40% 15%;
-    --sidebar-accent-foreground: 35 30% 90%;
-    --sidebar-border: 25 30% 15%;
-    --sidebar-ring: 43 75% 50%;
+    --border: 60 30% 18%;
+    --input: 60 30% 18%;
+    --ring: 32 90% 56%;
+    --sidebar-background: 60 80% 6%;
+    --sidebar-foreground: 40 40% 90%;
+    --sidebar-primary: 32 90% 56%;
+    --sidebar-primary-foreground: 60 80% 8%;
+    --sidebar-accent: 60 50% 14%;
+    --sidebar-accent-foreground: 40 40% 90%;
+    --sidebar-border: 60 40% 15%;
+    --sidebar-ring: 32 90% 56%;
   }
 }
 
@@ -115,8 +117,28 @@
   }
 
   .glass-card {
-    background: hsl(var(--card) / 0.8);
+    background: hsl(var(--card) / 0.85);
     backdrop-filter: blur(12px);
-    border: 1px solid hsl(var(--gold) / 0.15);
+    border: 1px solid hsl(var(--gold) / 0.18);
+  }
+
+  /* HTML5 QR Code Scanner Styling */
+  #reader {
+    border: none !important;
+  }
+  #reader __dashboard_section_csr_span {
+    color: hsl(var(--gold)) !important;
+  }
+  #reader button {
+    @apply bg-gold text-white font-bold py-2 px-6 rounded-xl border-none cursor-pointer transition-all hover:scale-105 active:scale-95 text-sm uppercase tracking-wide my-4;
+  }
+  #reader__dashboard_section_swaplink {
+    @apply text-gold underline text-xs mt-2 block;
+  }
+  #reader video {
+    @apply rounded-2xl border-2 border-gold/20 shadow-2xl;
+  }
+  #reader__status_span {
+    @apply bg-secondary/50 p-2 rounded-lg text-xs mt-4 block;
   }
 }
