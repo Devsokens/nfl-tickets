@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import nflLogo from "@/assets/LOGO_NFL-removebg-preview.png";
 import { Menu } from "lucide-react";
@@ -8,6 +9,27 @@ const Navbar = () => {
   const location = useLocation();
   const isHome = location.pathname === "/";
 
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const controlNavbar = () => {
+      if (typeof window !== 'undefined') {
+        if (window.scrollY > lastScrollY && window.scrollY > 100) { // scrolling down
+          setIsVisible(false);
+        } else { // scrolling up
+          setIsVisible(true);
+        }
+        setLastScrollY(window.scrollY);
+      }
+    };
+
+    window.addEventListener('scroll', controlNavbar);
+    return () => {
+      window.removeEventListener('scroll', controlNavbar);
+    };
+  }, [lastScrollY]);
+
   const handleScroll = (id: string) => {
     if (isHome) {
       document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -15,7 +37,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-primary/95 backdrop-blur-md">
+    <nav className={`sticky top-0 z-50 border-b border-border bg-primary/95 backdrop-blur-md transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
       <div className="container mx-auto px-4 h-24 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
           <img src={nflLogo} alt="NFL Courtier & service" className="h-20 w-auto transition-transform hover:scale-105" />

@@ -25,7 +25,6 @@ const Catalog = () => {
           <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-gold transition-colors mb-8 group text-sm font-medium">
             <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" /> Retour à l'accueil
           </Link>
-          <Badge className="bg-gold/20 text-gold hover:bg-gold/30 mb-4 px-3 py-1">Catalogue</Badge>
           <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
             Tous nos événements
           </h1>

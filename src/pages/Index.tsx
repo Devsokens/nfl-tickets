@@ -8,7 +8,7 @@ import eventSoiree from "@/assets/event-soiree.jpg";
 import louiseImage from "@/assets/louise.jpeg";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Sparkles, Building2, Ticket, ChevronLeft, ChevronRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Sparkles, Building2, Ticket, ChevronLeft, ChevronRight, CheckCircle2, ChevronUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import useEmblaCarousel from "embla-carousel-react";
 
@@ -44,6 +44,16 @@ const Index = () => {
     setNextBtnEnabled(emblaApi.canScrollNext());
   }, [emblaApi]);
 
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   useEffect(() => {
     if (!emblaApi) return;
     onSelect();
@@ -66,11 +76,8 @@ const Index = () => {
           loading="eager"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/40 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/90 via-primary/60 to-background" />
         <div className="relative z-10 text-center px-4 space-y-8 animate-fade-in max-w-4xl mx-auto mt-12">
-          <Badge className="bg-gold/20 text-gold hover:bg-gold/30 mb-4 px-4 py-1.5 text-sm uppercase tracking-wider backdrop-blur-md border border-gold/30">
-            L'excellence au Gabon
-          </Badge>
           <h1 className="font-display text-5xl md:text-7xl font-bold text-primary-foreground leading-tight tracking-tight drop-shadow-xl">
             Des moments <br />
             <span className="text-gradient-gold inline-block mt-2">d'exception</span>
@@ -179,16 +186,18 @@ const Index = () => {
             </div>
             
             <div className="relative">
-              <div className="aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl relative z-10 border border-border/50">
-                <img src={eventSoiree} alt="NFL Expertise" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent" />
-                <div className="absolute bottom-6 left-6 right-6 text-primary-foreground p-6 glass-card rounded-xl">
-                  <Ticket className="w-8 h-8 text-gold mb-3" />
-                  <h3 className="font-display text-xl font-bold mb-1">Billetterie Officielle</h3>
-                  <p className="text-sm text-primary-foreground/80">Réservez vos places en toute sécurité au Gabon.</p>
+              <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl relative z-10 border border-gold/20 group">
+                <img src={eventSoiree} alt="NFL Expertise" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/20 to-transparent opacity-90" />
+                <div className="absolute bottom-0 left-0 right-0 p-8 text-white z-20">
+                  <div className="p-3 bg-gold/20 backdrop-blur-md rounded-2xl w-fit mb-4 border border-gold/30">
+                    <Ticket className="w-8 h-8 text-gold" />
+                  </div>
+                  <h3 className="font-display text-2xl font-bold mb-2">Billetterie Officielle</h3>
+                  <p className="text-white/80 leading-relaxed">Réservez vos places en toute sécurité pour les plus grands événements du Gabon.</p>
                 </div>
               </div>
-              <div className="absolute top-10 -right-10 bottom-10 -left-10 border-2 border-gold/20 rounded-2xl -z-10" />
+              <div className="absolute -top-4 -right-4 -bottom-4 -left-4 border border-gold/10 rounded-[2rem] -z-10" />
             </div>
           </div>
         </div>
@@ -283,6 +292,18 @@ const Index = () => {
       </section>
 
       <Footer />
+
+      {/* Back to Top Button */}
+      {showBackToTop && (
+        <Button
+          variant="gold"
+          size="icon"
+          className="fixed bottom-8 right-8 z-[60] rounded-full w-12 h-12 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        >
+          <ChevronUp className="h-6 w-6" />
+        </Button>
+      )}
     </div>
   );
 };

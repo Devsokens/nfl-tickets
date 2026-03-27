@@ -25,6 +25,10 @@ const categoryImages: Record<string, string> = {
 
 const EventDetail = () => {
   const { id } = useParams();
+
+  useState(() => {
+    window.scrollTo(0, 0);
+  });
   
   const threeDaysAgo = new Date();
   threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
@@ -225,12 +229,14 @@ const EventDetail = () => {
               <h3 className="font-display text-2xl font-bold mb-6 flex items-center gap-2">
                 Autres événements
               </h3>
-              <div className="flex flex-col gap-6 overflow-y-auto max-h-[calc(100vh-160px)] scrollbar-hide pr-2 pb-10">
-                {otherEvents.map((evt) => (
-                  <div key={evt.id} className="h-[320px]">
-                     <EventCard event={evt} />
-                  </div>
-                ))}
+              <div className="flex flex-col md:flex-col lg:flex-col gap-6 overflow-y-auto lg:max-h-[calc(100vh-160px)] scrollbar-hide pr-2 pb-10 sm:flex-row sm:overflow-x-auto">
+                <div className="flex flex-row lg:flex-col gap-6 w-full overflow-x-auto lg:overflow-x-visible pb-4 lg:pb-0 scrollbar-hide">
+                  {otherEvents.map((evt) => (
+                    <div key={evt.id} className="min-w-[280px] lg:min-w-full h-[320px] flex-shrink-0">
+                       <EventCard event={evt} />
+                    </div>
+                  ))}
+                </div>
                 {otherEvents.length === 0 && (
                   <p className="text-muted-foreground text-sm">Aucun autre événement à venir.</p>
                 )}
