@@ -34,8 +34,9 @@ export interface Ticket {
   created_at?: string;
 }
 
-// On pointe par défaut sur localhost tant que le backend n'est pas redéployé
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+// On pointe par défaut sur le backend de production sur Render
+const API_URL = import.meta.env.VITE_API_URL || 'https://backend-nfl.onrender.com/api';
+console.log("🚀 L'application utilise l'API à l'adresse :", API_URL);
 
 export const api = axios.create({
   baseURL: API_URL,
