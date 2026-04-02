@@ -195,9 +195,9 @@ const EventDetail = () => {
         
         <div className="flex flex-col lg:flex-row gap-10">
           <div className="flex-1 lg:max-w-[800px] xl:max-w-[900px]">
-            <div className={`relative h-[40vh] md:h-[50vh] rounded-3xl overflow-hidden mb-8 shadow-2xl ${isPast ? 'grayscale-[30%]' : ''}`}>
-              <img src={image} alt={event.title} className="w-full h-full object-cover" width={1920} height={800} />
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+            <div className={`relative h-[40vh] md:h-[50vh] rounded-3xl overflow-hidden mb-8 shadow-2xl bg-muted/20 ${isPast ? 'grayscale-[30%]' : ''}`}>
+              <img src={image} alt={event.title} className="w-full h-full object-contain" width={1920} height={800} />
+              <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
               <div className="absolute top-4 left-4 flex gap-2">
                 <Badge className="bg-gold text-accent-foreground border-0 px-3 py-1 text-sm">{event.category}</Badge>
                 {isPast && (
