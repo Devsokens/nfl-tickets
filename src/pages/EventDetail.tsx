@@ -64,7 +64,8 @@ const EventDetail = () => {
         fullName: prev[idx]?.fullName ?? "",
         email: prev[idx]?.email ?? "",
       }));
-      if (quantity === 1 && payerName.trim() && !next[0].fullName.trim()) {
+      // On remplit le premier participant avec le nom du payeur s'il est encore vide
+      if (payerName.trim() && !next[0].fullName.trim()) {
         next[0].fullName = payerName.trim();
       }
       return next;
@@ -148,9 +149,9 @@ const EventDetail = () => {
       const message = `Bonjour NFL Courtier & Service,\n\n` +
                       `Je viens de réserver ${quantity} place(s) pour l'événement : *${event.title}*.\n\n` +
                       `*Détails de ma réservation :*\n` +
-                      `📅 Date : ${formattedDate}\n` +
-                      `💰 Montant total : ${totalAmount.toLocaleString()} FCFA\n` +
-                      `📱 Numéro de paiement : ${payerPhone}\n\n` +
+                      `- *Date* : ${formattedDate}\n` +
+                      `- *Montant total* : ${totalAmount.toLocaleString()} FCFA\n` +
+                      `- *Numéro de paiement* : ${payerPhone}\n\n` +
                       `*Participants :*\n${participantList}\n\n` +
                       `Merci de valider ma commande dès réception du transfert.`;
 
@@ -337,8 +338,8 @@ const EventDetail = () => {
                       <div className="rounded-2xl border border-gold/20 p-4 bg-card space-y-2">
                         <p className="font-semibold">Instructions de paiement</p>
                         <p className="text-sm text-muted-foreground">Veuillez effectuer le paiement du montant total via Airtel Money ou Moov Money.</p>
-                        <p className="text-sm"><strong>Numéro marchand Airtel :</strong> [XXXXXXXX]</p>
-                        <p className="text-sm"><strong>Numéro marchand Moov :</strong> [XXXXXXXX]</p>
+                        <p className="text-sm"><strong>Numéro marchand Airtel :</strong> 077757383</p>
+                        <p className="text-sm"><strong>Numéro marchand Moov :</strong> 066692338</p>
                       </div>
                       {paymentPending && (
                         <div className="rounded-2xl border border-gold/30 bg-gold/10 p-4 flex items-start gap-3">

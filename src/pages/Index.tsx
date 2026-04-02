@@ -77,7 +77,7 @@ const Index = () => {
             <Button variant="gold" size="lg" className="w-full sm:w-auto text-base rounded-full px-8 h-14" onClick={() => document.getElementById("evenements")?.scrollIntoView({ behavior: "smooth" })}>
               Découvrir nos activités <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button variant="outline" size="lg" className="w-full sm:w-auto text-base rounded-full px-8 h-14 bg-background/10 backdrop-blur-md text-primary-foreground border-primary-foreground/20 hover:bg-background/20" onClick={() => document.getElementById("evenements")?.scrollIntoView({ behavior: "smooth" })}>
+            <Button variant="outline" size="lg" className="w-full sm:w-auto text-base rounded-full px-8 h-14 bg-background/10 backdrop-blur-md text-[#32140c] border-primary-foreground/20 hover:bg-background/20 font-bold" onClick={() => document.getElementById("evenements")?.scrollIntoView({ behavior: "smooth" })}>
               Réserver un événement
             </Button>
           </div>
@@ -106,25 +106,6 @@ const Index = () => {
                   Sous l'impulsion de <strong>Louise Odyll Ongoum</strong>, l'équipe développe une
                   approche orientée terrain : écoute client, coordination rigoureuse et suivi de qualité.
                 </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
-              <div className="rounded-2xl bg-background/70 border border-border p-4 text-center">
-                <p className="font-display text-3xl text-gold font-bold">4</p>
-                <p className="text-sm text-muted-foreground mt-1">Pôles d'activité</p>
-              </div>
-              <div className="rounded-2xl bg-background/70 border border-border p-4 text-center">
-                <p className="font-display text-3xl text-gold font-bold">2</p>
-                <p className="text-sm text-muted-foreground mt-1">Villes d'intervention</p>
-              </div>
-              <div className="rounded-2xl bg-background/70 border border-border p-4 text-center">
-                <p className="font-display text-3xl text-gold font-bold">1-10</p>
-                <p className="text-sm text-muted-foreground mt-1">Places par réservation</p>
-              </div>
-              <div className="rounded-2xl bg-background/70 border border-border p-4 text-center">
-                <p className="font-display text-3xl text-gold font-bold">100%</p>
-                <p className="text-sm text-muted-foreground mt-1">Suivi personnalisé</p>
               </div>
             </div>
           </div>

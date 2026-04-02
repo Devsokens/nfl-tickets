@@ -39,14 +39,19 @@ const EventCard = ({ event }: EventCardProps) => {
   const isPast = eventDate < new Date(new Date().setHours(0, 0, 0, 0));
 
   return (
-    <Link to={`/event/${event.id}`} className="group block h-full">
+    <div className={`group block h-full ${isPast ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+      <Link 
+        to={isPast ? "#" : `/event/${event.id}`} 
+        className={`block h-full ${isPast ? 'pointer-events-none' : ''}`}
+        onClick={(e) => isPast && e.preventDefault()}
+      >
       <div className={`glass-card rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 h-full flex flex-col ${isPast ? 'opacity-80' : ''}`}>
         <div className="relative h-52 shrink-0 overflow-hidden">
           <img
             src={image}
             alt={event.title}
             loading="lazy"
-            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${isPast ? 'grayscale-[30%]' : ''}`}
+            className={`w-full h-full object-contain bg-muted/30 transition-transform duration-500 group-hover:scale-105 ${isPast ? 'grayscale-[30%]' : ''}`}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
           <div className="absolute top-3 left-3 flex gap-2">
@@ -90,7 +95,8 @@ const EventCard = ({ event }: EventCardProps) => {
           </div>
         </div>
       </div>
-    </Link>
+      </Link>
+    </div>
   );
 };
 

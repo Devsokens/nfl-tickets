@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import nflLogo from "@/assets/LOGO_NFL-removebg-preview.png";
+import nflLogo from "@/assets/Logo_NFL_fond_marron-removebg-preview.png";
 import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -48,9 +48,9 @@ const Navbar = () => {
 
   return (
     <nav className="sticky top-0 z-50 bg-[#32140c]/95 backdrop-blur-md">
-      <div className="container mx-auto px-4 h-24 flex items-center justify-between">
+      <div className="container mx-auto px-4 h-28 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <img src={nflLogo} alt="NFL Courtier & service" className="h-20 w-auto transition-transform hover:scale-105" />
+          <img src={nflLogo} alt="NFL Courtier & service" className="h-24 w-auto transition-transform hover:scale-105" />
         </Link>
         <div className="hidden md:flex items-center gap-8">
           <Link

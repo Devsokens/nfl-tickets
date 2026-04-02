@@ -35,7 +35,9 @@ export interface Ticket {
 }
 
 // On pointe par défaut sur le backend de production sur Render
-const API_URL = import.meta.env.VITE_API_URL || 'https://backend-nfl.onrender.com/api';
+const rawApiUrl = import.meta.env.VITE_API_URL || 'https://backend-nfl.onrender.com/api';
+// Sécurité pour éviter le suffixe /docs qui est réservé à Swagger
+const API_URL = rawApiUrl.endsWith('/docs') ? rawApiUrl.replace('/docs', '/api') : rawApiUrl;
 console.log("🚀 L'application utilise l'API à l'adresse :", API_URL);
 
 export const api = axios.create({
@@ -122,7 +124,7 @@ export const NewsletterAPI = {
   },
   getAll: async () => {
     const res = await api.get('/newsletter');
-    return res.data;
+    return res.data.subscribers || [];
   },
 };
 
