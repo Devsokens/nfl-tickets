@@ -1,0 +1,133 @@
+import axios from 'axios';
+
+// En mode développement, on utilise le backend local si le serveur tourne,
+// sinon on pointe vers le backend de production sur Render.
+export interface Event {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  location: string;
+  price: number;
+  currency: string;
+  image_url?: string;
+  image?: string;
+  category: string;
+  capacity: number;
+  ticketsSold?: number; // S'il y a une agrégation
+  whatsapp_number?: string;
+}
+
+export interface Ticket {
+  id: string;
+  name?: string;
+  full_name?: string;
+  email: string;
+  phone: string;
+  payer_phone?: string;
+  event_id: string;
+  eventId?: string;
+  qr_code_data: string;
+  qrCode?: string;
+  status: 'soumis' | 'validé' | 'utilisé' | 'annulé' | string;
+  created_at?: string;
+}
+
+// On pointe par défaut sur localhost tant que le backend n'est pas redéployé
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+export const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Intercepteur pour ajouter le token JWT s'il existe
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('nfl_token');
+  console.log("Token JWT intercepté :", token ? "OUI (" + token.substring(0, 15) + "...)" : "NON");
+  if (token) {
+    if (!config.headers) {
+      config.headers = {} as any;
+    }
+    // Assurer que le header Authorization est bien attaché (syntaxe universelle axios)
+    (config.headers as any)['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Services d'API
+export const EventsAPI = {
+  getUpcoming: async () => {
+    const res = await api.get('/events/upcoming');
+    return res.data;
+  },
+  getAll: async () => {
+    const res = await api.get('/events');
+    return res.data;
+  },
+  getOne: async (id: string) => {
+    const res = await api.get(`/events/${id}`);
+    return res.data;
+  },
+  create: async (eventData: any) => {
+    const res = await api.post('/events', eventData);
+    return res.data;
+  },
+  uploadImage: async (formData: FormData) => {
+    const res = await api.post('/events/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return res.data;
+  },
+  update: async (id: string, eventData: any) => {
+    const res = await api.patch(`/events/${id}`, eventData);
+    return res.data;
+  },
+  delete: async (id: string) => {
+    const res = await api.delete(`/events/${id}`);
+    return res.data;
+  },
+};
+
+export const TicketsAPI = {
+  create: async (ticketData: any) => {
+    const res = await api.post('/tickets', ticketData);
+    return res.data;
+  },
+  getAll: async () => {
+    const res = await api.get('/tickets');
+    return res.data;
+  },
+  updateStatus: async (id: string, status: string) => {
+    const res = await api.patch(`/tickets/${id}/status`, { status });
+    return res.data;
+  },
+  validate: async (qrCodeData: string) => {
+    const res = await api.post('/tickets/validate', { qr_code_data: qrCodeData });
+    return res.data;
+  },
+  getDownloadUrl: (id: string) => `${API_URL}/tickets/${id}/pdf`,
+};
+
+export const NewsletterAPI = {
+  subscribe: async (email: string) => {
+    const res = await api.post('/newsletter/subscribe', { email });
+    return res.data;
+  },
+  getAll: async () => {
+    const res = await api.get('/newsletter');
+    return res.data;
+  },
+};
+
+export const AuthAPI = {
+  login: async (credentials: any) => {
+    const res = await api.post('/auth/login', credentials);
+    return res.data;
+  },
+};

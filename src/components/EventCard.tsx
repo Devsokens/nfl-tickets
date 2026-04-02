@@ -1,18 +1,18 @@
 import { Link } from "react-router-dom";
 import { Calendar, MapPin, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { Event } from "@/lib/mockData";
+import type { Event } from "@/lib/api";
 
-import eventSoiree from "@/assets/event-soiree.jpg";
-import eventConference from "@/assets/event-conference.jpg";
-import eventAtelier from "@/assets/event-atelier.jpg";
-import eventConcert from "@/assets/event-concert.jpg";
+import nflImg1 from "@/assets/nfl img1.jpeg";
+import nflImg2 from "@/assets/nfl img2.jpeg";
+import nflImg3 from "@/assets/nfl img3.jpeg";
+import nflImg4 from "@/assets/nfl img 4.jpeg";
 
 const categoryImages: Record<string, string> = {
-  soirée: eventSoiree,
-  conférence: eventConference,
-  atelier: eventAtelier,
-  concert: eventConcert,
+  soirée: nflImg1,
+  conférence: nflImg2,
+  atelier: nflImg3,
+  concert: nflImg4,
 };
 
 const categoryColors: Record<string, string> = {
@@ -27,7 +27,7 @@ interface EventCardProps {
 }
 
 const EventCard = ({ event }: EventCardProps) => {
-  const image = event.image || categoryImages[event.category] || eventSoiree;
+  const image = event.image_url || event.image || categoryImages[event.category] || nflImg1;
   const eventDate = new Date(event.date);
   const formattedDate = eventDate.toLocaleDateString("fr-FR", {
     day: "numeric",
@@ -84,7 +84,7 @@ const EventCard = ({ event }: EventCardProps) => {
             </span>
             {!isPast && (
               <span className="text-xs text-muted-foreground">
-                {event.capacity - event.ticketsSold} places restantes
+                {event.capacity - (event.ticketsSold || 0)} places restantes
               </span>
             )}
           </div>

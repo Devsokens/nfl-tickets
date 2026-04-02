@@ -6,44 +6,44 @@
 
 @layer base {
   :root {
-    /* NFL Brand: Dark Olive + Orange accent */
-    --background: 60 40% 96%;
-    --foreground: 60 60% 10%;
+    /* NFL Brand: Brown + Gold */
+    --background: 26 38% 96%;
+    --foreground: 16 58% 14%;
 
-    --card: 60 30% 92%;
-    --card-foreground: 60 60% 10%;
+    --card: 26 28% 92%;
+    --card-foreground: 16 58% 14%;
 
-    --popover: 60 40% 96%;
-    --popover-foreground: 60 60% 10%;
+    --popover: 26 38% 96%;
+    --popover-foreground: 16 58% 14%;
 
-    --primary: 60 80% 12%;       /* dark olive like logo bg */
-    --primary-foreground: 40 80% 96%;
+    --primary: 16 61% 13%;
+    --primary-foreground: 42 70% 96%;
 
-    --secondary: 60 20% 88%;
-    --secondary-foreground: 60 50% 15%;
+    --secondary: 26 22% 88%;
+    --secondary-foreground: 16 42% 17%;
 
-    --muted: 60 15% 88%;
-    --muted-foreground: 60 15% 45%;
+    --muted: 26 18% 88%;
+    --muted-foreground: 18 18% 42%;
 
-    --accent: 32 90% 56%;        /* orange like logo text */
-    --accent-foreground: 60 80% 10%;
+    --accent: 43 61% 53%;
+    --accent-foreground: 16 58% 14%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 60 20% 82%;
-    --input: 60 20% 82%;
-    --ring: 32 90% 56%;
+    --border: 26 16% 80%;
+    --input: 26 16% 80%;
+    --ring: 43 61% 53%;
 
     --radius: 0.75rem;
 
     /* NFL color tokens */
-    --gold: 32 90% 56%;          /* orange "Courtier & service" */
-    --gold-light: 32 80% 72%;
-    --gold-dark: 32 90% 38%;
-    --brown: 60 80% 12%;         /* dark olive bg */
-    --brown-light: 60 50% 22%;
-    --cream: 60 40% 96%;
+    --gold: 43 61% 53%;
+    --gold-light: 44 58% 66%;
+    --gold-dark: 38 72% 41%;
+    --brown: 16 61% 13%;
+    --brown-light: 16 47% 23%;
+    --cream: 26 38% 96%;
 
     --sidebar-background: 60 80% 10%;
     --sidebar-foreground: 40 50% 90%;
@@ -120,6 +120,30 @@
     background: hsl(var(--card) / 0.85);
     backdrop-filter: blur(12px);
     border: 1px solid hsl(var(--gold) / 0.18);
+  }
+
+  .animate-delay-1 {
+    animation-delay: 120ms;
+  }
+
+  .animate-delay-2 {
+    animation-delay: 220ms;
+  }
+
+  .animate-delay-3 {
+    animation-delay: 320ms;
+  }
+
+  .animate-delay-4 {
+    animation-delay: 420ms;
+  }
+
+  .animate-delay-5 {
+    animation-delay: 520ms;
+  }
+
+  .animate-delay-6 {
+    animation-delay: 620ms;
   }
 
   /* HTML5 QR Code Scanner Styling */

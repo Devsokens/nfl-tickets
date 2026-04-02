@@ -1,42 +1,95 @@
-import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EventCard from "@/components/EventCard";
-import { mockEvents } from "@/lib/mockData";
+import { useQuery } from "@tanstack/react-query";
+import { EventsAPI, TicketsAPI, type Event } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, ArrowLeft, MessageCircle, Clock } from "lucide-react";
+import { Calendar, MapPin, ArrowLeft, Clock, CheckCircle2, Phone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import eventSoiree from "@/assets/event-soiree.jpg";
-import eventConference from "@/assets/event-conference.jpg";
-import eventAtelier from "@/assets/event-atelier.jpg";
-import eventConcert from "@/assets/event-concert.jpg";
+import nflImg1 from "@/assets/nfl img1.jpeg";
+import nflImg2 from "@/assets/nfl img2.jpeg";
+import nflImg3 from "@/assets/nfl img3.jpeg";
+import nflImg4 from "@/assets/nfl img 4.jpeg";
 
 const categoryImages: Record<string, string> = {
-  soirée: eventSoiree,
-  conférence: eventConference,
-  atelier: eventAtelier,
-  concert: eventConcert,
+  soirée: nflImg1,
+  conférence: nflImg2,
+  atelier: nflImg3,
+  concert: nflImg4,
 };
 
 const EventDetail = () => {
   const { id } = useParams();
-
-  useState(() => {
+  const navigate = useNavigate();
+  useEffect(() => {
     window.scrollTo(0, 0);
-  });
+  }, []);
   
   const threeDaysAgo = new Date();
   threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
   threeDaysAgo.setHours(0, 0, 0, 0);
 
-  const event = mockEvents.find((e) => e.id === id);
+  const { toast } = useToast();
+  
+  const { data: event, isLoading: isEventLoading, isError } = useQuery<Event>({
+    queryKey: ["event", id],
+    queryFn: () => EventsAPI.getOne(id as string),
+    enabled: !!id,
+  });
 
-  if (!event || new Date(event.date) < threeDaysAgo) {
+  const { data: allUpcoming = [] } = useQuery<Event[]>({
+    queryKey: ["upcomingEvents"],
+    queryFn: EventsAPI.getUpcoming,
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [quantity, setQuantity] = useState(1);
+  const [payerPhone, setPayerPhone] = useState("");
+  const [payerName, setPayerName] = useState("");
+  const [participants, setParticipants] = useState([{ fullName: "", email: "" }]);
+  const [paymentPending, setPaymentPending] = useState(false);
+
+  const totalAmount = useMemo(() => (event?.price || 0) * quantity, [event?.price, quantity]);
+
+  useEffect(() => {
+    setParticipants((prev) => {
+      const next = Array.from({ length: quantity }, (_, idx) => ({
+        fullName: prev[idx]?.fullName ?? "",
+        email: prev[idx]?.email ?? "",
+      }));
+      if (quantity === 1 && payerName.trim() && !next[0].fullName.trim()) {
+        next[0].fullName = payerName.trim();
+      }
+      return next;
+    });
+  }, [quantity, payerName]);
+
+  const updateParticipant = (index: number, field: "fullName" | "email", value: string) => {
+    setParticipants((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
+  };
+
+  const isStep2Valid = payerPhone.trim().length > 0 && participants.every((p) => p.fullName.trim().length > 0 && p.email.trim().length > 0);
+
+  if (isEventLoading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex justify-center items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (isError || !event || new Date(event.date) < threeDaysAgo) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
@@ -52,7 +105,7 @@ const EventDetail = () => {
     );
   }
 
-  const image = event.image || categoryImages[event.category] || eventSoiree;
+  const image = event.image_url || event.image || categoryImages[event.category] || nflImg1;
   const eventDate = new Date(event.date);
   const isPast = eventDate < new Date(new Date().setHours(0, 0, 0, 0));
 
@@ -63,31 +116,68 @@ const EventDetail = () => {
     year: "numeric",
   });
   
-  const remaining = event.capacity - event.ticketsSold;
+  const remaining = event?.capacity - (event?.ticketsSold || 0);
 
-  const [formData, setFormData] = useState({ name: "", email: "", phone: "" });
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
-
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsRedirecting(true);
-    
-    setTimeout(() => {
-      const whatsappMessage = encodeURIComponent(
-        `Bonjour ! Je souhaite m'inscrire à l'événement "${event.title}" du ${formattedDate}.\n\nMes informations :\nNom: ${formData.name}\nEmail: ${formData.email}\nTéléphone: ${formData.phone}`
-      );
-      const whatsappUrl = `https://wa.me/${event.whatsappNumber.replace("+", "")}?text=${whatsappMessage}`;
-      window.open(whatsappUrl, "_blank");
-      setIsRedirecting(false);
-      setIsModalOpen(false);
-    }, 2000); // 2 seconds delay to show the message
+  const handleStep3 = () => {
+    if (!isStep2Valid) return;
+    setStep(3);
   };
 
-  // Other active events for the sidebar
-  const otherEvents = mockEvents
+  const handlePaymentDone = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await Promise.all(
+        participants.map((p) =>
+          TicketsAPI.create({
+            event_id: event.id,
+            full_name: p.fullName,
+            email: p.email,
+            phone: p.email,
+            payer_phone: payerPhone.trim(),
+          })
+        )
+      );
+
+      toast({
+        title: "Réservation enregistrée ! ✅",
+        description: "Redirection vers WhatsApp pour confirmer votre paiement...",
+      });
+
+      const participantList = participants.map((p) => `  - ${p.fullName}`).join("\n");
+      const message = `Bonjour NFL Courtier & Service,\n\n` +
+                      `Je viens de réserver ${quantity} place(s) pour l'événement : *${event.title}*.\n\n` +
+                      `*Détails de ma réservation :*\n` +
+                      `📅 Date : ${formattedDate}\n` +
+                      `💰 Montant total : ${totalAmount.toLocaleString()} FCFA\n` +
+                      `📱 Numéro de paiement : ${payerPhone}\n\n` +
+                      `*Participants :*\n${participantList}\n\n` +
+                      `Merci de valider ma commande dès réception du transfert.`;
+
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappNumber = (event as any).whatsapp_number || "241077617776";
+      const cleanNumber = whatsappNumber.replace(/\D/g, "");
+      const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodedMessage}`;
+
+      window.open(whatsappUrl, "_blank");
+      
+      setTimeout(() => {
+        navigate("/");
+      }, 500);
+
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.message || "Erreur lors de la réservation. Cet e-mail est peut-être déjà utilisé.";
+      toast({
+        variant: "destructive",
+        title: "Réservation impossible",
+        description: errorMsg,
+      });
+      setIsSubmitting(false);
+    }
+  };
+
+  const otherEvents = allUpcoming
     .filter((e) => e.id !== id && new Date(e.date) >= new Date(new Date().setHours(0,0,0,0)))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 8);
 
   return (
@@ -103,7 +193,6 @@ const EventDetail = () => {
         </Link>
         
         <div className="flex flex-col lg:flex-row gap-10">
-          {/* LEFT: Event Details */}
           <div className="flex-1 lg:max-w-[800px] xl:max-w-[900px]">
             <div className={`relative h-[40vh] md:h-[50vh] rounded-3xl overflow-hidden mb-8 shadow-2xl ${isPast ? 'grayscale-[30%]' : ''}`}>
               <img src={image} alt={event.title} className="w-full h-full object-cover" width={1920} height={800} />
@@ -157,73 +246,122 @@ const EventDetail = () => {
               </div>
 
               {!isPast && (
-                <div className="bg-card p-6 rounded-3xl border border-border/50 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6">
-                  <div className="flex-1 w-full">
-                    <div className="flex justify-between text-sm text-foreground font-medium mb-2">
-                      <span>{event.ticketsSold} inscrits</span>
-                      <span>{Math.round((event.ticketsSold / event.capacity) * 100)}% rempli</span>
-                    </div>
-                    <div className="h-3 bg-secondary rounded-full overflow-hidden">
-                      <div
-                        className="h-full gradient-gold rounded-full transition-all duration-1000"
-                        style={{ width: `${(event.ticketsSold / event.capacity) * 100}%` }}
-                      />
-                    </div>
+                <div className="bg-card p-6 rounded-3xl border border-border/50 shadow-sm space-y-6">
+                  <div className="flex flex-wrap items-center gap-3">
+                    {[1, 2, 3].map((n) => (
+                      <div key={n} className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${step >= n ? "bg-gold text-accent-foreground" : "bg-secondary text-muted-foreground"}`}>
+                        Étape {n}
+                      </div>
+                    ))}
                   </div>
-                  <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="gold" size="lg" className="w-full sm:w-auto shrink-0 rounded-full h-14 px-8 text-base shadow-lg shadow-gold/20">
-                        <MessageCircle className="mr-2 h-5 w-5" />
-                        Réserver ma place
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px] rounded-[30px] p-8">
-                      <DialogHeader>
-                        <DialogTitle className="font-display text-2xl text-gold text-center mb-2">Formulaire d'inscription</DialogTitle>
-                      </DialogHeader>
-                      <form onSubmit={handleRegister} className="space-y-6 pt-4 text-left">
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label className="text-xs uppercase tracking-widest font-bold">Événement choisi</Label>
-                            <Input value={event.title} disabled className="bg-secondary/30 rounded-xl h-12" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-xs uppercase tracking-widest font-bold">Nom du Client</Label>
-                            <Input required placeholder="Ex: Marc Obiang" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="rounded-xl h-12 bg-secondary/10" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-xs uppercase tracking-widest font-bold">Email</Label>
-                            <Input required type="email" placeholder="marc@email.ga" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="rounded-xl h-12 bg-secondary/10" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-xs uppercase tracking-widest font-bold">Téléphone (+241...)</Label>
-                            <Input required placeholder="+241 077 12 34 56" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="rounded-xl h-12 bg-secondary/10" />
-                          </div>
-                        </div>
-                        
-                        {isRedirecting && (
-                          <p className="text-sm text-gold animate-pulse text-center font-medium">
-                            Vous êtes en train d'être redirigé vers WhatsApp...
-                          </p>
-                        )}
 
-                        <Button 
-                          type="submit" 
-                          variant="gold" 
-                          className="w-full h-14 text-base rounded-2xl shadow-xl font-bold uppercase tracking-wide"
-                          disabled={isRedirecting}
-                        >
-                          {isRedirecting ? "Ouverture..." : "confirmer ma reservation"}
+                  {step === 1 && (
+                    <div className="space-y-5 animate-fade-in">
+                      <h3 className="font-display text-2xl font-bold">Étape 1 : Événement + nombre de places</h3>
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Détails de l'événement</Label>
+                          <Input value={`${event.title} - ${event.location}`} disabled className="bg-secondary/40" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Prix par place</Label>
+                          <Input value={`${event.price.toLocaleString()} ${event.currency}`} disabled className="bg-secondary/40" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="qty">Nombre de places (1 à 10)</Label>
+                        <Input id="qty" type="number" min={1} max={10} value={quantity} onChange={(e) => setQuantity(Math.min(10, Math.max(1, Number(e.target.value) || 1)))} />
+                      </div>
+                      <Button variant="gold" className="w-full h-12 rounded-xl" onClick={() => setStep(2)}>
+                        Continuer vers le paiement
+                      </Button>
+                    </div>
+                  )}
+
+                  {step === 2 && (
+                    <div className="space-y-5 animate-fade-in">
+                      <h3 className="font-display text-2xl font-bold">Étape 2 : Payeur + participants</h3>
+                      <div className="glass-card border border-gold/20 rounded-2xl p-4 space-y-3">
+                        <p className="text-sm uppercase tracking-wide text-gold font-semibold">A. Informations du payeur</p>
+                        <div className="space-y-2">
+                          <Label>Numéro de téléphone du payeur *</Label>
+                          <Input placeholder="+241 07 76 17 776" value={payerPhone} onChange={(e) => setPayerPhone(e.target.value)} required />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Nom complet du payeur (optionnel)</Label>
+                          <Input placeholder="Ex: Jean Mboulou" value={payerName} onChange={(e) => setPayerName(e.target.value)} />
+                        </div>
+                      </div>
+                      <div className="glass-card border border-gold/20 rounded-2xl p-4 space-y-3">
+                        <p className="text-sm uppercase tracking-wide text-gold font-semibold">B. Participants</p>
+                        <p className="text-sm text-muted-foreground">Vous avez choisi <strong>{quantity}</strong> place(s).</p>
+                        <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
+                          {participants.map((participant, index) => (
+                            <div key={index} className="grid sm:grid-cols-2 gap-3 p-3 bg-background/70 rounded-xl border border-border/60">
+                              <div className="space-y-2">
+                                <Label>Nom complet participant {index + 1} *</Label>
+                                <Input placeholder="Prénom + Nom" value={participant.fullName} onChange={(e) => updateParticipant(index, "fullName", e.target.value)} required />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Email du participant (Obligatoire) *</Label>
+                                <Input type="email" placeholder="participant@email.com" value={participant.email} onChange={(e) => updateParticipant(index, "email", e.target.value)} required />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        <Button variant="outline" className="h-12 rounded-xl" onClick={() => setStep(1)}>Retour</Button>
+                        <Button variant="gold" className="h-12 rounded-xl" onClick={handleStep3} disabled={!isStep2Valid}>Payer maintenant</Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {step === 3 && (
+                    <div className="space-y-5 animate-fade-in">
+                      <h3 className="font-display text-2xl font-bold">Étape 3 : Paiement + confirmation</h3>
+                      <div className="rounded-2xl border border-gold/20 p-4 bg-secondary/30 space-y-2">
+                        <p><strong>Événement :</strong> {event.title}</p>
+                        <p><strong>Nombre de places :</strong> {quantity}</p>
+                        <p><strong>Montant total :</strong> {totalAmount.toLocaleString()} {event.currency}</p>
+                        <p><strong>Numéro du payeur :</strong> {payerPhone}</p>
+                        <div className="pt-2">
+                          <p className="font-semibold">Participants :</p>
+                          <ul className="text-sm text-muted-foreground mt-1">
+                            {participants.map((p, idx) => (
+                              <li key={idx}>• {p.fullName || `Participant ${idx + 1}`}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                      <div className="rounded-2xl border border-gold/20 p-4 bg-card space-y-2">
+                        <p className="font-semibold">Instructions de paiement</p>
+                        <p className="text-sm text-muted-foreground">Veuillez effectuer le paiement du montant total via Airtel Money ou Moov Money.</p>
+                        <p className="text-sm"><strong>Numéro marchand Airtel :</strong> [XXXXXXXX]</p>
+                        <p className="text-sm"><strong>Numéro marchand Moov :</strong> [XXXXXXXX]</p>
+                      </div>
+                      {paymentPending && (
+                        <div className="rounded-2xl border border-gold/30 bg-gold/10 p-4 flex items-start gap-3">
+                          <CheckCircle2 className="text-gold mt-0.5 h-5 w-5" />
+                          <p className="text-sm">
+                            Réservation enregistrée avec le statut <strong>"Paiement en cours de vérification"</strong>.
+                            Finalisez maintenant sur WhatsApp pour validation.
+                          </p>
+                        </div>
+                      )}
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        <Button variant="outline" className="h-12 rounded-xl" onClick={() => setStep(2)}>Retour</Button>
+                        <Button variant="gold" className="h-12 rounded-xl bg-orange-500 hover:bg-orange-600 text-white" onClick={handlePaymentDone} disabled={isSubmitting}>
+                          <Phone className="h-4 w-4 mr-2" /> {isSubmitting ? "Enregistrement..." : "J'ai effectué le paiement"}
                         </Button>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </div>
 
-          {/* RIGHT: Other Events Sidebar */}
           <div className="lg:w-[350px] xl:w-[400px] shrink-0">
             <div className="sticky top-24">
               <h3 className="font-display text-2xl font-bold mb-6 flex items-center gap-2">

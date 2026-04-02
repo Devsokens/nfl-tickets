@@ -6,17 +6,39 @@ import { Label } from "@/components/ui/label";
 import { Lock, Mail, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import nflLogo from "@/assets/LOGO_NFL-removebg-preview.png";
+import { AuthAPI } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Dummy authentication
-    if (email && password) {
-      navigate("/admin");
+    if (!email || !password) return;
+    
+    setIsLoading(true);
+    try {
+      const res = await AuthAPI.login({ email, password });
+      if (res.access_token) {
+        localStorage.setItem("nfl_token", res.access_token);
+        toast({
+          title: "Connexion réussie",
+          description: "Bienvenue dans l'espace d'administration.",
+        });
+        navigate("/admin");
+      }
+    } catch (err: any) {
+      toast({
+        variant: "destructive",
+        title: "Erreur de connexion",
+        description: err.response?.data?.message || "Identifiants incorrects.",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -82,8 +104,8 @@ const AdminLogin = () => {
             </div>
 
             <div>
-              <Button type="submit" variant="gold" className="w-full h-12 text-base rounded-xl">
-                Se connecter
+              <Button type="submit" variant="gold" className="w-full h-12 text-base rounded-xl" disabled={isLoading}>
+                {isLoading ? "Connexion..." : "Se connecter"}
               </Button>
             </div>
           </form>

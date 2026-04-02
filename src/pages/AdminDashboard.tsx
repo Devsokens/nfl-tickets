@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { mockEvents, mockTickets, type Event, type Ticket } from "@/lib/mockData";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api, EventsAPI, TicketsAPI, type Event, type Ticket } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,8 @@ import {
   XCircle,
   Clock,
   Menu,
+  UploadCloud,
+  ImagePlus,
   X
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -33,6 +36,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
@@ -45,18 +49,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
-import TicketTemplate from "@/components/admin/TicketTemplate";
 import { toast } from "sonner";
 import { Html5QrcodeScanner } from "html5-qrcode";
 
 type Tab = "dashboard" | "events" | "tickets" | "scanner";
 
 const AdminDashboard = () => {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
-  const [events, setEvents] = useState<Event[]>(mockEvents);
-  const [tickets, setTickets] = useState<Ticket[]>(mockTickets);
+  
+  const { data: events = [], refetch: refetchEvents } = useQuery<Event[]>({
+    queryKey: ["events"],
+    queryFn: EventsAPI.getAll,
+  });
+
+  const { data: tickets = [], refetch: refetchTickets } = useQuery<Ticket[]>({
+    queryKey: ["tickets"],
+    queryFn: TicketsAPI.getAll,
+  });
+
   const [searchTicket, setSearchTicket] = useState("");
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [scanInput, setScanInput] = useState("");
@@ -68,9 +79,8 @@ const AdminDashboard = () => {
   const [filterEvent, setFilterEvent] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
-  // Ticket generation ref
-  const ticketRef = useRef<HTMLDivElement>(null);
-  const [ticketToPrint, setTicketToPrint] = useState<any>(null);
+  // Ticket generation (Backend-only)
+  const [isDownloading, setIsDownloading] = useState<string | null>(null);
 
   // Scanner initialization
   useEffect(() => {
@@ -114,35 +124,37 @@ const AdminDashboard = () => {
     };
   }, [activeTab, scanMode]);
 
-  useEffect(() => {
-    if (ticketToPrint && ticketRef.current) {
-      setTimeout(async () => {
-        try {
-          const canvas = await html2canvas(ticketRef.current!, { scale: 2 });
-          const imgData = canvas.toDataURL("image/png");
-          const pdf = new jsPDF({
-            orientation: "landscape",
-            unit: "px",
-            format: [600, 240]
-          });
-          pdf.addImage(imgData, "PNG", 0, 0, 600, 240);
-          pdf.save(`NFL_Billet_${ticketToPrint.id}.pdf`);
-          setTicketToPrint(null);
-          toast.success("Billet généré et téléchargé avec succès.");
-        } catch (error) {
-          console.error("Error generating PDF", error);
-          toast.error("Erreur lors de la génération du billet.");
-        }
-      }, 500);
+  const downloadTicket = async (id: string) => {
+    setIsDownloading(id);
+    try {
+      // We fetch via axios to include the JWT token
+      const response = await TicketsAPI.getDownloadUrl(id); 
+      // But getDownloadUrl just returns a string. We need a real fetch with auth.
+      // I'll use axios directly for the blob.
+      const res = await api.get(`/tickets/${id}/pdf`, { responseType: 'blob' });
+      
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `ticket-${id.split('-')[0]}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success("Billet téléchargé !");
+    } catch (err) {
+      console.error("Download error", err);
+      toast.error("Erreur de téléchargement.");
+    } finally {
+      setIsDownloading(null);
     }
-  }, [ticketToPrint]);
+  };
 
   // Stats
   const totalTickets = tickets.length;
   const totalRevenue = tickets
     .filter((t) => t.status !== "annulé" && t.status !== "soumis")
     .reduce((sum, t) => {
-      const event = events.find((e) => e.id === t.eventId);
+      const event = events.find((e) => e.id === t.event_id || e.id === t.eventId);
       return sum + (event?.price || 0);
     }, 0);
   const activeEventsCount = events.filter((e) => new Date(e.date) >= new Date()).length;
@@ -151,16 +163,30 @@ const AdminDashboard = () => {
   const [eventForm, setEventForm] = useState<Partial<Event>>({});
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleSaveEvent = () => {
-    if (editingEventId) {
-      setEvents((prev) =>
-        prev.map((e) => (e.id === editingEventId ? { ...e, ...eventForm } as Event : e))
-      );
-      toast.success("Événement mis à jour.");
-    } else {
-      const newEvent: Event = {
-        id: String(Date.now()),
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      const res = await EventsAPI.uploadImage(formData);
+      setEventForm(p => ({ ...p, image_url: res.imageUrl, image: res.imageUrl }));
+      toast.success("Image chargée avec succès !");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Échec de l'upload");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSaveEvent = async () => {
+    try {
+      const payload: any = {
         title: eventForm.title || "Nouvel événement",
         description: eventForm.description || "",
         date: eventForm.date || new Date().toISOString().split("T")[0],
@@ -168,23 +194,36 @@ const AdminDashboard = () => {
         location: eventForm.location || "",
         price: eventForm.price || 0,
         currency: "FCFA",
-        image: "",
-        category: (eventForm.category as Event["category"]) || "soirée",
+        image_url: eventForm.image || eventForm.image_url || "",
+        category: eventForm.category || "soirée",
         capacity: eventForm.capacity || 100,
-        ticketsSold: 0,
-        whatsappNumber: eventForm.whatsappNumber || "+24177757383",
+        whatsapp_number: eventForm.whatsapp_number || "+241077617776",
       };
-      setEvents((prev) => [...prev, newEvent]);
-      toast.success("Nouvel événement créé.");
+
+      if (editingEventId) {
+        await EventsAPI.update(editingEventId, payload);
+        toast.success("Événement mis à jour.");
+      } else {
+        await EventsAPI.create(payload);
+        toast.success("Nouvel événement créé.");
+      }
+      refetchEvents();
+      setEventForm({});
+      setEditingEventId(null);
+      setEventDialogOpen(false);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Erreur lors de la sauvegarde.");
     }
-    setEventForm({});
-    setEditingEventId(null);
-    setEventDialogOpen(false);
   };
 
-  const handleDeleteEvent = (id: string) => {
-    setEvents((prev) => prev.filter((e) => e.id !== id));
-    toast.info("Événement supprimé.");
+  const handleDeleteEvent = async (id: string) => {
+    try {
+      await EventsAPI.delete(id);
+      toast.info("Événement supprimé.");
+      refetchEvents();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Erreur de suppression.");
+    }
   };
 
   const handleEditEvent = (event: Event) => {
@@ -198,90 +237,92 @@ const AdminDashboard = () => {
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [confirmValidateOpen, setConfirmValidateOpen] = useState(false);
   
-  const validateTicket = (id: string) => {
-    setTickets(prev => prev.map(t => t.id === id ? { ...t, status: 'validé' as const } : t));
-    const ticket = tickets.find(t => t.id === id);
-    const evt = events.find(e => e.id === ticket?.eventId);
-    if (ticket && evt) {
-       setTicketToPrint({
-        id: ticket.id,
-        name: ticket.name,
-        phone: ticket.phone,
-        eventTitle: evt.title,
-        eventDate: new Date(evt.date).toLocaleDateString('fr-FR'),
-        eventTime: evt.time,
-        eventLocation: evt.location,
-        qrCode: ticket.qrCode
-      });
+  const validateTicket = async (id: string) => {
+    try {
+      await TicketsAPI.updateStatus(id, "validé");
+      const ticket = tickets.find(t => t.id === id);
+      const evt = events.find(e => e.id === (ticket?.event_id || ticket?.eventId));
+      if (ticket && evt) {
+         // No local generation, the email is sent by the backend
+      }
+      refetchTickets();
+      setConfirmValidateOpen(false);
+      setShowTicketModal(false);
+      toast.success("Réservation validée ! Le client va recevoir son billet par mail.");
+    } catch (err: any) {
+       toast.error(err.response?.data?.message || "Erreur de validation.");
     }
-    setConfirmValidateOpen(false);
-    setShowTicketModal(false);
-    toast.success("Réservation validée ! Le client va recevoir son billet par mail.");
   };
 
-  const cancelTicket = (id: string) => {
-    setTickets(prev => prev.map(t => t.id === id ? { ...t, status: 'annulé' as const } : t));
-    toast.info("Réservation annulée.");
-    setShowTicketModal(false);
+  const cancelTicket = async (id: string) => {
+    try {
+      await TicketsAPI.updateStatus(id, "annulé");
+      refetchTickets();
+      toast.info("Réservation annulée.");
+      setShowTicketModal(false);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Erreur lors de l'annulation.");
+    }
   };
 
   // Ticket form
   const [ticketDialogOpen, setTicketDialogOpen] = useState(false);
   const [ticketForm, setTicketForm] = useState({ name: "", email: "", phone: "", eventId: "" });
 
-  const handleAddTicket = () => {
-    const newId = `TK-${String(tickets.length + 1).padStart(3, "0")}`;
-    const newQr = `NFL-${ticketForm.eventId}-${newId}-2026`;
-    const newTicket: Ticket = {
-      id: newId,
-      eventId: ticketForm.eventId,
-      name: ticketForm.name,
-      email: ticketForm.email,
-      phone: ticketForm.phone,
-      qrCode: newQr,
-      status: "validé",
-      createdAt: new Date().toISOString().split("T")[0],
-    };
-    setTickets((prev) => [...prev, newTicket]);
-    
-    const evt = events.find(e => e.id === ticketForm.eventId);
-    if (evt) {
-      setTicketToPrint({
-        id: newId,
-        name: ticketForm.name,
+  const handleAddTicket = async () => {
+    try {
+      const payload = {
+        event_id: ticketForm.eventId,
+        full_name: ticketForm.name,
+        email: ticketForm.email,
         phone: ticketForm.phone,
-        eventTitle: evt.title,
-        eventDate: new Date(evt.date).toLocaleDateString('fr-FR'),
-        eventTime: evt.time,
-        eventLocation: evt.location,
-        qrCode: newQr
-      });
-    }
+        payer_phone: ticketForm.phone,
+      };
+      
+      const newTicket = await TicketsAPI.create(payload);
+      // Automatically validate it to send email
+      await TicketsAPI.updateStatus(newTicket.id, "validé");
+      
+      refetchTickets();
+      
+      const evt = events.find(e => e.id === ticketForm.eventId);
+      if (evt) {
+        // No local generation
+        toast.success("Réservation créée !");
+      }
 
-    setTicketForm({ name: "", email: "", phone: "", eventId: "" });
-    setTicketDialogOpen(false);
+      setTicketForm({ name: "", email: "", phone: "", eventId: "" });
+      setTicketDialogOpen(false);
+    } catch (err: any) {
+       toast.error(err.response?.data?.message || "Erreur de création du ticket externe");
+    }
   };
 
-  const handleScanLogic = (code: string) => {
-    const ticketIndex = tickets.findIndex((t) => t.qrCode === code);
-    if (ticketIndex === -1) {
-      setScanResult("❌ Ticket non trouvé");
-    } else {
-      const ticket = tickets[ticketIndex];
-      if (ticket.status === "utilisé") {
-        setScanResult("⚠️ Ticket déjà utilisé");
-      } else if (ticket.status === "annulé") {
-        setScanResult("❌ Ticket annulé");
-      } else if (ticket.status === "soumis") {
-        setScanResult("⏳ Réservation non validée");
+  const handleScanLogic = async (code: string) => {
+    setScanResult("⏳ Vérification...");
+    try {
+      const response = await TicketsAPI.validate(code);
+      
+      if (response.valid) {
+        const ticket = response.ticket;
+        const evt = ticket.events; // Le backend renvoie events si inclus
+        setScanResult(`✅ ACCÈS VALIDE — ${ticket.full_name || ticket.name}\n${evt?.title || "Événement"}`);
+        toast.success("Validation d'entrée réussie ! 🎟️");
+        
+        // Rafraîchir la liste pour voir le statut "utilisé"
+        refetchTickets();
+        
+        // Optionnel : masquer le résultat après 5s
+        setTimeout(() => setScanResult(null), 5000);
       } else {
-        setTickets((prev) =>
-          prev.map((t) => (t.id === ticket.id ? { ...t, status: "utilisé" as const } : t))
-        );
-        const event = events.find((e) => e.id === ticket.eventId);
-        setScanResult(`✅ Valide — ${ticket.name} pour "${event?.title}"`);
-        toast.success("Validation d'entrée réussie !");
+        setScanResult(`❌ ${response.message}`);
+        toast.error(response.message);
       }
+    } catch (err: any) {
+      console.error("Scan error:", err);
+      const msg = err.response?.data?.message || "Format de QR Code invalide ou erreur réseau.";
+      setScanResult(`❌ ${msg}`);
+      toast.error(msg);
     }
   };
 
@@ -292,10 +333,12 @@ const AdminDashboard = () => {
 
   const filteredTickets = useMemo(() => {
     return tickets.filter((t) => {
-      const matchesSearch = t.name.toLowerCase().includes(searchTicket.toLowerCase()) ||
+      const nameMatch = t.full_name || t.name || "";
+      const matchesSearch = nameMatch.toLowerCase().includes(searchTicket.toLowerCase()) ||
                            t.id.toLowerCase().includes(searchTicket.toLowerCase()) ||
-                           t.qrCode.toLowerCase().includes(searchTicket.toLowerCase());
-      const matchesEvent = filterEvent === "all" || t.eventId === filterEvent;
+                           (t.qr_code_data || t.qrCode || "").toLowerCase().includes(searchTicket.toLowerCase());
+      const eventIdMatch = t.event_id || t.eventId;
+      const matchesEvent = filterEvent === "all" || eventIdMatch === filterEvent;
       const matchesStatus = filterStatus === "all" || t.status === filterStatus;
       return matchesSearch && matchesEvent && matchesStatus;
     }).reverse();
@@ -311,12 +354,7 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col md:flex-row shadow-inner overflow-hidden">
       
-      {/* Hidden Ticket Template for PDF Generation */}
-      {ticketToPrint && (
-        <div style={{ position: "absolute", left: "-9999px", top: "-9999px" }}>
-          <TicketTemplate ref={ticketRef} ticket={ticketToPrint} />
-        </div>
-      )}
+      {/* Ticket design now unified on backend */}
 
       {/* Sidebar - Desktop & Mobile Drawer */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border text-sidebar-foreground flex flex-col transition-transform duration-300 transform ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 md:static md:h-screen md:sticky md:top-0`}>
@@ -418,11 +456,11 @@ const AdminDashboard = () => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {tickets.slice(-6).reverse().map((ticket) => {
-                    const event = events.find((e) => e.id === ticket.eventId);
+                    const event = events.find((e) => e.id === (ticket.event_id || ticket.eventId));
                     return (
                       <div key={ticket.id} className="p-5 rounded-2xl bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-all cursor-pointer" onClick={() => { setSelectedTicket(ticket); setShowTicketModal(true); }}>
                         <div className="flex justify-between items-start mb-3">
-                           <p className="font-bold text-foreground truncate max-w-[150px]">{ticket.name}</p>
+                           <p className="font-bold text-foreground truncate max-w-[150px]">{ticket.full_name || ticket.name}</p>
                            <Badge className={
                               ticket.status === "validé" ? "bg-green-500/10 text-green-600" :
                               ticket.status === "soumis" ? "bg-orange-500/10 text-orange-600" :
@@ -459,6 +497,7 @@ const AdminDashboard = () => {
                       <DialogTitle className="font-display text-2xl text-gold">
                         {editingEventId ? "Modifier l'événement" : "Créer un événement"}
                       </DialogTitle>
+                      <DialogDescription className="sr-only">Formulaire d'événement</DialogDescription>
                     </DialogHeader>
                     {/* Event Form Content ... same as before but prettier inputs */}
                      <div className="space-y-5 pt-4">
@@ -509,10 +548,43 @@ const AdminDashboard = () => {
                         </div>
                         <div className="space-y-2">
                           <Label className="text-xs uppercase tracking-widest font-bold">WhatsApp (+241...)</Label>
-                          <Input value={eventForm.whatsappNumber || ""} onChange={(e) => setEventForm((p) => ({ ...p, whatsappNumber: e.target.value }))} className="rounded-xl h-12 bg-secondary/20" />
+                          <Input value={eventForm.whatsapp_number || ""} onChange={(e) => setEventForm((p) => ({ ...p, whatsapp_number: e.target.value }))} className="rounded-xl h-12 bg-secondary/20" />
                         </div>
                       </div>
-                      <Button variant="gold" className="w-full h-14 text-base rounded-2xl mt-6 shadow-xl shadow-gold/20 font-bold" onClick={handleSaveEvent}>
+                      <div className="space-y-2">
+                         <Label className="text-xs uppercase tracking-widest font-bold">Affiche de l'événement</Label>
+                         <div className="relative group w-full h-48 border-2 border-dashed border-gold/40 rounded-3xl overflow-hidden hover:border-gold hover:bg-gold/5 transition-all text-center flex flex-col items-center justify-center cursor-pointer">
+                           <Input 
+                             type="file" 
+                             accept="image/*" 
+                             onChange={handleImageUpload} 
+                             disabled={isUploading} 
+                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                           />
+                           
+                           {isUploading ? (
+                             <div className="flex flex-col items-center text-gold animate-pulse">
+                               <UploadCloud className="w-10 h-10 mb-2" />
+                               <span className="font-semibold text-sm">Upload en cours...</span>
+                             </div>
+                           ) : eventForm.image_url ? (
+                             <>
+                               <img src={eventForm.image_url} alt="Aperçu" className="w-full h-full object-cover" />
+                               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white z-0 pointer-events-none">
+                                 <ImagePlus className="w-8 h-8 mb-2 drop-shadow-lg" />
+                                 <span className="font-semibold text-sm drop-shadow-lg">Changer l'image</span>
+                               </div>
+                             </>
+                           ) : (
+                             <div className="flex flex-col items-center text-muted-foreground p-4">
+                               <UploadCloud className="w-10 h-10 mb-3 text-gold/60" />
+                               <span className="font-semibold text-sm">Cliquez ou glissez une image ici</span>
+                               <span className="text-xs mt-1 opacity-70">JPEG, PNG recommandés</span>
+                             </div>
+                           )}
+                         </div>
+                      </div>
+                      <Button disabled={isUploading} variant="gold" className="w-full h-14 text-base rounded-2xl mt-6 shadow-xl shadow-gold/20 font-bold" onClick={handleSaveEvent}>
                         {editingEventId ? "Enregistrer les modifications" : "Valider la création"}
                       </Button>
                     </div>
@@ -577,6 +649,7 @@ const AdminDashboard = () => {
                   <DialogContent className="sm:max-w-[450px] rounded-3xl p-8">
                     <DialogHeader>
                       <DialogTitle className="font-display text-2xl text-gold">Émettre un Billet</DialogTitle>
+                      <DialogDescription className="sr-only">Formulaire pour créer un ticket</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-5 pt-4 text-left">
                        <div className="space-y-2">
@@ -652,13 +725,13 @@ const AdminDashboard = () => {
                     </thead>
                     <tbody className="divide-y divide-border/30">
                       {filteredTickets.map((ticket) => {
-                        const event = events.find((e) => e.id === ticket.eventId);
+                        const event = events.find((e) => e.id === (ticket.event_id || ticket.eventId));
                         return (
                           <tr key={ticket.id} className="group hover:bg-secondary/10 transition-colors cursor-pointer" onClick={() => { setSelectedTicket(ticket); setShowTicketModal(true); }}>
                             <td className="px-8 py-5 font-mono text-gold font-bold">{ticket.id}</td>
                             <td className="px-8 py-5 text-center">
-                              <div className="font-bold text-foreground text-base">{ticket.name}</div>
-                              <div className="text-xs text-muted-foreground mt-0.5">{ticket.phone}</div>
+                              <div className="font-bold text-foreground text-base">{ticket.full_name || ticket.name}</div>
+                              <div className="text-xs text-muted-foreground mt-0.5">{ticket.payer_phone || ticket.phone}</div>
                             </td>
                             <td className="px-8 py-5">
                                <div className="max-w-[200px] truncate font-medium">{event?.title}</div>
@@ -675,11 +748,11 @@ const AdminDashboard = () => {
                             </td>
                             <td className="px-8 py-5 text-right">
                               {ticket.status === 'validé' ? (
-                                <Button variant="ghost" size="icon" className="text-gold rounded-full hover:bg-gold/10" onClick={(e) => {
+                                <Button variant="ghost" size="icon" className="text-gold rounded-full hover:bg-gold/10" disabled={isDownloading === ticket.id} onClick={(e) => {
                                   e.stopPropagation();
-                                  if (event) setTicketToPrint({ ...ticket, eventTitle: event.title, eventDate: new Date(event.date).toLocaleDateString(), eventTime: event.time, eventLocation: event.location });
+                                  downloadTicket(ticket.id);
                                 }}>
-                                  <Download className="h-5 w-5" />
+                                  <Download className={`h-5 w-5 ${isDownloading === ticket.id ? 'animate-bounce' : ''}`} />
                                 </Button>
                               ) : ticket.status === 'soumis' ? (
                                 <div className="flex items-center justify-end gap-2">
@@ -790,7 +863,7 @@ const AdminDashboard = () => {
         <DialogContent className="sm:max-w-[500px] rounded-[30px] p-8 border-gold/10">
           <DialogHeader>
              <DialogTitle className="font-display text-2xl text-gold mb-2">Détail du Billet</DialogTitle>
-             <p className="text-sm text-muted-foreground">ID Unique: {selectedTicket?.id}</p>
+             <DialogDescription className="text-sm text-muted-foreground">ID Unique: {selectedTicket?.id}</DialogDescription>
           </DialogHeader>
            {selectedTicket && (
             <div className="space-y-6 pt-6">
@@ -813,7 +886,7 @@ const AdminDashboard = () => {
                   </div>
                   <div className="col-span-2">
                     <Label className="text-[10px] uppercase font-bold tracking-widest opacity-50">Événement</Label>
-                    <p className="font-semibold text-foreground">{events.find(e => e.id === selectedTicket.eventId)?.title}</p>
+                    <p className="font-semibold text-foreground">{events.find(e => e.id === (selectedTicket.event_id || selectedTicket.eventId))?.title}</p>
                   </div>
                </div>
 
@@ -824,12 +897,9 @@ const AdminDashboard = () => {
                     </Button>
                   )}
                   {selectedTicket.status === 'validé' && (
-                     <Button variant="secondary" className="flex-1 h-12 rounded-xl" onClick={() => {
-                        const evt = events.find(e => e.id === selectedTicket.eventId);
-                        if(evt) setTicketToPrint({...selectedTicket, eventTitle: evt.title, eventDate: new Date(evt.date).toLocaleDateString(), eventTime: evt.time, eventLocation: evt.location});
-                     }}>
-                      <Download className="mr-2 h-5 w-5" /> Télécharger PDF
-                    </Button>
+                      <Button variant="secondary" className="flex-1 h-12 rounded-xl" disabled={isDownloading === selectedTicket.id} onClick={() => downloadTicket(selectedTicket.id)}>
+                        <Download className={`mr-2 h-5 w-5 ${isDownloading === selectedTicket.id ? 'animate-bounce' : ''}`} /> Télécharger PDF
+                      </Button>
                   )}
                   {selectedTicket.status !== 'annulé' && (
                     <Button variant="outline" className="h-12 rounded-xl px-4 border-destructive/20 text-destructive hover:bg-destructive/10" onClick={() => cancelTicket(selectedTicket.id)}>
@@ -850,10 +920,10 @@ const AdminDashboard = () => {
            </div>
            <DialogHeader>
               <DialogTitle className="font-display text-2xl text-center">Confirmer la Validation</DialogTitle>
-              <p className="text-muted-foreground pt-4 leading-relaxed">
-                 En validant, le client **{selectedTicket?.name}** recevra automatiquement son billet électronique par email. 
+              <DialogDescription className="text-muted-foreground pt-4 leading-relaxed">
+                 En validant, le client **{selectedTicket?.full_name || selectedTicket?.name}** recevra automatiquement son billet électronique par email. 
                  Voulez-vous continuer ?
-              </p>
+              </DialogDescription>
            </DialogHeader>
            <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-8">
               <Button variant="ghost" className="rounded-xl flex-1 h-12" onClick={() => setConfirmValidateOpen(false)}>Annuler</Button>
