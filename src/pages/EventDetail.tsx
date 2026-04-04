@@ -58,25 +58,34 @@ const EventDetail = () => {
 
   const totalAmount = useMemo(() => (event?.price || 0) * quantity, [event?.price, quantity]);
 
+  // Gére la taille du tableau des participants
   useEffect(() => {
     setParticipants((prev) => {
-      const next = Array.from({ length: quantity }, (_, idx) => ({
+      if (prev.length === quantity) return prev;
+      return Array.from({ length: quantity }, (_, idx) => ({
         fullName: prev[idx]?.fullName ?? "",
         email: prev[idx]?.email ?? "",
       }));
-      // On remplit le premier participant avec le nom du payeur s'il est encore vide
-      if (payerName.trim() && !next[0].fullName.trim()) {
-        next[0].fullName = payerName.trim();
-      }
-      return next;
     });
-  }, [quantity, payerName]);
+  }, [quantity]);
+
+  const handleStep2 = () => {
+    // Pré-remplit le 1er participant avec le nom du payeur s'il est encore vide
+    if (payerName.trim() && !participants[0]?.fullName.trim()) {
+      setParticipants(prev => {
+        const next = [...prev];
+        next[0].fullName = payerName.trim();
+        return next;
+      });
+    }
+    setStep(2);
+  };
 
   const updateParticipant = (index: number, field: "fullName" | "email", value: string) => {
     setParticipants((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
   };
 
-  const isStep2Valid = payerPhone.trim().length > 0 && participants.every((p) => p.fullName.trim().length > 0 && p.email.trim().length > 0);
+  const isStep2Valid = payerName.trim().length > 0 && payerPhone.trim().length > 0 && participants.every((p) => p.fullName.trim().length > 0 && p.email.trim().length > 0);
 
   if (isEventLoading) {
     return (
@@ -156,10 +165,17 @@ const EventDetail = () => {
                       `Merci de valider ma commande dès réception du transfert.`;
 
       const encodedMessage = encodeURIComponent(message);
-      const whatsappNumber = (event as any).whatsapp_number || "241077617776";
-      const cleanNumber = whatsappNumber.replace(/\D/g, "");
-      const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodedMessage}`;
+      let whatsappNumber = (event as any).whatsapp_number || "24177617776";
+      
+      // Nettoyage : si ça commence par 2410, on enlève le 0
+      let cleanNumber = whatsappNumber.replace(/\D/g, "");
+      if (cleanNumber.startsWith("2410")) {
+        cleanNumber = "241" + cleanNumber.substring(4);
+      } else if (cleanNumber.startsWith("0")) {
+        cleanNumber = "241" + cleanNumber.substring(1);
+      }
 
+      const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodedMessage}`;
       window.open(whatsappUrl, "_blank");
       
       setTimeout(() => {
@@ -271,30 +287,32 @@ const EventDetail = () => {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="qty">Nombre de places (1 à 10)</Label>
-                        <Input id="qty" type="number" min={1} max={10} value={quantity} onChange={(e) => setQuantity(Math.min(10, Math.max(1, Number(e.target.value) || 1)))} />
+                        <Input id="qty" type="number" min={1} max={10} value={quantity} onChange={(e) => setQuantity(Math.min(10, Math.max(1, Number(e.target.value) || 1)))} className="max-w-[120px]" />
                       </div>
-                      <Button variant="gold" className="w-full h-12 rounded-xl" onClick={() => setStep(2)}>
-                        Continuer vers le paiement
+                      <div className="glass-card border border-gold/10 rounded-2xl p-4 space-y-3 bg-[#32140c]/5">
+                        <p className="text-sm uppercase tracking-wide text-gold font-semibold text-center sm:text-left font-display">Informations du payeur</p>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Nom complet du payeur</Label>
+                            <Input placeholder="Ex: Jean Mboulou" value={payerName} onChange={(e) => setPayerName(e.target.value)} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Numéro WhatsApp du payeur *</Label>
+                            <Input placeholder="+241 07 76 17 776" value={payerPhone} onChange={(e) => setPayerPhone(e.target.value)} required />
+                          </div>
+                        </div>
+                      </div>
+                      <Button variant="gold" className="w-full h-12 rounded-xl font-bold shadow-lg shadow-gold/20" onClick={handleStep2}>
+                        Continuer vers les participants
                       </Button>
                     </div>
                   )}
 
                   {step === 2 && (
                     <div className="space-y-5 animate-fade-in">
-                      <h3 className="font-display text-2xl font-bold">Étape 2 : Payeur + participants</h3>
+                      <h3 className="font-display text-2xl font-bold">Étape 2 : Participants</h3>
                       <div className="glass-card border border-gold/20 rounded-2xl p-4 space-y-3">
-                        <p className="text-sm uppercase tracking-wide text-gold font-semibold">A. Informations du payeur</p>
-                        <div className="space-y-2">
-                          <Label>Numéro de téléphone du payeur *</Label>
-                          <Input placeholder="+241 07 76 17 776" value={payerPhone} onChange={(e) => setPayerPhone(e.target.value)} required />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Nom complet du payeur (optionnel)</Label>
-                          <Input placeholder="Ex: Jean Mboulou" value={payerName} onChange={(e) => setPayerName(e.target.value)} />
-                        </div>
-                      </div>
-                      <div className="glass-card border border-gold/20 rounded-2xl p-4 space-y-3">
-                        <p className="text-sm uppercase tracking-wide text-gold font-semibold">B. Participants</p>
+                        <p className="text-sm uppercase tracking-wide text-gold font-semibold">Bénéficiaires des places</p>
                         <p className="text-sm text-muted-foreground">Vous avez choisi <strong>{quantity}</strong> place(s).</p>
                         <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
                           {participants.map((participant, index) => (

@@ -10,7 +10,7 @@ import heroImage1 from "@/assets/nfl img 4.jpeg";
 import heroImage2 from "@/assets/nfl img 5.jpeg";
 import heroImage3 from "@/assets/nfl img 6.jpeg";
 import heroImage4 from "@/assets/nfl img3.jpeg";
-import louisePhoto from "@/assets/louise photo.jpeg";
+import louisePhoto from "@/assets/louise2.jpeg";
 import tourismeImage from "@/assets/nfl-tourisme.jpg";
 import voyageImage from "@/assets/voyages-nfl-img.avif";
 import logistiqueImage from "@/assets/logistique-nfl.webp";
@@ -90,12 +90,12 @@ const Index = () => {
             <div className="grid lg:grid-cols-5 gap-8 items-center">
               <div className="lg:col-span-2">
                 <div className="rounded-3xl overflow-hidden border border-gold/20 shadow-xl">
-                  <img src={louisePhoto} alt="Louise Odyll Ongoum" className="w-full h-[420px] object-cover" />
+                  <img src={louisePhoto} alt="LOUISE AUDYLL Ongoum" className="w-full h-[420px] object-cover" />
                 </div>
               </div>
               <div className="lg:col-span-3">
                 <h2 className="font-display text-4xl font-bold text-foreground">
-                  A propos de <span className="text-gradient-gold">NFL</span>
+                  Qui <span className="text-gradient-gold">sommes nous ?</span>
                 </h2>
                 <p className="text-muted-foreground text-lg mt-5 leading-relaxed">
                   NFL Courtier & Service accompagne les entreprises, institutions et particuliers
@@ -103,7 +103,7 @@ const Index = () => {
                   est d'offrir un service fiable, clair et bien exécuté, du cadrage initial jusqu'à la livraison finale.
                 </p>
                 <p className="text-muted-foreground mt-4 leading-relaxed">
-                  Sous l'impulsion de <strong>Louise Odyll Ongoum</strong>, l'équipe développe une
+                  Sous l'impulsion de <strong>LOUISE AUDYLL Ongoum</strong>, l'équipe développe une
                   approche orientée terrain : écoute client, coordination rigoureuse et suivi de qualité.
                 </p>
               </div>

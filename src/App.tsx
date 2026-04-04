@@ -10,7 +10,14 @@ import AdminDashboard from "./pages/AdminDashboard.tsx";
 import AdminLogin from "./pages/AdminLogin.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 120000,
+      gcTime: 300000,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

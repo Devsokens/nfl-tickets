@@ -29,7 +29,9 @@ import {
   UploadCloud,
   ImagePlus,
   X,
-  Mail as MailIcon
+  Mail as MailIcon,
+  Activity,
+  Image as ImageIcon
 } from "lucide-react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -173,30 +175,32 @@ const AdminDashboard = () => {
 
   const handleSaveEvent = async () => {
     try {
-      const payload: any = {
+      const payload = {
         title: eventForm.title || "Sans titre",
         description: eventForm.description || "",
         date: eventForm.date || new Date().toISOString().split("T")[0],
         time: eventForm.time || "20:00",
-        location: eventForm.location || "",
+        location: eventForm.location || "Lieu non précisé",
         price: eventForm.price || 0,
         currency: "FCFA",
         image_url: eventForm.image || eventForm.image_url || "",
         category: eventForm.category || "soirée",
         capacity: eventForm.capacity || 100,
-        whatsapp_number: eventForm.whatsapp_number || "",
+        whatsapp_number: eventForm.whatsapp_number || "24177617776",
       };
+
       if (editingEventId) {
         await EventsAPI.update(editingEventId, payload);
-        toast.success("Mis à jour.");
+        toast.success("Événement mis à jour.");
       } else {
         await EventsAPI.create(payload);
-        toast.success("Créé.");
+        toast.success("Événement créé avec succès.");
       }
       refetchEvents();
       setEventDialogOpen(false);
     } catch (err: any) {
-      toast.error("Erreur de sauvegarde.");
+      console.error("Save error:", err);
+      toast.error("Erreur lors de la sauvegarde.");
     }
   };
 
@@ -252,9 +256,14 @@ const AdminDashboard = () => {
   }, [events, tickets]);
  
   const ticketsByStatus = useMemo(() => {
-    const statusCounts: Record<string, number> = { pending: 0, confirmed: 0, cancelled: 0, validated: 0 };
+    const statusCounts: Record<string, number> = { "En attente": 0, "Confirmé": 0, "Annulé": 0, "Validé": 0 };
     tickets.forEach(t => {
-      const s = t.status === 'validé' || t.status === 'validated' ? 'validated' : t.status === 'confirmé' || t.status === 'confirmed' ? 'confirmed' : t.status === 'annulé' || t.status === 'cancelled' ? 'cancelled' : 'pending';
+      const statusValue = (t.status || "").toLowerCase();
+      let s = "En attente";
+      if (statusValue === 'validé' || statusValue === 'validated') s = "Validé";
+      else if (statusValue === 'confirmé' || statusValue === 'confirmed') s = "Confirmé";
+      else if (statusValue === 'annulé' || statusValue === 'cancelled') s = "Annulé";
+      
       if (statusCounts[s] !== undefined) statusCounts[s]++;
     });
     return Object.entries(statusCounts).map(([name, value]) => ({ name, value }));
@@ -315,14 +324,22 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col md:flex-row overflow-hidden text-foreground">
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border flex flex-col transition-transform md:translate-x-0 md:static md:h-screen ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#32140c] border-r border-sidebar-border flex flex-col transition-transform md:translate-x-0 md:static md:h-screen ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="h-28 flex items-center justify-between px-6 border-b border-sidebar-border bg-[#32140c]">
           <Link to="/"><img src={nflLogo} alt="NFL" className="h-20 w-auto" /></Link>
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMobileMenuOpen(false)}><X className="h-6 w-6" /></Button>
         </div>
         <nav className="flex-1 px-4 py-8 flex flex-col gap-2">
           {tabs.map((tab) => (
-            <button key={tab.key} onClick={() => { setActiveTab(tab.key); setIsMobileMenuOpen(false); }} className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-medium transition-all ${activeTab === tab.key ? "bg-primary text-primary-foreground shadow-lg" : "text-sidebar-foreground/60 hover:bg-sidebar-accent/20"}`}>
+            <button 
+              key={tab.key} 
+              onClick={() => { setActiveTab(tab.key); setIsMobileMenuOpen(false); }} 
+              className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all ${
+                activeTab === tab.key 
+                  ? "bg-gold text-[#32140c] shadow-lg shadow-gold/20" 
+                  : "text-white/60 hover:bg-white/10 hover:text-white"
+              }`}
+            >
               {tab.icon} <span>{tab.label}</span>
             </button>
           ))}
@@ -388,7 +405,7 @@ const AdminDashboard = () => {
                   </Button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {tickets.slice(-6).reverse().map((ticket) => {
+                  {tickets.slice(-3).reverse().map((ticket) => {
                     const event = events.find((e) => e.id === (ticket.event_id || ticket.eventId));
                     return (
                       <div key={ticket.id} className="p-5 rounded-2xl bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-all cursor-pointer group relative" onClick={() => { setSelectedTicket(ticket); setShowTicketModal(true); }}>
@@ -528,18 +545,112 @@ const AdminDashboard = () => {
         </div>
       </main>
 
-      <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}><DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-[500px]">
-        <div className="space-y-4 pt-4">
-          <Label>Titre</Label><Input value={eventForm.title || ""} onChange={(e) => setEventForm(p => ({ ...p, title: e.target.value }))} />
-          <Label>Date</Label><Input type="date" value={eventForm.date || ""} onChange={(e) => setEventForm(p => ({ ...p, date: e.target.value }))} />
-          <Label>Lieu</Label><Input value={eventForm.location || ""} onChange={(e) => setEventForm(p => ({ ...p, location: e.target.value }))} />
-          <Label>Prix</Label><Input type="number" value={eventForm.price || 0} onChange={(e) => setEventForm(p => ({ ...p, price: Number(e.target.value) }))} />
-          <Label>Affiche</Label><Input type="file" onChange={handleImageUpload} />
-          <Button variant="gold" className="w-full h-12 mt-6" onClick={handleSaveEvent} disabled={isUploading}>Enregistrer</Button>
+      <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}><DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px] rounded-[30px] p-8 border-gold/10">
+        <DialogTitle className="text-2xl font-bold text-foreground">Événement</DialogTitle>
+        <DialogDescription>
+          Créez ou modifiez un événement pour le catalogue NFL.
+        </DialogDescription>
+        <div className="space-y-6 pt-4">
+          <div className="space-y-2"><Label>Titre</Label><Input placeholder="Titre de l'événement" value={eventForm.title || ""} onChange={(e) => setEventForm(p => ({ ...p, title: e.target.value }))} /></div>
+          <div className="space-y-2"><Label>Description</Label><Textarea placeholder="Détails de l'événement..." value={eventForm.description || ""} onChange={(e) => setEventForm(p => ({ ...p, description: e.target.value }))} className="min-h-[100px]" /></div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2"><Label>Date</Label><Input type="date" value={eventForm.date || ""} onChange={(e) => setEventForm(p => ({ ...p, date: e.target.value }))} /></div>
+            <div className="space-y-2"><Label>Heure du début</Label>
+              <Select value={eventForm.time || "20:00"} onValueChange={(v) => setEventForm(p => ({ ...p, time: v }))}>
+                <SelectTrigger><SelectValue placeholder="Choisir l'heure" /></SelectTrigger>
+                <SelectContent className="max-h-[200px]">
+                  {Array.from({ length: 32 }, (_, i) => {
+                    const hour = Math.floor(i / 2) + 8;
+                    const min = i % 2 === 0 ? "00" : "30";
+                    const time = `${hour.toString().padStart(2, '0')}:${min}`;
+                    return <SelectItem key={time} value={time}>{time}</SelectItem>;
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2"><Label>Lieu</Label><Input placeholder="Ex: Radisson Blu" value={eventForm.location || ""} onChange={(e) => setEventForm(p => ({ ...p, location: e.target.value }))} /></div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2"><Label>Prix (XAF)</Label><Input type="number" value={eventForm.price || 0} onChange={(e) => setEventForm(p => ({ ...p, price: Number(e.target.value) }))} /></div>
+            <div className="space-y-2"><Label>Capacité (Places)</Label><Input type="number" value={eventForm.capacity || 100} onChange={(e) => setEventForm(p => ({ ...p, capacity: Number(e.target.value) }))} /></div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2"><Label>Catégorie</Label>
+              <Select value={eventForm.category || "soirée"} onValueChange={(v) => setEventForm(p => ({ ...p, category: v }))}>
+                <SelectTrigger><SelectValue placeholder="Catégorie" /></SelectTrigger>
+                <SelectContent><SelectItem value="soirée">Soirée</SelectItem><SelectItem value="conférence">Conférence</SelectItem><SelectItem value="atelier">Atelier</SelectItem><SelectItem value="concert">Concert</SelectItem></SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2"><Label>WhatsApp Contact</Label><Input placeholder="+241077617776" value={eventForm.whatsapp_number || ""} onChange={(e) => setEventForm(p => ({ ...p, whatsapp_number: e.target.value }))} /></div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Affiche / Image de l'événement</Label>
+            <div 
+              className={`relative border-2 border-dashed rounded-2xl p-8 transition-all flex flex-col items-center justify-center gap-3 cursor-pointer group
+                ${isUploading ? "bg-muted/50 border-gold/20" : "bg-gold/5 border-gold/20 hover:border-gold hover:bg-gold/10"}`}
+              onClick={() => document.getElementById("event-image")?.click()}
+            >
+              <input 
+                id="event-image" 
+                type="file" 
+                className="hidden" 
+                onChange={handleImageUpload} 
+                accept="image/*"
+              />
+              {isUploading ? (
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gold"></div>
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-3 w-full h-full min-h-[160px]">
+                  {eventForm.image_url ? (
+                    <div className="relative w-full h-full flex flex-col items-center gap-2">
+                      <img 
+                        src={eventForm.image_url} 
+                        alt="Aperçu" 
+                        className="w-full max-h-[200px] object-contain rounded-xl shadow-lg border border-gold/20"
+                      />
+                      <p className="text-gold font-bold text-sm bg-[#32140c] px-3 py-1 rounded-full border border-gold/30">Cliquer pour changer l'affiche</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <ImageIcon className="w-8 h-8 text-gold" />
+                      </div>
+                      <div className="text-center">
+                        <p className="font-bold text-lg">Cliquez ou glissez l'affiche ici</p>
+                        <p className="text-xs text-muted-foreground mt-1">PNG, JPG ou JPEG (Max. 5Mo)</p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+              {eventForm.image_url && !isUploading && (
+                <div className="absolute top-2 right-2 bg-gold text-[#32140c] text-[10px] font-bold px-2 py-1 rounded-full uppercase">Prêt</div>
+              )}
+            </div>
+          </div>
+          
+          <Button 
+            variant="gold" 
+            className="w-full h-16 mt-4 text-xl font-bold shadow-2xl shadow-gold/30 rounded-2xl group relative overflow-hidden" 
+            onClick={handleSaveEvent} 
+            disabled={isUploading || !eventForm.title}
+          >
+            <span className="relative z-10">{editingEventId ? "Mettre à jour l'événement" : "Publier l'événement"}</span>
+            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+          </Button>
         </div>
       </DialogContent></Dialog>
 
       <Dialog open={ticketDialogOpen} onOpenChange={setTicketDialogOpen}><DialogContent className="sm:max-w-[400px]">
+        <DialogTitle className="text-xl font-bold">Nouvelle inscription</DialogTitle>
+        <DialogDescription>
+          Inscrire manuellement un participant à un événement.
+        </DialogDescription>
         <div className="space-y-4 pt-4">
           <Label>Événement</Label>
           <Select value={ticketForm.eventId} onValueChange={(v) => setTicketForm(p => ({ ...p, eventId: v }))}>
@@ -553,6 +664,10 @@ const AdminDashboard = () => {
       </DialogContent></Dialog>
 
       <Dialog open={showTicketModal} onOpenChange={setShowTicketModal}><DialogContent className="sm:max-w-[450px]">
+         <DialogTitle className="text-xl font-bold">Détails du billet</DialogTitle>
+         <DialogDescription>
+           Consultez et gérez les informations de cette réservation.
+         </DialogDescription>
          {selectedTicket && <div className="space-y-6 pt-6">
             <div className="bg-secondary/20 p-6 rounded-2xl grid grid-cols-2 gap-4">
               <div><Label className="opacity-50 uppercase text-[10px] font-bold">Bénéficiaire</Label><p className="font-bold">{selectedTicket.full_name || selectedTicket.name}</p></div>
@@ -567,9 +682,11 @@ const AdminDashboard = () => {
 
       <Dialog open={confirmValidateOpen} onOpenChange={setConfirmValidateOpen}>
         <DialogContent className="sm:max-w-[400px] rounded-[30px] p-8 text-center bg-card border-gold/10">
+           <DialogTitle className="text-2xl font-bold text-foreground">Confirmer</DialogTitle>
+           <DialogDescription>
+             Voulez-vous valider cette réservation et envoyer le billet ?
+           </DialogDescription>
            <div className="w-16 h-16 bg-gold/10 text-gold rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-gold/10"><CheckCircle className="w-8 h-8" /></div>
-           <DialogHeader><DialogTitle className="text-2xl font-bold text-foreground">Confirmer</DialogTitle></DialogHeader>
-           <div className="py-4 text-muted-foreground">Voulez-vous valider cette réservation et envoyer le billet ?</div>
            <DialogFooter className="flex gap-2 pt-6">
               <Button variant="ghost" className="flex-1 rounded-xl h-12" onClick={() => setConfirmValidateOpen(false)}>Non, annuler</Button>
               <Button variant="gold" className="flex-1 font-bold rounded-xl h-12 shadow-lg shadow-gold/20" onClick={() => selectedTicket && validateTicket(selectedTicket.id)}>Oui, confirmer</Button>
