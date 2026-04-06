@@ -3,7 +3,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ArrowRight, ChevronDown, Rocket, ShieldCheck, Trophy, Users } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, ArrowRight, ChevronDown, Rocket, ShieldCheck, Trophy, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const FormationCard = ({ icon: Icon, title, subtitle, phrase, description, badge, phases, caseStudy }: any) => {
@@ -135,6 +136,12 @@ const FormationsPage = () => {
       
       <main className="flex-grow pt-32 pb-24">
         <div className="container mx-auto px-4">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 text-gold font-bold hover:text-gold-dark transition-all mb-12 bg-gold/5 px-6 py-2.5 rounded-full border border-gold/10 text-sm"
+          >
+            <ArrowLeft className="h-4 w-4" /> Retour à l'accueil
+          </Link>
           <div className="max-w-4xl mx-auto text-center mb-20 animate-fade-in">
             <h1 className="font-display text-5xl md:text-6xl font-bold mb-6">
               Nos Parcours de <span className="text-gradient-gold">Transformation</span>

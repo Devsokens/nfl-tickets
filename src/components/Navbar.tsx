@@ -69,13 +69,7 @@ const Navbar = () => {
           />
         </Link>
         <div className="hidden lg:flex items-center gap-6">
-          {!isHome && (
-            <Button variant="gold" size="sm" asChild className="rounded-full px-4 h-9 font-bold flex items-center gap-1">
-              <Link to="/">
-                <ArrowLeft className="h-4 w-4" /> Retour à l'accueil
-              </Link>
-            </Button>
-          )}
+
           <Link
             to="/"
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
@@ -114,11 +108,7 @@ const Navbar = () => {
                 <SheetTitle className="text-gold font-display font-bold text-2xl text-left">Navigation</SheetTitle>
                 <SheetDescription className="sr-only text-left">Menu de navigation mobile pour NFL Courtier & Service</SheetDescription>
               </SheetHeader>
-              {!isHome && (
-                <Link to="/" className="flex items-center gap-2 text-gold font-bold mb-4">
-                  <ArrowLeft className="h-5 w-5" /> Retour à l'accueil
-                </Link>
-              )}
+
               <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="text-lg font-bold uppercase tracking-wide text-primary-foreground hover:text-gold transition-colors">Accueil</Link>
               <button onClick={() => handleScroll("evenements")} className="text-lg font-bold uppercase tracking-wide text-left text-primary-foreground hover:text-gold transition-colors">Prochaines dates</button>
               <button onClick={() => handleScroll("evenements-passes")} className="text-lg font-bold uppercase tracking-wide text-left text-primary-foreground hover:text-gold transition-colors">Événements passés</button>

@@ -198,12 +198,20 @@ const EventDetail = () => {
       <Navbar />
 
       <main className="flex-1 container mx-auto px-4 py-10">
-        <Link
-          to="/events"
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
-        >
-          <ArrowLeft className="h-4 w-4" /> Voir tous les événements
-        </Link>
+        <div className="flex flex-wrap items-center gap-4 mb-6">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 text-gold font-bold hover:text-gold-dark transition-all bg-gold/5 px-4 py-2 rounded-full border border-gold/10 text-sm"
+          >
+            <ArrowLeft className="h-4 w-4" /> Retour à l'accueil
+          </Link>
+          <Link
+            to="/events"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Voir tous les événements
+          </Link>
+        </div>
         
         <div className="flex flex-col lg:flex-row gap-10">
           <div className="flex-1 lg:max-w-[800px] xl:max-w-[900px]">
