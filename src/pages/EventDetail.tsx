@@ -31,10 +31,6 @@ const EventDetail = () => {
     window.scrollTo(0, 0);
   }, []);
   
-  const threeDaysAgo = new Date();
-  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-  threeDaysAgo.setHours(0, 0, 0, 0);
-
   const { toast } = useToast();
   
   const { data: event, isLoading: isEventLoading, isError } = useQuery<Event>({
@@ -99,12 +95,12 @@ const EventDetail = () => {
     );
   }
 
-  if (isError || !event || new Date(event.date) < threeDaysAgo) {
+  if (isError || !event) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
         <div className="flex-1 container mx-auto px-4 py-20 text-center flex flex-col items-center justify-center">
-          <h1 className="font-display text-4xl font-bold mb-4">Événement introuvable ou expiré</h1>
+          <h1 className="font-display text-4xl font-bold mb-4">Événement introuvable</h1>
           <p className="text-muted-foreground mb-8">L'événement que vous cherchez n'existe pas ou n'est plus disponible.</p>
           <Button variant="gold" asChild>
             <Link to="/events">Retour au catalogue</Link>
@@ -262,7 +258,22 @@ const EventDetail = () => {
                 </div>
               </div>
 
-              {!isPast && (
+              {isPast ? (
+                <div className="bg-muted/30 p-8 rounded-3xl border border-dashed border-border flex flex-col items-center justify-center text-center gap-4 animate-fade-in shadow-inner">
+                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                    <Calendar className="h-8 w-8 text-muted-foreground opacity-50" />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-2xl font-bold text-foreground mb-2">Événement terminé</h3>
+                    <p className="text-muted-foreground max-w-sm">
+                      Cet événement a déjà eu lieu. Les inscriptions ne sont plus disponibles, mais vous pouvez consulter nos prochaines dates.
+                    </p>
+                  </div>
+                  <Button variant="outline" asChild className="rounded-full px-8 mt-2">
+                    <Link to="/events">Voir le catalogue complet</Link>
+                  </Button>
+                </div>
+              ) : (
                 <div className="bg-card p-6 rounded-3xl border border-border/50 shadow-sm space-y-6">
                   <div className="flex flex-wrap items-center gap-3">
                     {[1, 2, 3].map((n) => (

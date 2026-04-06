@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Calendar, MapPin, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { Event } from "@/lib/api";
 
 import nflImg1 from "@/assets/nfl img1.jpeg";
@@ -39,19 +40,18 @@ const EventCard = ({ event }: EventCardProps) => {
   const isPast = eventDate < new Date(new Date().setHours(0, 0, 0, 0));
 
   return (
-    <div className={`group block h-full ${isPast ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+    <div className="group block h-full cursor-pointer">
       <Link 
-        to={isPast ? "#" : `/event/${event.id}`} 
-        className={`block h-full ${isPast ? 'pointer-events-none' : ''}`}
-        onClick={(e) => isPast && e.preventDefault()}
+        to={`/event/${event.id}`} 
+        className="block h-full"
       >
-      <div className={`glass-card rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 h-full flex flex-col ${isPast ? 'opacity-80' : ''}`}>
+      <div className={`glass-card rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 h-full flex flex-col ${isPast ? 'grayscale-[20%] opacity-90' : ''}`}>
         <div className="relative h-52 shrink-0 overflow-hidden">
           <img
             src={image}
             alt={event.title}
             loading="lazy"
-            className={`w-full h-full object-contain bg-muted/30 transition-transform duration-500 group-hover:scale-105 ${isPast ? 'grayscale-[30%]' : ''}`}
+            className="w-full h-full object-contain bg-muted/30 transition-transform duration-500 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
           <div className="absolute top-3 left-3 flex gap-2">
@@ -83,14 +83,25 @@ const EventCard = ({ event }: EventCardProps) => {
               <span className="truncate">{event.location}</span>
             </div>
           </div>
-          <div className="flex items-center justify-between pt-3 border-t border-border/50 mt-auto">
-            <span className="text-gradient-gold font-display text-xl font-bold">
-              {event.price.toLocaleString()} {event.currency}
-            </span>
-            {!isPast && (
-              <span className="text-xs text-muted-foreground">
-                {event.capacity - (event.ticketsSold || 0)} places restantes
+          <div className="flex flex-col gap-4 pt-3 border-t border-border/50 mt-auto">
+            <div className="flex items-center justify-between">
+              <span className="text-gradient-gold font-display text-xl font-bold">
+                {event.price.toLocaleString()} {event.currency}
               </span>
+              {!isPast && (
+                <span className="text-xs text-muted-foreground">
+                  {event.capacity - (event.ticketsSold || 0)} places restantes
+                </span>
+              )}
+            </div>
+            {isPast ? (
+              <Button variant="outline" className="w-full border-gold/30 text-gold hover:bg-gold/10 rounded-xl">
+                Voir plus
+              </Button>
+            ) : (
+              <Button variant="gold" className="w-full rounded-xl shadow-lg shadow-gold/20 font-bold group-hover:scale-[1.02] transition-transform">
+                Réserver
+              </Button>
             )}
           </div>
         </div>

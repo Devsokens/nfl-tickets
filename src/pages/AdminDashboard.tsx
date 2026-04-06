@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, EventsAPI, TicketsAPI, NewsletterAPI, type Event, type Ticket } from "@/lib/api";
+import { api, EventsAPI, TicketsAPI, NewsletterAPI, ContactAPI, type Event, type Ticket } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -60,7 +60,52 @@ import {
 import { toast } from "sonner";
 import { Html5QrcodeScanner } from "html5-qrcode";
 
-type Tab = "dashboard" | "events" | "tickets" | "newsletter" | "scanner";
+type Tab = "dashboard" | "events" | "tickets" | "demandes" | "newsletter" | "scanner";
+
+const DemandesList = () => {
+  const { data: demandes = [], isLoading } = useQuery<any[]>({
+    queryKey: ["contacts"],
+    queryFn: ContactAPI.getAll,
+  });
+
+  if (isLoading) return <tr><td colSpan={4} className="text-center py-10 opacity-50">Chargement...</td></tr>;
+  if (demandes.length === 0) return <tr><td colSpan={4} className="text-center py-10 opacity-50">Aucune demande reçue.</td></tr>;
+
+  return (
+    <>
+      {demandes.map((d) => (
+        <tr key={d.id} className="hover:bg-muted/5 transition-colors group">
+          <td className="px-6 py-5">
+            <div className="font-bold text-foreground">{d.name}</div>
+            <div className="text-xs text-muted-foreground">{d.email}</div>
+            <div className="mt-2 text-gold font-semibold text-xs uppercase tracking-wider">{d.subject}</div>
+          </td>
+          <td className="px-6 py-5">
+            <p className="text-sm text-muted-foreground line-clamp-2 max-w-md group-hover:line-clamp-none transition-all">
+              {d.message}
+            </p>
+          </td>
+          <td className="px-6 py-5">
+            <div className="text-xs font-mono text-muted-foreground">
+              {new Date(d.created_at || Date.now()).toLocaleString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </div>
+          </td>
+          <td className="px-6 py-5">
+            <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/20 uppercase text-[10px]">
+              {d.status || 'En attente'}
+            </Badge>
+          </td>
+        </tr>
+      ))}
+    </>
+  );
+};
 
 const AdminDashboard = () => {
   const queryClient = useQueryClient();
@@ -318,7 +363,8 @@ const AdminDashboard = () => {
     { key: "dashboard", icon: <BarChart3 className="h-5 w-5" />, label: "Dashboard" },
     { key: "events", icon: <Calendar className="h-5 w-5" />, label: "Événements" },
     { key: "tickets", icon: <TicketIcon className="h-5 w-5" />, label: "Réservations" },
-    { key: "newsletter", icon: <MailIcon className="h-5 w-5" />, label: "Newsletter" },
+    { key: "demandes", icon: <MailIcon className="h-5 w-5" />, label: "Demandes" },
+    { key: "newsletter", icon: <Sparkles className="h-5 w-5" />, label: "Newsletter" },
     { key: "scanner", icon: <QrCode className="h-5 w-5" />, label: "Scanner QR" },
   ];
 
@@ -518,6 +564,29 @@ const AdminDashboard = () => {
             </div>
           )}
 
+          {activeTab === "demandes" && (
+            <div className="space-y-8 animate-fade-in max-w-7xl mx-auto">
+              <h2 className="text-2xl font-bold">Demandes de Contact</h2>
+              <div className="glass-card rounded-3xl border border-border/50 overflow-hidden shadow-2xl">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-secondary/20 uppercase text-[10px] tracking-widest text-muted-foreground">
+                      <tr>
+                        <th className="px-6 py-4">Client / Sujet</th>
+                        <th className="px-6 py-4">Message</th>
+                        <th className="px-6 py-4">Date</th>
+                        <th className="px-6 py-4">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/30">
+                      <DemandesList />
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === "newsletter" && (
             <div className="space-y-8 animate-fade-in max-w-7xl mx-auto">
               <h2 className="text-2xl font-bold">Newsletter</h2>
@@ -546,10 +615,12 @@ const AdminDashboard = () => {
       </main>
 
       <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}><DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px] rounded-[30px] p-8 border-gold/10">
-        <DialogTitle className="text-2xl font-bold text-foreground">Événement</DialogTitle>
-        <DialogDescription>
-          Créez ou modifiez un événement pour le catalogue NFL.
-        </DialogDescription>
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold text-foreground">Événement</DialogTitle>
+          <DialogDescription>
+            Créez ou modifiez un événement pour le catalogue NFL.
+          </DialogDescription>
+        </DialogHeader>
         <div className="space-y-6 pt-4">
           <div className="space-y-2"><Label>Titre</Label><Input placeholder="Titre de l'événement" value={eventForm.title || ""} onChange={(e) => setEventForm(p => ({ ...p, title: e.target.value }))} /></div>
           <div className="space-y-2"><Label>Description</Label><Textarea placeholder="Détails de l'événement..." value={eventForm.description || ""} onChange={(e) => setEventForm(p => ({ ...p, description: e.target.value }))} className="min-h-[100px]" /></div>
@@ -647,10 +718,12 @@ const AdminDashboard = () => {
       </DialogContent></Dialog>
 
       <Dialog open={ticketDialogOpen} onOpenChange={setTicketDialogOpen}><DialogContent className="sm:max-w-[400px]">
-        <DialogTitle className="text-xl font-bold">Nouvelle inscription</DialogTitle>
-        <DialogDescription>
-          Inscrire manuellement un participant à un événement.
-        </DialogDescription>
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold">Nouvelle inscription</DialogTitle>
+          <DialogDescription>
+            Inscrire manuellement un participant à un événement.
+          </DialogDescription>
+        </DialogHeader>
         <div className="space-y-4 pt-4">
           <Label>Événement</Label>
           <Select value={ticketForm.eventId} onValueChange={(v) => setTicketForm(p => ({ ...p, eventId: v }))}>
@@ -664,10 +737,12 @@ const AdminDashboard = () => {
       </DialogContent></Dialog>
 
       <Dialog open={showTicketModal} onOpenChange={setShowTicketModal}><DialogContent className="sm:max-w-[450px]">
-         <DialogTitle className="text-xl font-bold">Détails du billet</DialogTitle>
-         <DialogDescription>
-           Consultez et gérez les informations de cette réservation.
-         </DialogDescription>
+         <DialogHeader>
+           <DialogTitle className="text-xl font-bold">Détails du billet</DialogTitle>
+           <DialogDescription>
+             Consultez et gérez les informations de cette réservation.
+           </DialogDescription>
+         </DialogHeader>
          {selectedTicket && <div className="space-y-6 pt-6">
             <div className="bg-secondary/20 p-6 rounded-2xl grid grid-cols-2 gap-4">
               <div><Label className="opacity-50 uppercase text-[10px] font-bold">Bénéficiaire</Label><p className="font-bold">{selectedTicket.full_name || selectedTicket.name}</p></div>
@@ -682,10 +757,12 @@ const AdminDashboard = () => {
 
       <Dialog open={confirmValidateOpen} onOpenChange={setConfirmValidateOpen}>
         <DialogContent className="sm:max-w-[400px] rounded-[30px] p-8 text-center bg-card border-gold/10">
-           <DialogTitle className="text-2xl font-bold text-foreground">Confirmer</DialogTitle>
-           <DialogDescription>
-             Voulez-vous valider cette réservation et envoyer le billet ?
-           </DialogDescription>
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-foreground">Confirmer</DialogTitle>
+              <DialogDescription>
+                Voulez-vous valider cette réservation et envoyer le billet ?
+              </DialogDescription>
+            </DialogHeader>
            <div className="w-16 h-16 bg-gold/10 text-gold rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-gold/10"><CheckCircle className="w-8 h-8" /></div>
            <DialogFooter className="flex gap-2 pt-6">
               <Button variant="ghost" className="flex-1 rounded-xl h-12" onClick={() => setConfirmValidateOpen(false)}>Non, annuler</Button>

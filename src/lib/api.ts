@@ -134,3 +134,14 @@ export const AuthAPI = {
     return res.data;
   },
 };
+
+export const ContactAPI = {
+  send: async (contactData: { name: string; email: string; subject: string; message: string }) => {
+    const res = await api.post('/contact', contactData);
+    return res.data;
+  },
+  getAll: async () => {
+    const res = await api.get('/contact');
+    return res.data;
+  },
+};

@@ -36,21 +36,23 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           <div className="space-y-6">
-            <h3 className="font-display text-2xl font-bold text-gold">NFL</h3>
+            <h3 className="font-display text-2xl font-bold text-gold">NFL COURTIER & SERVICE</h3>
             <p className="text-primary-foreground/70 text-sm leading-relaxed">
-              Courtier &amp; Service au Gabon. Nous accompagnons les clients sur
-              l'événementiel, la mobilité, l'agence de voyage et les circuits touristiques.
+              Cabinet de formation et services événementiels. L'exigence du résultat pour vos équipes et vos événements.
             </p>
           </div>
 
           <div className="space-y-6">
             <h4 className="font-semibold text-lg hover:text-gold transition-colors duration-300">Navigation</h4>
             <ul className="space-y-4 text-sm text-primary-foreground/70">
-              <li><Link to="/" className="hover:text-gold transition-colors block">Accueil</Link></li>
-              <li><Link to="/events" className="hover:text-gold transition-colors block">Événements</Link></li>
-              <li><button onClick={() => document.getElementById('seminaires')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-gold transition-colors text-left">Séminaires</button></li>
-              <li><button onClick={() => document.getElementById('voyage')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-gold transition-colors text-left">Agence de voyage</button></li>
-              <li><Link to="/admin/login" className="hover:text-gold transition-colors block">Connexion Admin</Link></li>
+              <li><button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-gold transition-colors block">Accueil</button></li>
+              <li><button onClick={() => document.getElementById('evenements')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-gold transition-colors text-left">Prochaines dates</button></li>
+              <li><button onClick={() => document.getElementById('evenements-passes')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-gold transition-colors text-left">Événements passés</button></li>
+              <li><button onClick={() => document.getElementById('formations')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-gold transition-colors text-left">Formations Privées</button></li>
+              <li><button onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-gold transition-colors text-left">FAQ</button></li>
+              <li><button onClick={() => document.getElementById('biographie')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-gold transition-colors text-left">Biographie</button></li>
+              <li><button onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-gold transition-colors text-left">Contact</button></li>
+              <li><Link to="/admin/login" className="hover:text-gold transition-colors block text-gold/60">Connexion Admin</Link></li>
             </ul>
           </div>
 
