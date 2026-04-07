@@ -161,7 +161,7 @@ const EventDetail = () => {
                       `Merci de valider ma commande dès réception du transfert.`;
 
       const encodedMessage = encodeURIComponent(message);
-      let whatsappNumber = (event as any).whatsapp_number || "24177617776";
+      let whatsappNumber = (event as any).whatsapp_number || "24166692338";
       
       // Nettoyage : si ça commence par 2410, on enlève le 0
       let cleanNumber = whatsappNumber.replace(/\D/g, "");
@@ -375,8 +375,8 @@ const EventDetail = () => {
                       <div className="rounded-2xl border border-gold/20 p-4 bg-card space-y-2">
                         <p className="font-semibold">Instructions de paiement</p>
                         <p className="text-sm text-muted-foreground">Veuillez effectuer le paiement du montant total via Airtel Money ou Moov Money.</p>
-                        <p className="text-sm"><strong>Numéro marchand Airtel :</strong> 077757383</p>
-                        <p className="text-sm"><strong>Numéro marchand Moov :</strong> 066692338</p>
+                        <p className="text-sm"><strong>Numéro Airtel (Paiement) :</strong> 077 57 73 83</p>
+                        <p className="text-sm"><strong>Numéro Moov (Paiement) :</strong> 066 69 23 38</p>
                       </div>
                       {paymentPending && (
                         <div className="rounded-2xl border border-gold/30 bg-gold/10 p-4 flex items-start gap-3">

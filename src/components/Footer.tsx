@@ -61,11 +61,11 @@ const Footer = () => {
             <ul className="space-y-4 text-sm text-primary-foreground/70">
               <li className="flex gap-3">
                 <Phone className="w-5 h-5 text-gold shrink-0" />
-                <span>+241 077 61 77 76</span>
+                <span>+241 066 69 23 38</span>
               </li>
               <li className="flex gap-3">
                 <Mail className="w-5 h-5 text-gold shrink-0" />
-                <span>contact@nfl-gabon.com</span>
+                <a href="mailto:seminaireslao@outlook.fr" className="hover:text-gold transition-colors">seminaireslao@outlook.fr</a>
               </li>
               <li className="flex gap-3">
                 <MapPin className="w-5 h-5 text-gold shrink-0" />

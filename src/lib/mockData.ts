@@ -41,7 +41,7 @@ export const mockEvents: Event[] = [
     category: "soirée",
     capacity: 150,
     ticketsSold: 61,
-    whatsappNumber: "+241077617776",
+    whatsappNumber: "+241066692338",
   },
   {
     id: "2",
@@ -56,7 +56,7 @@ export const mockEvents: Event[] = [
     category: "conférence",
     capacity: 250,
     ticketsSold: 94,
-    whatsappNumber: "+241077617776",
+    whatsappNumber: "+241066692338",
   },
   {
     id: "3",
@@ -71,7 +71,7 @@ export const mockEvents: Event[] = [
     category: "atelier",
     capacity: 50,
     ticketsSold: 38,
-    whatsappNumber: "+241077617776",
+    whatsappNumber: "+241066692338",
   },
   {
     id: "4",
@@ -86,7 +86,7 @@ export const mockEvents: Event[] = [
     category: "conférence",
     capacity: 300,
     ticketsSold: 167,
-    whatsappNumber: "+241077617776",
+    whatsappNumber: "+241066692338",
   },
   {
     id: "5",
@@ -101,7 +101,7 @@ export const mockEvents: Event[] = [
     category: "soirée",
     capacity: 100,
     ticketsSold: 57,
-    whatsappNumber: "+241077617776",
+    whatsappNumber: "+241066692338",
   },
 ];
 

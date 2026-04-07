@@ -352,7 +352,7 @@ const AdminDashboard = () => {
 
   const handleAddTicket = async () => {
     try {
-      const payload = { event_id: ticketForm.eventId, full_name: ticketForm.name, email: ticketForm.email, phone: ticketForm.phone, payer_phone: ticketForm.phone };
+      const payload = { event_id: ticketForm.eventId, full_name: ticketForm.name, email: ticketForm.email, phone: ticketForm.phone || "066692338", payer_phone: ticketForm.phone || "066692338" };
       const newTicket = await TicketsAPI.create(payload);
       await TicketsAPI.updateStatus(newTicket.id, "validé");
       refetchTickets();
