@@ -38,6 +38,8 @@ import {
   PieChart, Pie, Cell, Legend 
 } from 'recharts';
 import nflLogo from "@/assets/Logo_NFL_fond_marron-removebg-preview.png";
+import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Dialog,
@@ -57,7 +59,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner";
 import { Html5QrcodeScanner } from "html5-qrcode";
 
 type Tab = "dashboard" | "events" | "tickets" | "demandes" | "newsletter" | "scanner";
@@ -136,6 +137,36 @@ const AdminDashboard = () => {
   const [filterEvent, setFilterEvent] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [isDownloading, setIsDownloading] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Écouter les mises à jour en temps réel sur la table 'events' (Newsletter Status)
+    const channel = supabase
+      .channel('events-newsletter-status')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'events',
+        },
+        (payload: any) => {
+          const { new: newRow, old: oldRow } = payload;
+          // Si le statut passe de n'importe quoi à 'sent'
+          if (newRow.newsletter_status === 'sent' && oldRow.newsletter_status !== 'sent') {
+            toast.success(`Mails d'invitation aux newsletters pour l'événement "${newRow.title}" envoyés avec succès !`, {
+              duration: 5000,
+              position: 'bottom-center'
+            });
+            refetchEvents(); // Rafraîchir les données pour voir le nouveau statut si besoin
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refetchEvents]);
 
   useEffect(() => {
     let scanner: Html5QrcodeScanner | null = null;
@@ -239,7 +270,7 @@ const AdminDashboard = () => {
         toast.success("Événement mis à jour.");
       } else {
         await EventsAPI.create(payload);
-        toast.success("Événement créé avec succès.");
+        toast.success("Événement créé. Les invitations newsletter seront envoyées en arrière-plan.");
       }
       refetchEvents();
       setEventDialogOpen(false);

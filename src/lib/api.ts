@@ -38,7 +38,7 @@ export interface Ticket {
 const rawApiUrl = import.meta.env.VITE_API_URL || 'https://backend-nfl.onrender.com/api';
 // Sécurité pour éviter le suffixe /docs qui est réservé à Swagger
 const API_URL = rawApiUrl.endsWith('/docs') ? rawApiUrl.replace('/docs', '/api') : rawApiUrl;
-console.log("🚀 L'application utilise l'API à l'adresse :", API_URL);
+
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -50,7 +50,7 @@ export const api = axios.create({
 // Intercepteur pour ajouter le token JWT s'il existe
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('nfl_token');
-  console.log("Token JWT intercepté :", token ? "OUI (" + token.substring(0, 15) + "...)" : "NON");
+
   if (token) {
     if (!config.headers) {
       config.headers = {} as any;
