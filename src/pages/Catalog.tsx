@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Helmet } from "react-helmet-async";
 
 const Catalog = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -52,6 +53,10 @@ const Catalog = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <Helmet>
+        <title>Catalogue des Événements & Masterclass | NFL Courtier & Service</title>
+        <meta name="description" content="Explorez notre catalogue d'événements exclusifs au Gabon. Réservez vos tickets pour nos masterclass sur la vente, le leadership et le management." />
+      </Helmet>
       <Navbar />
 
       <main className="flex-1 container mx-auto px-4 pt-32 pb-24">

@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import ReactMarkdown from 'react-markdown';
+import { Helmet } from "react-helmet-async";
 
 import nflImg1 from "@/assets/nfl img1.jpeg";
 import nflImg2 from "@/assets/nfl img2.jpeg";
@@ -157,7 +158,7 @@ const EventDetail = () => {
                       `*Détails de ma réservation :*\n` +
                       `- *Date* : ${formattedDate}\n` +
                       `- *Montant total* : ${totalAmount.toLocaleString()} FCFA\n` +
-                      `- *Numéro de paiement* : ${payerPhone}\n\n` +
+                      `- *Payeur* : ${payerName} (${payerPhone})\n\n` +
                       `*Participants :*\n${participantList}\n\n` +
                       `Merci de valider ma commande dès réception du transfert.`;
 
@@ -196,6 +197,13 @@ const EventDetail = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <Helmet>
+        <title>{event ? `${event.title} | NFL Courtier & Service` : 'Événement | NFL Courtier & Service'}</title>
+        <meta name="description" content={event ? `${event.description?.substring(0, 160)}...` : 'Découvrez les détails de cet événement NFL Courtier & Service au Gabon.'} />
+        <meta property="og:title" content={event?.title} />
+        <meta property="og:description" content={event?.description?.substring(0, 160)} />
+        <meta property="og:image" content={event?.image_url || '/favicon.jpg'} />
+      </Helmet>
       <Navbar />
 
       <main className="flex-1 container mx-auto px-4 py-10">

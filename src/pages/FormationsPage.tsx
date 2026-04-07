@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { ArrowLeft, ArrowRight, ChevronDown, Rocket, ShieldCheck, Trophy, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -132,6 +133,10 @@ const FormationsPage = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <Helmet>
+        <title>Formations & Accompagnement Stratégique au Gabon | NFL Courtier & Service</title>
+        <meta name="description" content="Découvrez nos programmes de formation en vente, leadership et management au Gabon. Accompagnement sur mesure pour vos équipes et directions commerciales." />
+      </Helmet>
       <Navbar />
       
       <main className="flex-grow pt-32 pb-24">

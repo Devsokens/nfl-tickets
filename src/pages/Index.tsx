@@ -14,6 +14,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
+import { Helmet } from "react-helmet-async";
 
 import heroImage0 from "@/assets/nfl img2.jpeg";
 import heroImage1 from "@/assets/nfl img 4.jpeg";
@@ -164,6 +165,48 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <Helmet>
+        <title>NFL Courtier & Service — Accueil | Billetterie & Formations au Gabon</title>
+        <meta name="description" content="Bienvenue chez NFL Courtier & Service. Découvrez nos prochains événements, masterclass et services de formation pour les entreprises au Gabon." />
+        <script type="application/ld+json">
+          {`
+            {
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "NFL Courtier & Service",
+              "url": "https://nfl-ga.com",
+              "logo": "https://nfl-ga.com/favicon.jpg",
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "telephone": "+241 066 69 23 38",
+                "contactType": "customer service",
+                "email": "seminaireslao@outlook.fr",
+                "areaServed": "GA",
+                "availableLanguage": "French"
+              },
+              "sameAs": [
+                "https://www.facebook.com/nflgabon"
+              ]
+            }
+          `}
+        </script>
+        <script type="application/ld+json">
+          {`
+            {
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "url": "https://nfl-ga.com",
+              "name": "NFL-GA",
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": "https://nfl-ga.com/events?q={search_term_string}",
+                "query-input": "required name=search_term_string"
+              }
+            }
+          `}
+        </script>
+      </Helmet>
+
       {/* 1. TOP BANNER */}
       <div className="bg-gradient-to-r from-gold-dark via-gold to-gold-light text-primary font-bold text-center py-2.5 text-sm uppercase tracking-[0.2em] animate-fade-in shadow-md relative z-50">
         SEMINAIRES LAO devient "NFL"
