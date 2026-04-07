@@ -11,6 +11,7 @@ import { Calendar, MapPin, ArrowLeft, Clock, CheckCircle2, Phone } from "lucide-
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import ReactMarkdown from 'react-markdown';
 
 import nflImg1 from "@/assets/nfl img1.jpeg";
 import nflImg2 from "@/assets/nfl img2.jpeg";
@@ -230,7 +231,19 @@ const EventDetail = () => {
               <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
                   <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4 leading-tight">{event.title}</h1>
-                  <p className="text-xl text-muted-foreground leading-relaxed">{event.description}</p>
+                  <div className="text-xl text-muted-foreground leading-relaxed markdown-content">
+                    <ReactMarkdown 
+                      components={{
+                        p: ({node, ...props}) => <p className="mb-4 last:mb-0" {...props} />,
+                        ul: ({node, ...props}) => <ul className="list-disc pl-6 mb-4 space-y-2" {...props} />,
+                        ol: ({node, ...props}) => <ol className="list-decimal pl-6 mb-4 space-y-2" {...props} />,
+                        li: ({node, ...props}) => <li className="pl-1" {...props} />,
+                        strong: ({node, ...props}) => <strong className="font-bold text-foreground" {...props} />
+                      }}
+                    >
+                      {event.description}
+                    </ReactMarkdown>
+                  </div>
                 </div>
                 <div className="shrink-0 text-left md:text-right">
                   <p className="text-gradient-gold font-display text-4xl font-bold mb-1">
