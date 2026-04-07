@@ -148,7 +148,7 @@ const EventDetail = () => {
       );
 
       toast({
-        title: "Réservation enregistrée ! ✅",
+        title: "Réservation enregistrée !",
         description: "Redirection vers WhatsApp pour confirmer votre paiement...",
       });
 
