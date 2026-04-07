@@ -173,11 +173,11 @@ const EventDetail = () => {
       }
 
       const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodedMessage}`;
-      window.open(whatsappUrl, "_blank");
       
+      // Redirection après un léger délai pour laisser le toast s'afficher
       setTimeout(() => {
-        navigate("/");
-      }, 500);
+        window.location.href = whatsappUrl;
+      }, 1500);
 
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || "Erreur lors de la réservation. Cet e-mail est peut-être déjà utilisé.";
