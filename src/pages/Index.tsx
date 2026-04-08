@@ -274,10 +274,14 @@ const Index = () => {
               ref={scrollRefUpcoming}
               onMouseEnter={() => setIsHoveredUpcoming(true)}
               onMouseLeave={() => setIsHoveredUpcoming(false)}
-              className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-6 -mx-4 px-4 scrollbar-hide"
+              className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-8 -mx-4 px-4 scrollbar-hide"
             >
               {homeUpcomingEvents.map((event, i) => (
-                <div key={event.id} className="animate-fade-in min-w-[85%] snap-start sm:min-w-[60%] md:min-w-[45%] lg:min-w-[23%] flex-shrink-0" style={{ animationDelay: `${Math.min(i * 80, 300)}ms` }}>
+                <div 
+                  key={event.id} 
+                  className="animate-fade-in w-[85vw] snap-center sm:w-auto sm:min-w-[60%] md:min-w-[45%] lg:min-w-[23%] flex-shrink-0" 
+                  style={{ animationDelay: `${Math.min(i * 80, 300)}ms` }}
+                >
                   <EventCard event={event} />
                 </div>
               ))}
@@ -297,14 +301,18 @@ const Index = () => {
             ref={scrollRefPast}
             onMouseEnter={() => setIsHoveredPast(true)}
             onMouseLeave={() => setIsHoveredPast(false)}
-            className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-6 -mx-4 px-4 scrollbar-hide"
+            className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-8 -mx-4 px-4 scrollbar-hide"
           >
             {homePastEvents.map((event, i) => (
-              <div key={event.id} className="animate-fade-in min-w-[85%] snap-start sm:min-w-[60%] md:min-w-[45%] lg:min-w-[23%] flex-shrink-0" style={{ animationDelay: `${Math.min(i * 80, 300)}ms` }}>
+              <div 
+                key={event.id} 
+                className="animate-fade-in w-[85vw] snap-center sm:w-auto sm:min-w-[60%] md:min-w-[45%] lg:min-w-[23%] flex-shrink-0" 
+                style={{ animationDelay: `${Math.min(i * 80, 300)}ms` }}
+              >
                 <EventCard event={event} />
               </div>
             ))}
-            <div className="animate-fade-in min-w-[85%] snap-start sm:min-w-[60%] md:min-w-[45%] lg:min-w-[23%] flex-shrink-0 flex items-center justify-center">
+            <div className="animate-fade-in w-[85vw] snap-center sm:w-auto sm:min-w-[60%] md:min-w-[45%] lg:min-w-[23%] flex-shrink-0 flex items-center justify-center">
               <Link to="/events" className="w-full h-full glass-card group p-8 rounded-3xl border border-gold/10 hover:border-gold/40 flex flex-col items-center justify-center text-center gap-5 transition-all duration-300 hover:shadow-xl hover:shadow-gold/5 min-h-[350px]">
                 <div className="w-16 h-16 rounded-full bg-gold/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-gold/2 transition-all duration-300">
                   <ArrowRight className="h-7 w-7 text-gold" />

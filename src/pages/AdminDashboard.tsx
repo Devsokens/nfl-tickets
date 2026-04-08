@@ -31,7 +31,8 @@ import {
   X,
   Mail as MailIcon,
   Activity,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Loader2
 } from "lucide-react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -137,6 +138,7 @@ const AdminDashboard = () => {
   const [filterEvent, setFilterEvent] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [isDownloading, setIsDownloading] = useState<string | null>(null);
+  const [isValidating, setIsValidating] = useState(false);
 
   useEffect(() => {
     // Écouter les mises à jour en temps réel sur la table 'events' (Newsletter Status)
@@ -301,6 +303,7 @@ const AdminDashboard = () => {
   const [confirmValidateOpen, setConfirmValidateOpen] = useState(false);
   
   const validateTicket = async (id: string) => {
+    setIsValidating(true);
     try {
       await TicketsAPI.updateStatus(id, "validé");
       refetchTickets();
@@ -308,7 +311,9 @@ const AdminDashboard = () => {
       setShowTicketModal(false);
       toast.success("Billet validé !");
     } catch (err: any) {
-       toast.error("Erreur.");
+       toast.error("Erreur lors de la validation.");
+    } finally {
+      setIsValidating(false);
     }
   };
 
@@ -797,7 +802,18 @@ const AdminDashboard = () => {
            <div className="w-16 h-16 bg-gold/10 text-gold rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-gold/10"><CheckCircle className="w-8 h-8" /></div>
            <DialogFooter className="flex gap-2 pt-6">
               <Button variant="ghost" className="flex-1 rounded-xl h-12" onClick={() => setConfirmValidateOpen(false)}>Non, annuler</Button>
-              <Button variant="gold" className="flex-1 font-bold rounded-xl h-12 shadow-lg shadow-gold/20" onClick={() => selectedTicket && validateTicket(selectedTicket.id)}>Oui, confirmer</Button>
+              <Button 
+                variant="gold" 
+                className="flex-1 font-bold rounded-xl h-12 shadow-lg shadow-gold/20" 
+                onClick={() => selectedTicket && validateTicket(selectedTicket.id)}
+                disabled={isValidating}
+               >
+                 {isValidating ? (
+                   <Loader2 className="h-5 w-5 animate-spin mx-auto text-primary" />
+                 ) : (
+                   "Oui, confirmer"
+                 )}
+               </Button>
            </DialogFooter>
         </DialogContent>
       </Dialog>

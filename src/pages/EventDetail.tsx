@@ -177,6 +177,7 @@ const EventDetail = () => {
       
       // Redirection après un léger délai pour laisser le toast s'afficher
       setTimeout(() => {
+        navigate("/");
         window.location.href = whatsappUrl;
       }, 1500);
 
