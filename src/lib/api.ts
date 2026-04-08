@@ -17,6 +17,8 @@ export interface Event {
   capacity: number;
   ticketsSold?: number; // S'il y a une agrégation
   whatsapp_number?: string;
+  newsletter_status?: string;
+  send_newsletter?: boolean;
 }
 
 export interface Ticket {

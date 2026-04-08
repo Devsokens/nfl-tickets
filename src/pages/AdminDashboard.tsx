@@ -61,6 +61,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Html5QrcodeScanner } from "html5-qrcode";
+import { Switch } from "@/components/ui/switch";
 
 type Tab = "dashboard" | "events" | "tickets" | "demandes" | "newsletter" | "scanner";
 
@@ -139,6 +140,7 @@ const AdminDashboard = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [isDownloading, setIsDownloading] = useState<string | null>(null);
   const [isValidating, setIsValidating] = useState(false);
+  const [isSavingEvent, setIsSavingEvent] = useState(false);
 
   useEffect(() => {
     // Écouter les mises à jour en temps réel sur la table 'events' (Newsletter Status)
@@ -252,6 +254,7 @@ const AdminDashboard = () => {
   };
 
   const handleSaveEvent = async () => {
+    setIsSavingEvent(true);
     try {
       const payload = {
         title: eventForm.title || "Sans titre",
@@ -265,6 +268,7 @@ const AdminDashboard = () => {
         category: eventForm.category || "soirée",
         capacity: eventForm.capacity || 100,
         whatsapp_number: eventForm.whatsapp_number || "24177617776",
+        sendNewsletter: eventForm.send_newsletter === undefined ? true : eventForm.send_newsletter,
       };
 
       if (editingEventId) {
@@ -279,6 +283,8 @@ const AdminDashboard = () => {
     } catch (err: any) {
       console.error("Save error:", err);
       toast.error("Erreur lors de la sauvegarde.");
+    } finally {
+      setIsSavingEvent(false);
     }
   };
 
@@ -293,7 +299,7 @@ const AdminDashboard = () => {
   };
 
   const handleEditEvent = (event: Event) => {
-    setEventForm(event);
+    setEventForm({ ...event, send_newsletter: false });
     setEditingEventId(event.id);
     setEventDialogOpen(true);
   };
@@ -529,7 +535,7 @@ const AdminDashboard = () => {
             <div className="space-y-8 animate-fade-in max-w-7xl mx-auto">
               <div className="flex items-center justify-between gap-4">
                 <h2 className="text-2xl font-bold">Événements</h2>
-                <Button variant="gold" className="rounded-2xl h-12 px-6 shadow-xl" onClick={() => { setEventForm({}); setEditingEventId(null); setEventDialogOpen(true); }}>
+                <Button variant="gold" className="rounded-2xl h-12 px-6 shadow-xl" onClick={() => { setEventForm({ send_newsletter: true }); setEditingEventId(null); setEventDialogOpen(true); }}>
                   <Plus className="h-5 w-5 mr-2" /> Créer
                 </Button>
               </div>
@@ -741,13 +747,38 @@ const AdminDashboard = () => {
             </div>
           </div>
           
+          <div className="bg-gold/5 border border-gold/10 rounded-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Label className="text-base font-bold flex items-center gap-2">
+                  <MailIcon className="h-4 w-4 text-gold" /> Envoyer aux abonnés Newsletter
+                </Label>
+                <p className="text-xs text-muted-foreground">Les invitations seront envoyées dès la publication.</p>
+              </div>
+              <div className="flex items-center gap-3">
+                {eventForm.newsletter_status === 'sent' && (
+                  <Badge className="bg-green-500/20 text-green-500 border-green-500/30 font-bold uppercase text-[10px]">Déjà envoyé</Badge>
+                )}
+                <Switch 
+                  disabled={eventForm.newsletter_status === 'sent'}
+                  checked={eventForm.newsletter_status === 'sent' || (eventForm.send_newsletter === undefined ? true : eventForm.send_newsletter)}
+                  onCheckedChange={(checked) => setEventForm(p => ({ ...p, send_newsletter: checked }))}
+                />
+              </div>
+            </div>
+          </div>
+          
           <Button 
             variant="gold" 
             className="w-full h-16 mt-4 text-xl font-bold shadow-2xl shadow-gold/30 rounded-2xl group relative overflow-hidden" 
             onClick={handleSaveEvent} 
-            disabled={isUploading || !eventForm.title}
+            disabled={isUploading || isSavingEvent || !eventForm.title}
           >
-            <span className="relative z-10">{editingEventId ? "Mettre à jour l'événement" : "Publier l'événement"}</span>
+            {isSavingEvent ? (
+              <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary relative z-10" />
+            ) : (
+              <span className="relative z-10">{editingEventId ? "Mettre à jour l'événement" : "Publier l'événement"}</span>
+            )}
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
           </Button>
         </div>
