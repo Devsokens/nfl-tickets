@@ -859,14 +859,18 @@ const AdminDashboard = () => {
                 <Label className="text-base font-bold flex items-center gap-2">
                   <MailIcon className="h-4 w-4 text-gold" /> Envoyer aux abonnés Newsletter
                 </Label>
-                <p className="text-xs text-muted-foreground">Les invitations seront envoyées dès la publication.</p>
+                <p className="text-xs text-muted-foreground">
+                  {eventForm.status === 'brouillon' 
+                    ? "Publiez l'événement pour pouvoir envoyer la newsletter." 
+                    : "Les invitations seront envoyées dès la publication."}
+                </p>
               </div>
               <div className="flex items-center gap-3">
                 {eventForm.newsletter_status === 'sent' && (
                   <Badge className="bg-green-500/20 text-green-500 border-green-500/30 font-bold uppercase text-[10px]">Déjà envoyé</Badge>
                 )}
                 <Switch 
-                  disabled={eventForm.newsletter_status === 'sent'}
+                  disabled={eventForm.newsletter_status === 'sent' || eventForm.status === 'brouillon'}
                   checked={eventForm.newsletter_status === 'sent' || (eventForm.send_newsletter === undefined ? true : eventForm.send_newsletter)}
                   onCheckedChange={(checked) => setEventForm(p => ({ ...p, send_newsletter: checked }))}
                 />
