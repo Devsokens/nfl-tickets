@@ -19,6 +19,7 @@ export interface Event {
   whatsapp_number?: string;
   newsletter_status?: string;
   send_newsletter?: boolean;
+  status?: 'publié' | 'brouillon' | 'annulé';
 }
 
 export interface Ticket {

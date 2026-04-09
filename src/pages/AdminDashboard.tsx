@@ -141,36 +141,13 @@ const AdminDashboard = () => {
   const [isDownloading, setIsDownloading] = useState<string | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [isSavingEvent, setIsSavingEvent] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Le rafraîchissement des événements est géré manuellement après les actions de sauvegarde.
   useEffect(() => {
-    // Écouter les mises à jour en temps réel sur la table 'events' (Newsletter Status)
-    const channel = supabase
-      .channel('events-newsletter-status')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'events',
-        },
-        (payload: any) => {
-          const { new: newRow, old: oldRow } = payload;
-          // Si le statut passe de n'importe quoi à 'sent'
-          if (newRow.newsletter_status === 'sent' && oldRow.newsletter_status !== 'sent') {
-            toast.success(`Mails d'invitation aux newsletters pour l'événement "${newRow.title}" envoyés avec succès !`, {
-              duration: 5000,
-              position: 'bottom-center'
-            });
-            refetchEvents(); // Rafraîchir les données pour voir le nouveau statut si besoin
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [refetchEvents]);
+    refetchEvents();
+  }, [activeTab, refetchEvents]);
 
   useEffect(() => {
     let scanner: Html5QrcodeScanner | null = null;
@@ -244,19 +221,72 @@ const AdminDashboard = () => {
     formData.append('file', file);
     try {
       const res = await EventsAPI.uploadImage(formData);
-      setEventForm(p => ({ ...p, image_url: res.imageUrl, image: res.imageUrl }));
+      const newImageUrl = res.imageUrl;
+      setEventForm(p => ({ ...p, image_url: newImageUrl, image: newImageUrl }));
+      
+      // Auto-save the image update immediately if we have an ID
+      if (editingEventId) {
+        setAutoSaveStatus("saving");
+        await EventsAPI.update(editingEventId, { image_url: newImageUrl });
+        setAutoSaveStatus("saved");
+      }
+      
       toast.success("Image chargée !");
     } catch (err: any) {
       toast.error("Échec de l'upload");
+      setAutoSaveStatus("error");
     } finally {
       setIsUploading(false);
     }
   };
 
+  // Logic for Auto-save
+  useEffect(() => {
+    if (!editingEventId || !eventDialogOpen) return;
+
+    // We don't want to auto-save on the very first mount of the edit modal
+    // but we want to save on subsequent changes.
+    const triggerAutoSave = async () => {
+      setAutoSaveStatus("saving");
+      try {
+        const payload = {
+          title: eventForm.title || "Sans titre",
+          description: eventForm.description || "",
+          date: eventForm.date || new Date().toISOString().split("T")[0],
+          time: eventForm.time || "20:00",
+          location: eventForm.location || "Lieu non précisé",
+          price: eventForm.price || 0,
+          currency: "FCFA",
+          image_url: eventForm.image || eventForm.image_url || "",
+          category: eventForm.category || "soirée",
+          capacity: eventForm.capacity || 100,
+          whatsapp_number: eventForm.whatsapp_number || "24177617776",
+          status: eventForm.status || "brouillon",
+          sendNewsletter: false, // Don't trigger newsletter on autosave
+        };
+        await EventsAPI.update(editingEventId, payload);
+        setAutoSaveStatus("saved");
+      } catch (err: any) {
+        console.error("Autosave error:", err);
+        const errorMsg = err.response?.data?.message || err.message || "Erreur de sauvegarde";
+        setAutoSaveStatus("error");
+        // We don't toast on autosave to avoid spamming the user, 
+        // but we show the error in the badge.
+      }
+    };
+
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(triggerAutoSave, 1500);
+
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, [eventForm.title, eventForm.description, eventForm.date, eventForm.time, eventForm.location, eventForm.price, eventForm.category, eventForm.capacity, eventForm.whatsapp_number, eventForm.status]);
+
   const handleSaveEvent = async () => {
     setIsSavingEvent(true);
     try {
-      const payload = {
+      const payload: any = {
         title: eventForm.title || "Sans titre",
         description: eventForm.description || "",
         date: eventForm.date || new Date().toISOString().split("T")[0],
@@ -268,21 +298,66 @@ const AdminDashboard = () => {
         category: eventForm.category || "soirée",
         capacity: eventForm.capacity || 100,
         whatsapp_number: eventForm.whatsapp_number || "24177617776",
+        status: "publié", // Manual save means Publish
         sendNewsletter: eventForm.send_newsletter === undefined ? true : eventForm.send_newsletter,
       };
 
+      console.log("[DEBUG] Sending payload to update:", payload);
+
       if (editingEventId) {
-        await EventsAPI.update(editingEventId, payload);
-        toast.success("Événement mis à jour.");
+        try {
+          await EventsAPI.update(editingEventId, payload);
+          const successMsg = payload.sendNewsletter 
+            ? "Événement mis à jour et invitations envoyées !" 
+            : "Événement mis à jour.";
+          toast.success(successMsg);
+        } catch (err: any) {
+          console.error("[DEBUG] Update failed:", err.response?.data || err);
+          const errorDetail = err.response?.data?.message || err.message;
+          const finalMsg = Array.isArray(errorDetail) ? errorDetail.join(', ') : errorDetail;
+          alert("ERREUR CRITIQUE SERVEUR : " + finalMsg);
+          throw err; // Re-throw to be caught by the main catch
+        }
       } else {
+        // This case should normally not happen anymore because we create draft first
         await EventsAPI.create(payload);
-        toast.success("Événement créé. Les invitations newsletter seront envoyées en arrière-plan.");
+        toast.success("Événement créé et publié.");
       }
       refetchEvents();
       setEventDialogOpen(false);
     } catch (err: any) {
       console.error("Save error:", err);
-      toast.error("Erreur lors de la sauvegarde.");
+      const errorDetail = err.response?.data?.message || err.message;
+      const finalMsg = Array.isArray(errorDetail) ? errorDetail.join(', ') : errorDetail;
+      alert("MESSAGE DU SERVEUR : " + finalMsg);
+      toast.error(`Erreur lors de la publication : ${finalMsg}`);
+    } finally {
+      setIsSavingEvent(false);
+    }
+  };
+
+  const handleStartNewEvent = async () => {
+    setIsSavingEvent(true);
+    try {
+      const draftPayload = {
+        title: "Nouveau Brouillon",
+        status: "brouillon",
+        date: new Date().toISOString().split("T")[0],
+        time: "20:00",
+        location: "Lieu à préciser",
+        price: 0,
+        category: "soirée",
+        capacity: 100,
+        sendNewsletter: false,
+      };
+      
+      const newDraft = await EventsAPI.create(draftPayload);
+      setEditingEventId(newDraft.id);
+      setEventForm({ ...newDraft, send_newsletter: true });
+      setEventDialogOpen(true);
+      setAutoSaveStatus("saved");
+    } catch (err) {
+      toast.error("Impossible de créer le brouillon.");
     } finally {
       setIsSavingEvent(false);
     }
@@ -535,8 +610,9 @@ const AdminDashboard = () => {
             <div className="space-y-8 animate-fade-in max-w-7xl mx-auto">
               <div className="flex items-center justify-between gap-4">
                 <h2 className="text-2xl font-bold">Événements</h2>
-                <Button variant="gold" className="rounded-2xl h-12 px-6 shadow-xl" onClick={() => { setEventForm({ send_newsletter: true }); setEditingEventId(null); setEventDialogOpen(true); }}>
-                  <Plus className="h-5 w-5 mr-2" /> Créer
+                <Button variant="gold" disabled={isSavingEvent} className="rounded-2xl h-12 px-6 shadow-xl" onClick={handleStartNewEvent}>
+                  {isSavingEvent ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Plus className="h-5 w-5 mr-2" />} 
+                  Créer
                 </Button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -544,7 +620,12 @@ const AdminDashboard = () => {
                   <div key={event.id} className="glass-card rounded-3xl overflow-hidden border border-border/50 flex flex-col h-full hover:border-gold/30 transition-all">
                     <div className="h-32 bg-muted/20 relative">
                       {event.image_url ? <img src={event.image_url} alt="" className="h-full w-full object-cover" /> : <div className="h-full flex items-center justify-center opacity-20"><Calendar className="h-10 w-10 text-gold" /></div>}
-                      <Badge className="absolute top-3 left-3 bg-primary/20 text-white backdrop-blur-md">{event.category}</Badge>
+                      <div className="absolute top-3 left-3 flex flex-col gap-2">
+                        <Badge className="bg-primary/20 text-white backdrop-blur-md w-fit">{event.category}</Badge>
+                        {event.status === 'brouillon' && (
+                          <Badge className="bg-orange-500/80 text-white border-none w-fit">BROUILLON</Badge>
+                        )}
+                      </div>
                     </div>
                     <div className="p-6 flex-1 flex flex-col">
                       <div className="flex justify-between mb-4">
@@ -658,12 +739,45 @@ const AdminDashboard = () => {
 
       <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}><DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px] rounded-[30px] p-8 border-gold/10">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-foreground">Événement</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-foreground flex items-center justify-between">
+            <span>Événement</span>
+            <div className="flex items-center gap-2">
+              {autoSaveStatus === "saving" && <Badge variant="outline" className="animate-pulse text-xs py-0 h-5 border-gold/30 text-gold">Enregistrement...</Badge>}
+              {autoSaveStatus === "saved" && <Badge variant="outline" className="text-xs py-0 h-5 border-green-500/30 text-green-500">Brouillon enregistré</Badge>}
+              {autoSaveStatus === "error" && <Badge variant="outline" className="text-xs py-0 h-5 border-destructive/30 text-destructive text-[10px]">Erreur de sauvegarde</Badge>}
+            </div>
+          </DialogTitle>
           <DialogDescription>
-            Créez ou modifiez un événement pour le catalogue NFL.
+            {editingEventId ? `ID: ${editingEventId.split('-')[0].toUpperCase()}` : "Créez ou modifiez un événement."}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-6 pt-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2"><Label>Statut</Label>
+              <Select value={eventForm.status || "brouillon"} onValueChange={(v: any) => setEventForm(p => ({ ...p, status: v }))}>
+                <SelectTrigger className={eventForm.status === 'publié' ? 'border-green-500/50 text-green-500' : 'border-orange-500/50 text-orange-500'}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="brouillon" className="text-orange-500">Brouillon</SelectItem>
+                  <SelectItem value="publié" className="text-green-500">Publié / En ligne</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2"><Label>Catégorie</Label>
+              <Select value={eventForm.category || "soirée"} onValueChange={(v) => setEventForm(p => ({ ...p, category: v }))}>
+                <SelectTrigger><SelectValue placeholder="Catégorie" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="soirée">Soirée</SelectItem>
+                  <SelectItem value="conférence">Conférence</SelectItem>
+                  <SelectItem value="atelier">Atelier</SelectItem>
+                  <SelectItem value="concert">Concert</SelectItem>
+                  <SelectItem value="seminaire">Séminaire</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <div className="space-y-2"><Label>Titre</Label><Input placeholder="Titre de l'événement" value={eventForm.title || ""} onChange={(e) => setEventForm(p => ({ ...p, title: e.target.value }))} /></div>
           <div className="space-y-2"><Label>Description</Label><Textarea placeholder="Détails de l'événement..." value={eventForm.description || ""} onChange={(e) => setEventForm(p => ({ ...p, description: e.target.value }))} className="min-h-[100px]" /></div>
           
@@ -691,15 +805,7 @@ const AdminDashboard = () => {
             <div className="space-y-2"><Label>Capacité (Places)</Label><Input type="number" value={eventForm.capacity || 100} onChange={(e) => setEventForm(p => ({ ...p, capacity: Number(e.target.value) }))} /></div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2"><Label>Catégorie</Label>
-              <Select value={eventForm.category || "soirée"} onValueChange={(v) => setEventForm(p => ({ ...p, category: v }))}>
-                <SelectTrigger><SelectValue placeholder="Catégorie" /></SelectTrigger>
-                <SelectContent><SelectItem value="soirée">Soirée</SelectItem><SelectItem value="conférence">Conférence</SelectItem><SelectItem value="atelier">Atelier</SelectItem><SelectItem value="concert">Concert</SelectItem><SelectItem value="seminaire">Séminaire</SelectItem></SelectContent>
-              </Select>
-            </div>
             <div className="space-y-2"><Label>WhatsApp Contact</Label><Input placeholder="+241077617776" value={eventForm.whatsapp_number || ""} onChange={(e) => setEventForm(p => ({ ...p, whatsapp_number: e.target.value }))} /></div>
-          </div>
 
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Affiche / Image de l'événement</Label>
@@ -769,15 +875,17 @@ const AdminDashboard = () => {
           </div>
           
           <Button 
-            variant="gold" 
-            className="w-full h-16 mt-4 text-xl font-bold shadow-2xl shadow-gold/30 rounded-2xl group relative overflow-hidden" 
+            variant={eventForm.status === 'publié' ? "outline" : "gold"}
+            className={`w-full h-16 mt-4 text-xl font-bold shadow-2xl rounded-2xl group relative overflow-hidden ${eventForm.status === 'publié' ? 'border-green-500 text-green-500 hover:bg-green-50' : 'shadow-gold/30'}`} 
             onClick={handleSaveEvent} 
-            disabled={isUploading || isSavingEvent || !eventForm.title}
+            disabled={isUploading || isSavingEvent}
           >
             {isSavingEvent ? (
-              <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary relative z-10" />
+              <Loader2 className="h-6 w-6 animate-spin mx-auto relative z-10" />
             ) : (
-              <span className="relative z-10">{editingEventId ? "Mettre à jour l'événement" : "Publier l'événement"}</span>
+              <span className="relative z-10">
+                {eventForm.status === 'publié' ? "Mettre à jour la publication" : "Publier maintenant"}
+              </span>
             )}
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
           </Button>
