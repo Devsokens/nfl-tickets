@@ -23,7 +23,7 @@ const Catalog = () => {
 
   const { data: allEvents = [], isLoading } = useQuery<Event[]>({
     queryKey: ["allEvents"],
-    queryFn: EventsAPI.getAll,
+    queryFn: () => EventsAPI.getAll(),
   });
 
   const filteredAndSortedEvents = useMemo(() => {

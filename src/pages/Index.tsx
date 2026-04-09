@@ -49,7 +49,7 @@ const Index = () => {
   // Fetch ALL events (past and upcoming)
   const { data: allEvents = [], isLoading } = useQuery<Event[]>({
     queryKey: ["allEvents"],
-    queryFn: EventsAPI.getAll,
+    queryFn: () => EventsAPI.getAll(),
   });
 
   const today = new Date().setHours(0, 0, 0, 0);
