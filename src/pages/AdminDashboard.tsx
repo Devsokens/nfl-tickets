@@ -276,7 +276,7 @@ const AdminDashboard = () => {
     };
 
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-    autoSaveTimerRef.current = setTimeout(triggerAutoSave, 1500);
+    autoSaveTimerRef.current = setTimeout(triggerAutoSave, 3000);
 
     return () => {
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
