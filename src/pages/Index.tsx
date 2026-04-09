@@ -208,9 +208,9 @@ const Index = () => {
       </Helmet>
 
       {/* 1. TOP BANNER */}
-      <div className="bg-gradient-to-r from-gold-dark via-gold to-gold-light text-primary font-bold text-center py-2.5 text-sm uppercase tracking-[0.2em] animate-fade-in shadow-md relative z-50">
+      {/* <div className="bg-gradient-to-r from-gold-dark via-gold to-gold-light text-primary font-bold text-center py-2.5 text-sm uppercase tracking-[0.2em] animate-fade-in shadow-md relative z-50">
         SEMINAIRES LAO devient "NFL"
-      </div>
+      </div> */}
 
       <Navbar />
 

@@ -70,8 +70,8 @@ export const EventsAPI = {
     const res = await api.get('/events/upcoming');
     return res.data;
   },
-  getAll: async () => {
-    const res = await api.get('/events');
+  getAll: async (includeDrafts = false): Promise<Event[]> => {
+    const res = await api.get(`/events${includeDrafts ? '?all=true' : ''}`);
     return res.data;
   },
   getOne: async (id: string) => {

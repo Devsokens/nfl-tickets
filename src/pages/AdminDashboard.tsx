@@ -115,8 +115,8 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   
   const { data: events = [], refetch: refetchEvents } = useQuery<Event[]>({
-    queryKey: ["events"],
-    queryFn: EventsAPI.getAll,
+    queryKey: ["adminEvents"],
+    queryFn: () => EventsAPI.getAll(true),
   });
 
   const { data: tickets = [], refetch: refetchTickets } = useQuery<Ticket[]>({
@@ -242,36 +242,41 @@ const AdminDashboard = () => {
 
   // Logic for Auto-save
   useEffect(() => {
-    if (!editingEventId || !eventDialogOpen) return;
+    if (!eventDialogOpen) return;
 
-    // We don't want to auto-save on the very first mount of the edit modal
-    // but we want to save on subsequent changes.
     const triggerAutoSave = async () => {
       setAutoSaveStatus("saving");
+      const payload = {
+        title: eventForm.title || "Sans titre",
+        description: eventForm.description || "",
+        date: eventForm.date || new Date().toISOString().split("T")[0],
+        time: eventForm.time || "20:00",
+        location: eventForm.location || "Lieu non précisé",
+        price: eventForm.price || 0,
+        currency: "FCFA",
+        image_url: eventForm.image || eventForm.image_url || "",
+        category: eventForm.category || "soirée",
+        capacity: eventForm.capacity || 100,
+        whatsapp_number: eventForm.whatsapp_number || "24177617776",
+        status: eventForm.status || "brouillon",
+        sendNewsletter: false,
+      };
+
       try {
-        const payload = {
-          title: eventForm.title || "Sans titre",
-          description: eventForm.description || "",
-          date: eventForm.date || new Date().toISOString().split("T")[0],
-          time: eventForm.time || "20:00",
-          location: eventForm.location || "Lieu non précisé",
-          price: eventForm.price || 0,
-          currency: "FCFA",
-          image_url: eventForm.image || eventForm.image_url || "",
-          category: eventForm.category || "soirée",
-          capacity: eventForm.capacity || 100,
-          whatsapp_number: eventForm.whatsapp_number || "24177617776",
-          status: eventForm.status || "brouillon",
-          sendNewsletter: false, // Don't trigger newsletter on autosave
-        };
-        await EventsAPI.update(editingEventId, payload);
-        setAutoSaveStatus("saved");
-      } catch (err: any) {
+        if (editingEventId) {
+          await EventsAPI.update(editingEventId, payload);
+          setAutoSaveStatus("saved");
+        } else {
+          if (eventForm.title && eventForm.title !== "Nouveau...") {
+            const newDraft = await EventsAPI.create(payload);
+            setEditingEventId(newDraft.id);
+            setAutoSaveStatus("saved");
+            refetchEvents();
+          }
+        }
+      } catch (err) {
         console.error("Autosave error:", err);
-        const errorMsg = err.response?.data?.message || err.message || "Erreur de sauvegarde";
         setAutoSaveStatus("error");
-        // We don't toast on autosave to avoid spamming the user, 
-        // but we show the error in the badge.
       }
     };
 
@@ -338,29 +343,24 @@ const AdminDashboard = () => {
 
   const handleStartNewEvent = async () => {
     setIsSavingEvent(true);
-    try {
-      const draftPayload = {
-        title: "Nouveau Brouillon",
-        status: "brouillon",
-        date: new Date().toISOString().split("T")[0],
-        time: "20:00",
-        location: "Lieu à préciser",
-        price: 0,
-        category: "soirée",
-        capacity: 100,
-        sendNewsletter: false,
-      };
-      
-      const newDraft = await EventsAPI.create(draftPayload);
-      setEditingEventId(newDraft.id);
-      setEventForm({ ...newDraft, send_newsletter: true });
-      setEventDialogOpen(true);
-      setAutoSaveStatus("saved");
-    } catch (err) {
-      toast.error("Impossible de créer le brouillon.");
-    } finally {
-      setIsSavingEvent(false);
-    }
+    // Just open the dialog with initial state, don't create in DB yet
+    setEditingEventId(null);
+    setEventForm({
+      title: "",
+      description: "",
+      date: new Date().toISOString().split("T")[0],
+      time: "20:00",
+      location: "Lieu à préciser",
+      price: 0,
+      category: "soirée",
+      capacity: 100,
+      status: "brouillon",
+      send_newsletter: false,
+      whatsapp_number: "+24177617776"
+    });
+    setEventDialogOpen(true);
+    setAutoSaveStatus("saved");
+    setIsSavingEvent(false);
   };
 
   const handleDeleteEvent = async (id: string) => {
