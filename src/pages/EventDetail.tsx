@@ -24,6 +24,7 @@ const categoryImages: Record<string, string> = {
   conférence: nflImg2,
   atelier: nflImg3,
   concert: nflImg4,
+  seminaire: nflImg2,
 };
 
 const EventDetail = () => {
@@ -47,43 +48,18 @@ const EventDetail = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [quantity, setQuantity] = useState(1);
-  const [payerPhone, setPayerPhone] = useState("");
-  const [payerName, setPayerName] = useState("");
-  const [participants, setParticipants] = useState([{ fullName: "", email: "" }]);
+  const [step, setStep] = useState<1 | 2>(1);
+  const quantity = 1;
+  const [participants, setParticipants] = useState([{ fullName: "", email: "", phone: "" }]);
   const [paymentPending, setPaymentPending] = useState(false);
 
   const totalAmount = useMemo(() => (event?.price || 0) * quantity, [event?.price, quantity]);
 
-  // Gére la taille du tableau des participants
-  useEffect(() => {
-    setParticipants((prev) => {
-      if (prev.length === quantity) return prev;
-      return Array.from({ length: quantity }, (_, idx) => ({
-        fullName: prev[idx]?.fullName ?? "",
-        email: prev[idx]?.email ?? "",
-      }));
-    });
-  }, [quantity]);
-
-  const handleStep2 = () => {
-    // Pré-remplit le 1er participant avec le nom du payeur s'il est encore vide
-    if (payerName.trim() && !participants[0]?.fullName.trim()) {
-      setParticipants(prev => {
-        const next = [...prev];
-        next[0].fullName = payerName.trim();
-        return next;
-      });
-    }
-    setStep(2);
-  };
-
-  const updateParticipant = (index: number, field: "fullName" | "email", value: string) => {
+  const updateParticipant = (index: number, field: "fullName" | "email" | "phone", value: string) => {
     setParticipants((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
   };
 
-  const isStep2Valid = payerName.trim().length > 0 && payerPhone.trim().length > 0 && participants.every((p) => p.fullName.trim().length > 0 && p.email.trim().length > 0);
+  const isStep1Valid = participants[0].fullName.trim().length > 0 && participants[0].email.trim().length > 0 && participants[0].phone.trim().length > 0;
 
   if (isEventLoading) {
     return (
@@ -126,46 +102,41 @@ const EventDetail = () => {
   
   const remaining = event?.capacity - (event?.ticketsSold || 0);
 
-  const handleStep3 = () => {
-    if (!isStep2Valid) return;
-    setStep(3);
+  const handleStep2 = () => {
+    if (!isStep1Valid) return;
+    setStep(2);
   };
 
   const handlePaymentDone = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
-      await Promise.all(
-        participants.map((p) =>
-          TicketsAPI.create({
-            event_id: event.id,
-            full_name: p.fullName,
-            email: p.email,
-            phone: p.email,
-            payer_phone: payerPhone.trim(),
-          })
-        )
-      );
+      const p = participants[0];
+      await TicketsAPI.create({
+        event_id: event.id,
+        full_name: p.fullName,
+        email: p.email,
+        phone: p.phone,
+        payer_phone: p.phone.trim(),
+      });
 
       toast({
         title: "Réservation enregistrée !",
         description: "Redirection vers WhatsApp pour confirmer votre paiement...",
       });
 
-      const participantList = participants.map((p) => `  - ${p.fullName}`).join("\n");
       const message = `Bonjour NFL Courtier & Service,\n\n` +
-                      `Je viens de réserver ${quantity} place(s) pour l'événement : *${event.title}*.\n\n` +
+                      `Je viens de réserver ma place pour l'événement : *${event.title}*.\n\n` +
                       `*Détails de ma réservation :*\n` +
                       `- *Date* : ${formattedDate}\n` +
-                      `- *Montant total* : ${totalAmount.toLocaleString()} FCFA\n` +
-                      `- *Payeur* : ${payerName} (${payerPhone})\n\n` +
-                      `*Participants :*\n${participantList}\n\n` +
+                      `- *Montant* : ${totalAmount.toLocaleString()} FCFA\n` +
+                      `- *Participant* : ${p.fullName}\n` +
+                      `- *Téléphone* : ${p.phone}\n\n` +
                       `Merci de valider ma commande dès réception du transfert.`;
 
       const encodedMessage = encodeURIComponent(message);
       let whatsappNumber = (event as any).whatsapp_number || "24166692338";
       
-      // Nettoyage : si ça commence par 2410, on enlève le 0
       let cleanNumber = whatsappNumber.replace(/\D/g, "");
       if (cleanNumber.startsWith("2410")) {
         cleanNumber = "241" + cleanNumber.substring(4);
@@ -175,7 +146,6 @@ const EventDetail = () => {
 
       const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodedMessage}`;
       
-      // Redirection après un léger délai pour laisser le toast s'afficher
       setTimeout(() => {
         navigate("/");
         window.location.href = whatsappUrl;
@@ -306,7 +276,7 @@ const EventDetail = () => {
               ) : (
                 <div className="bg-card p-6 rounded-3xl border border-border/50 shadow-sm space-y-6">
                   <div className="flex flex-wrap items-center gap-3">
-                    {[1, 2, 3].map((n) => (
+                    {[1, 2].map((n) => (
                       <div key={n} className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${step >= n ? "bg-gold text-accent-foreground" : "bg-secondary text-muted-foreground"}`}>
                         Étape {n}
                       </div>
@@ -315,84 +285,44 @@ const EventDetail = () => {
 
                   {step === 1 && (
                     <div className="space-y-5 animate-fade-in">
-                      <h3 className="font-display text-2xl font-bold">Étape 1 : Événement + nombre de places</h3>
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label>Détails de l'événement</Label>
-                          <Input value={`${event.title} - ${event.location}`} disabled className="bg-secondary/40" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Prix par place</Label>
-                          <Input value={`${event.price.toLocaleString()} ${event.currency}`} disabled className="bg-secondary/40" />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="qty">Nombre de places (1 à 10)</Label>
-                        <Input id="qty" type="number" min={1} max={10} value={quantity} onChange={(e) => setQuantity(Math.min(10, Math.max(1, Number(e.target.value) || 1)))} className="max-w-[120px]" />
-                      </div>
-                      <div className="glass-card border border-gold/10 rounded-2xl p-4 space-y-3 bg-[#32140c]/5">
-                        <p className="text-sm uppercase tracking-wide text-gold font-semibold text-center sm:text-left font-display">Informations du payeur</p>
-                        <div className="grid sm:grid-cols-2 gap-4">
+                      <h3 className="font-display text-2xl font-bold">Étape 1 : Vos Informations</h3>
+                      <div className="glass-card border border-gold/10 rounded-2xl p-6 space-y-4 bg-[#32140c]/5">
+                        <div className="space-y-4">
                           <div className="space-y-2">
-                            <Label>Nom complet du payeur</Label>
-                            <Input placeholder="Ex: Jean Mboulou" value={payerName} onChange={(e) => setPayerName(e.target.value)} />
+                            <Label>Nom complet *</Label>
+                            <Input placeholder="Ex: Jean Mboulou" value={participants[0].fullName} onChange={(e) => updateParticipant(0, "fullName", e.target.value)} required />
                           </div>
-                          <div className="space-y-2">
-                            <Label>Numéro WhatsApp du payeur *</Label>
-                            <Input placeholder="+241 07 76 17 776" value={payerPhone} onChange={(e) => setPayerPhone(e.target.value)} required />
+                          <div className="grid sm:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label>Email (pour recevoir le billet) *</Label>
+                              <Input type="email" placeholder="jean.mboulou@email.com" value={participants[0].email} onChange={(e) => updateParticipant(0, "email", e.target.value)} required />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Numéro WhatsApp (Paiement) *</Label>
+                              <Input placeholder="+241 07 76 17 776" value={participants[0].phone} onChange={(e) => updateParticipant(0, "phone", e.target.value)} required />
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <Button variant="gold" className="w-full h-12 rounded-xl font-bold shadow-lg shadow-gold/20" onClick={handleStep2}>
-                        Continuer vers les participants
-                      </Button>
+                      <div className="flex flex-col gap-3">
+                        <div className="flex justify-between items-center px-2 py-1">
+                          <span className="text-muted-foreground">Total à payer :</span>
+                          <span className="text-gold font-bold text-xl">{totalAmount.toLocaleString()} FCFA</span>
+                        </div>
+                        <Button variant="gold" className="w-full h-12 rounded-xl font-bold shadow-lg shadow-gold/20" onClick={handleStep2} disabled={!isStep1Valid}>
+                          Continuer vers le paiement
+                        </Button>
+                      </div>
                     </div>
                   )}
 
                   {step === 2 && (
                     <div className="space-y-5 animate-fade-in">
-                      <h3 className="font-display text-2xl font-bold">Étape 2 : Participants</h3>
-                      <div className="glass-card border border-gold/20 rounded-2xl p-4 space-y-3">
-                        <p className="text-sm uppercase tracking-wide text-gold font-semibold">Bénéficiaires des places</p>
-                        <p className="text-sm text-muted-foreground">Vous avez choisi <strong>{quantity}</strong> place(s).</p>
-                        <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
-                          {participants.map((participant, index) => (
-                            <div key={index} className="grid sm:grid-cols-2 gap-3 p-3 bg-background/70 rounded-xl border border-border/60">
-                              <div className="space-y-2">
-                                <Label>Nom complet participant {index + 1} *</Label>
-                                <Input placeholder="Prénom + Nom" value={participant.fullName} onChange={(e) => updateParticipant(index, "fullName", e.target.value)} required />
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Email du participant (Obligatoire) *</Label>
-                                <Input type="email" placeholder="participant@email.com" value={participant.email} onChange={(e) => updateParticipant(index, "email", e.target.value)} required />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="grid sm:grid-cols-2 gap-3">
-                        <Button variant="outline" className="h-12 rounded-xl" onClick={() => setStep(1)}>Retour</Button>
-                        <Button variant="gold" className="h-12 rounded-xl" onClick={handleStep3} disabled={!isStep2Valid}>Payer maintenant</Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {step === 3 && (
-                    <div className="space-y-5 animate-fade-in">
-                      <h3 className="font-display text-2xl font-bold">Étape 3 : Paiement + confirmation</h3>
+                      <h3 className="font-display text-2xl font-bold">Étape 2 : Paiement + confirmation</h3>
                       <div className="rounded-2xl border border-gold/20 p-4 bg-secondary/30 space-y-2">
                         <p><strong>Événement :</strong> {event.title}</p>
-                        <p><strong>Nombre de places :</strong> {quantity}</p>
                         <p><strong>Montant total :</strong> {totalAmount.toLocaleString()} {event.currency}</p>
-                        <p><strong>Numéro du payeur :</strong> {payerPhone}</p>
-                        <div className="pt-2">
-                          <p className="font-semibold">Participants :</p>
-                          <ul className="text-sm text-muted-foreground mt-1">
-                            {participants.map((p, idx) => (
-                              <li key={idx}>• {p.fullName || `Participant ${idx + 1}`}</li>
-                            ))}
-                          </ul>
-                        </div>
+                        <p><strong>Participant :</strong> {participants[0].fullName}</p>
                       </div>
                       <div className="rounded-2xl border border-gold/20 p-4 bg-card space-y-2">
                         <p className="font-semibold">Instructions de paiement</p>
@@ -410,7 +340,7 @@ const EventDetail = () => {
                         </div>
                       )}
                       <div className="grid sm:grid-cols-2 gap-3">
-                        <Button variant="outline" className="h-12 rounded-xl" onClick={() => setStep(2)}>Retour</Button>
+                        <Button variant="outline" className="h-12 rounded-xl" onClick={() => setStep(1)}>Retour</Button>
                         <Button variant="gold" className="h-12 rounded-xl bg-orange-500 hover:bg-orange-600 text-white" onClick={handlePaymentDone} disabled={isSubmitting}>
                           <Phone className="h-4 w-4 mr-2" /> {isSubmitting ? "Enregistrement..." : "J'ai effectué le paiement"}
                         </Button>

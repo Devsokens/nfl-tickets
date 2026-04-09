@@ -14,6 +14,7 @@ const categoryImages: Record<string, string> = {
   conférence: nflImg2,
   atelier: nflImg3,
   concert: nflImg4,
+  seminaire: nflImg2,
 };
 
 const categoryColors: Record<string, string> = {
@@ -21,6 +22,7 @@ const categoryColors: Record<string, string> = {
   conférence: "bg-primary text-primary-foreground",
   atelier: "bg-brown-light text-primary-foreground",
   concert: "bg-gold-dark text-primary-foreground",
+  seminaire: "bg-[#32140c] text-gold",
 };
 
 interface EventCardProps {

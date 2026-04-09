@@ -695,7 +695,7 @@ const AdminDashboard = () => {
             <div className="space-y-2"><Label>Catégorie</Label>
               <Select value={eventForm.category || "soirée"} onValueChange={(v) => setEventForm(p => ({ ...p, category: v }))}>
                 <SelectTrigger><SelectValue placeholder="Catégorie" /></SelectTrigger>
-                <SelectContent><SelectItem value="soirée">Soirée</SelectItem><SelectItem value="conférence">Conférence</SelectItem><SelectItem value="atelier">Atelier</SelectItem><SelectItem value="concert">Concert</SelectItem></SelectContent>
+                <SelectContent><SelectItem value="soirée">Soirée</SelectItem><SelectItem value="conférence">Conférence</SelectItem><SelectItem value="atelier">Atelier</SelectItem><SelectItem value="concert">Concert</SelectItem><SelectItem value="seminaire">Séminaire</SelectItem></SelectContent>
               </Select>
             </div>
             <div className="space-y-2"><Label>WhatsApp Contact</Label><Input placeholder="+241077617776" value={eventForm.whatsapp_number || ""} onChange={(e) => setEventForm(p => ({ ...p, whatsapp_number: e.target.value }))} /></div>
