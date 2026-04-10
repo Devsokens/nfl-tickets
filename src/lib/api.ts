@@ -129,6 +129,18 @@ export const NewsletterAPI = {
     const res = await api.get('/newsletter');
     return res.data.subscribers || [];
   },
+  getHistory: async () => {
+    const res = await api.get('/newsletter/history');
+    return res.data;
+  },
+  sendManual: async (data: { subject: string; content: string; recipientEmails: string[] }) => {
+    const res = await api.post('/newsletter/send', data);
+    return res.data;
+  },
+  unsubscribe: async (email: string) => {
+    const res = await api.delete(`/newsletter/${email}`);
+    return res.data;
+  }
 };
 
 export const AuthAPI = {

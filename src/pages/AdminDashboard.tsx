@@ -62,6 +62,9 @@ import {
 } from "@/components/ui/select";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import { Switch } from "@/components/ui/switch";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import { Checkbox } from "@/components/ui/checkbox";
 
 type Tab = "dashboard" | "events" | "tickets" | "demandes" | "newsletter" | "scanner";
 
@@ -143,6 +146,101 @@ const AdminDashboard = () => {
   const [isSavingEvent, setIsSavingEvent] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Newsletter Management State
+  const [newsSearch, setNewsSearch] = useState("");
+  const [newsPage, setNewsPage] = useState(1);
+  const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
+  const [isComposeOpen, setIsComposeOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isSendingNewsletter, setIsSendingNewsletter] = useState(false);
+  const [newsletterForm, setNewsletterForm] = useState({
+    subject: "",
+    content: "",
+    sendToAll: true
+  });
+
+  const { data: newsletterHistory = [], refetch: refetchHistory } = useQuery<any[]>({
+    queryKey: ["newsletterHistory"],
+    queryFn: NewsletterAPI.getHistory,
+    enabled: activeTab === "newsletter"
+  });
+
+  const itemsPerPage = 15;
+
+  const filteredSubscribers = useMemo(() => {
+    return Array.isArray(subscribers) 
+      ? subscribers.filter(s => s.email.toLowerCase().includes(newsSearch.toLowerCase()))
+      : [];
+  }, [subscribers, newsSearch]);
+
+  const totalPages = Math.ceil(filteredSubscribers.length / itemsPerPage);
+  const paginatedSubscribers = useMemo(() => {
+    const start = (newsPage - 1) * itemsPerPage;
+    return filteredSubscribers.slice(start, start + itemsPerPage);
+  }, [filteredSubscribers, newsPage]);
+
+  const handleToggleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedEmails(filteredSubscribers.map(s => s.email));
+    } else {
+      setSelectedEmails([]);
+    }
+  };
+
+  const handleToggleSubscriber = (email: string, checked: boolean) => {
+    if (checked) {
+      setSelectedEmails(prev => [...prev, email]);
+      setNewsletterForm(p => ({ ...p, sendToAll: false }));
+    } else {
+      setSelectedEmails(prev => prev.filter(e => e !== email));
+    }
+  };
+
+  const handleSendManualNewsletter = async () => {
+    if (!newsletterForm.subject || !newsletterForm.content) {
+      toast.error("Veuillez remplir l'objet et le contenu.");
+      return;
+    }
+
+    const recipients = newsletterForm.sendToAll 
+      ? subscribers.map((s: any) => s.email) 
+      : selectedEmails;
+
+    if (recipients.length === 0) {
+      toast.error("Veuillez sélectionner au moins un destinataire.");
+      return;
+    }
+
+    setIsSendingNewsletter(true);
+    try {
+      await NewsletterAPI.sendManual({
+        subject: newsletterForm.subject,
+        content: newsletterForm.content,
+        recipientEmails: recipients
+      });
+      toast.success(`Newsletter envoyée à ${recipients.length} abonnés !`);
+      setIsComposeOpen(false);
+      setNewsletterForm({ subject: "", content: "", sendToAll: true });
+      setSelectedEmails([]);
+      refetchHistory();
+    } catch (err: any) {
+      toast.error("Erreur lors de l'envoi : " + (err.response?.data?.message || err.message));
+    } finally {
+      setIsSendingNewsletter(false);
+    }
+  };
+
+  const quillModules = {
+    toolbar: [
+      [{ 'header': [1, 2, false] }],
+      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      ['link'],
+      [{ 'color': [] }, { 'background': [] }],
+      ['clean']
+    ],
+  };
 
   // Le rafraîchissement des événements est géré manuellement après les actions de sauvegarde.
   useEffect(() => {
@@ -711,15 +809,108 @@ const AdminDashboard = () => {
           )}
 
           {activeTab === "newsletter" && (
-            <div className="space-y-8 animate-fade-in max-w-7xl mx-auto">
-              <h2 className="text-2xl font-bold">Newsletter</h2>
+            <div className="space-y-8 animate-fade-in max-w-7xl mx-auto pb-20">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                  <h2 className="text-3xl font-bold mb-2">Newsletter</h2>
+                  <p className="text-muted-foreground">{subscribers.length} abonnés actifs</p>
+                </div>
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={() => setIsHistoryOpen(true)} className="rounded-2xl h-12 px-6">
+                    <Activity className="h-5 w-5 mr-2" /> Historique
+                  </Button>
+                  <Button variant="gold" onClick={() => setIsComposeOpen(true)} className="rounded-2xl h-12 px-6 shadow-xl">
+                    <MailIcon className="h-5 w-5 mr-2" /> Rédiger
+                  </Button>
+                </div>
+              </div>
+
+              {/* Barre de Recherche et Sélection */}
+              <div className="flex flex-col md:flex-row gap-4 items-center">
+                <div className="relative flex-1 w-full">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input 
+                    placeholder="Chercher un email..." 
+                    className="pl-12 h-12 bg-card border-border/50 rounded-xl"
+                    value={newsSearch}
+                    onChange={(e) => { setNewsSearch(e.target.value); setNewsPage(1); }}
+                  />
+                </div>
+                <div className="flex items-center gap-3 bg-secondary/20 px-4 h-12 rounded-xl border border-border/30">
+                  <Checkbox 
+                    id="select-all-news" 
+                    checked={selectedEmails.length === filteredSubscribers.length && filteredSubscribers.length > 0}
+                    onCheckedChange={(v) => handleToggleSelectAll(!!v)}
+                  />
+                  <Label htmlFor="select-all-news" className="text-sm font-semibold cursor-pointer">Tout sélectionner ({filteredSubscribers.length})</Label>
+                </div>
+              </div>
+
               <div className="glass-card rounded-3xl border border-border/50 overflow-hidden shadow-2xl">
-                <table className="w-full text-left">
-                  <thead className="bg-secondary/20 uppercase text-[10px] tracking-widest text-muted-foreground"><tr><th className="px-6 py-4">Abonné</th><th className="px-6 py-4">Date</th></tr></thead>
-                  <tbody className="divide-y divide-border/30">
-                    {Array.isArray(subscribers) && subscribers.map((sub: any) => (<tr key={sub.id} className="hover:bg-muted/10"><td className="px-6 py-4 text-foreground">{sub.email}</td><td className="px-6 py-4 text-xs text-muted-foreground">{new Date(sub.created_at || Date.now()).toLocaleDateString()}</td></tr>))}
-                  </tbody>
-                </table>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-secondary/20 uppercase text-[10px] tracking-widest text-muted-foreground font-bold">
+                      <tr>
+                        <th className="px-6 py-5 w-10"></th>
+                        <th className="px-6 py-5">Email de l'Abonné</th>
+                        <th className="px-6 py-5">Date d'inscription</th>
+                        <th className="px-6 py-5 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/30">
+                      {paginatedSubscribers.map((sub: any) => (
+                        <tr key={sub.id} className={`hover:bg-muted/10 transition-colors ${selectedEmails.includes(sub.email) ? 'bg-gold/5' : ''}`}>
+                          <td className="px-6 py-5">
+                            <Checkbox 
+                              checked={selectedEmails.includes(sub.email)}
+                              onCheckedChange={(v) => handleToggleSubscriber(sub.email, !!v)}
+                            />
+                          </td>
+                          <td className="px-6 py-5 font-medium text-foreground">{sub.email}</td>
+                          <td className="px-6 py-5 text-xs text-muted-foreground">
+                            {new Date(sub.created_at || Date.now()).toLocaleDateString('fr-FR', {
+                              day: '2-digit',
+                              month: 'long',
+                              year: 'numeric'
+                            })}
+                          </td>
+                          <td className="px-6 py-5 text-right">
+                            <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10" onClick={() => NewsletterAPI.unsubscribe(sub.email).then(() => queryClient.invalidateQueries({ queryKey: ["subscribers"] }))}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="p-6 border-t border-border/30 flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">Page {newsPage} sur {totalPages}</p>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        disabled={newsPage === 1}
+                        onClick={() => setNewsPage(p => p - 1)}
+                        className="rounded-lg h-9"
+                      >
+                        Précédent
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        disabled={newsPage === totalPages}
+                        onClick={() => setNewsPage(p => p + 1)}
+                        className="rounded-lg h-9"
+                      >
+                        Suivant
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -958,6 +1149,106 @@ const AdminDashboard = () => {
                  )}
                </Button>
            </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL REDACTION NEWSLETTER */}
+      <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-[30px] p-8 border-gold/10">
+          <DialogHeader>
+            <DialogTitle className="text-3xl font-display font-bold">Rédiger une newsletter</DialogTitle>
+            <DialogDescription>
+              {newsletterForm.sendToAll 
+                ? `Envoi à tous les abonnés (${subscribers.length})` 
+                : `Envoi à ${selectedEmails.length} destinataires sélectionnés`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 pt-4">
+            <div className="space-y-2">
+              <Label>Objet du mail</Label>
+              <Input 
+                placeholder="Ex: Nouvelle offre exclusive..." 
+                value={newsletterForm.subject}
+                onChange={(e) => setNewsletterForm(p => ({ ...p, subject: e.target.value }))}
+                className="h-12 text-lg font-semibold border-gold/20"
+              />
+            </div>
+            
+            <div className="space-y-2 flex items-center gap-3 bg-gold/5 p-4 rounded-xl border border-gold/10">
+              <Switch 
+                id="send-to-all" 
+                checked={newsletterForm.sendToAll} 
+                onCheckedChange={(v) => setNewsletterForm(p => ({ ...p, sendToAll: v }))} 
+              />
+              <Label htmlFor="send-to-all" className="cursor-pointer font-bold">Envoyer à toute la liste</Label>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Contenu du message</Label>
+              <div className="bg-white text-black rounded-xl overflow-hidden border border-border min-h-[300px]">
+                <ReactQuill 
+                  theme="snow" 
+                  value={newsletterForm.content} 
+                  onChange={(val) => setNewsletterForm(p => ({ ...p, content: val }))}
+                  modules={quillModules}
+                  className="h-[250px] mb-12"
+                />
+              </div>
+            </div>
+
+            <Button 
+              variant="gold" 
+              className="w-full h-16 text-xl font-bold shadow-2xl rounded-2xl mt-8" 
+              onClick={handleSendManualNewsletter}
+              disabled={isSendingNewsletter}
+            >
+              {isSendingNewsletter ? <Loader2 className="h-6 w-6 animate-spin" /> : "Envoyer la newsletter"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL HISTORIQUE NEWSLETTER */}
+      <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
+        <DialogContent className="max-w-5xl max-h-[80vh] overflow-hidden flex flex-col rounded-[30px] p-8 border-gold/10">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">Historique des envois</DialogTitle>
+            <DialogDescription>Retrouvez vos campagnes de newsletter passées.</DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto mt-6 pr-2">
+            {newsletterHistory.length === 0 ? (
+              <div className="text-center py-20 opacity-50 italic">Aucun envoi enregistré.</div>
+            ) : (
+              <div className="space-y-4">
+                {newsletterHistory.map((item: any) => (
+                  <div key={item.id} className="p-5 glass-card rounded-2xl border border-border/50">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-bold text-lg text-gold">{item.subject}</h4>
+                      <Badge variant="outline" className="text-[10px] opacity-70">
+                        {new Date(item.created_at).toLocaleDateString()}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-6 mt-4 pt-4 border-t border-border/20 text-xs text-foreground">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-3 w-3 text-muted-foreground" />
+                        <span>{item.recipient_count} destinataires</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-green-500 font-bold">
+                        <CheckCircle className="h-3 w-3" />
+                        <span>{item.success_count} succès</span>
+                      </div>
+                      {item.fail_count > 0 && (
+                        <div className="flex items-center gap-2 text-destructive font-bold">
+                          <XCircle className="h-3 w-3" />
+                          <span>{item.fail_count} échecs</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
