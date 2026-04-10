@@ -160,13 +160,14 @@ const AdminDashboard = () => {
     sendToAll: true
   });
 
+  const [ticketPage, setTicketPage] = useState(1);
+  const itemsPerPage = 15;
+
   const { data: newsletterHistory = [], refetch: refetchHistory } = useQuery<any[]>({
     queryKey: ["newsletterHistory"],
     queryFn: NewsletterAPI.getHistory,
     enabled: activeTab === "newsletter"
   });
-
-  const itemsPerPage = 15;
 
   const filteredSubscribers = useMemo(() => {
     return Array.isArray(subscribers) 
@@ -178,7 +179,29 @@ const AdminDashboard = () => {
   const paginatedSubscribers = useMemo(() => {
     const start = (newsPage - 1) * itemsPerPage;
     return filteredSubscribers.slice(start, start + itemsPerPage);
-  }, [filteredSubscribers, newsPage]);
+  }, [filteredSubscribers, newsPage, itemsPerPage]);
+
+  const filteredTickets = useMemo(() => {
+    return Array.isArray(tickets) ? tickets.filter((t) => {
+      const nameMatch = (t.full_name || t.name || "").toLowerCase();
+      const matchesSearch = nameMatch.includes(searchTicket.toLowerCase()) || 
+                           t.id.toLowerCase().includes(searchTicket.toLowerCase());
+      
+      const eventIdMatch = t.event_id || t.eventId;
+      const matchesEvent = filterEvent === "all" || eventIdMatch === filterEvent;
+      
+      const statusValue = t.status?.toLowerCase() || "";
+      const matchesStatus = filterStatus === "all" || statusValue === filterStatus.toLowerCase();
+      
+      return matchesSearch && matchesEvent && matchesStatus;
+    }).reverse() : [];
+  }, [tickets, searchTicket, filterEvent, filterStatus]);
+
+  const totalTicketPages = Math.ceil(filteredTickets.length / itemsPerPage);
+  const paginatedTickets = useMemo(() => {
+    const start = (ticketPage - 1) * itemsPerPage;
+    return filteredTickets.slice(start, start + itemsPerPage);
+  }, [filteredTickets, ticketPage, itemsPerPage]);
 
   const handleToggleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -563,16 +586,6 @@ const AdminDashboard = () => {
 
   const handleScanQR = () => { handleScanLogic(scanInput); setScanInput(""); };
 
-  const filteredTickets = useMemo(() => {
-    return tickets.filter((t) => {
-      const nameMatch = t.full_name || t.name || "";
-      const matchesSearch = nameMatch.toLowerCase().includes(searchTicket.toLowerCase()) || t.id.toLowerCase().includes(searchTicket.toLowerCase());
-      const eventIdMatch = t.event_id || t.eventId;
-      const matchesEvent = filterEvent === "all" || eventIdMatch === filterEvent;
-      const matchesStatus = filterStatus === "all" || t.status === filterStatus;
-      return matchesSearch && matchesEvent && matchesStatus;
-    }).reverse();
-  }, [tickets, searchTicket, filterEvent, filterStatus]);
 
   const tabs: { key: Tab; icon: React.ReactNode; label: string }[] = [
     { key: "dashboard", icon: <BarChart3 className="h-5 w-5" />, label: "Dashboard" },
@@ -691,8 +704,10 @@ const AdminDashboard = () => {
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-green-500 hover:bg-green-500/10" onClick={(e) => { e.stopPropagation(); setSelectedTicket(ticket); setConfirmValidateOpen(true); }}><CheckCircle className="h-4 w-4" /></Button>
                               </>
                             )}
-                            {ticket.status === 'validé' && (
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-gold" onClick={(e) => { e.stopPropagation(); downloadTicket(ticket.id); }}><Download className="h-4 w-4" /></Button>
+                            {(ticket.status === 'validé' || ticket.status === 'utilisé') && (
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-gold" onClick={(e) => { e.stopPropagation(); downloadTicket(ticket.id); }}>
+                                {isDownloading === ticket.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                              </Button>
                             )}
                           </div>
                         </div>
@@ -747,40 +762,133 @@ const AdminDashboard = () => {
           )}
 
           {activeTab === "tickets" && (
-            <div className="space-y-8 animate-fade-in max-w-7xl mx-auto">
-              <div className="flex items-center justify-between gap-4">
-                <h2 className="text-2xl font-bold">Réservations</h2>
-                <Button variant="gold" className="rounded-2xl h-12 px-6 font-bold" onClick={() => setTicketDialogOpen(true)}>Nouvelle inscription</Button>
+            <div className="space-y-8 animate-fade-in max-w-7xl mx-auto pb-20">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                  <h2 className="text-3xl font-bold mb-2">Réservations</h2>
+                  <p className="text-muted-foreground">{filteredTickets.length} billets correspondants</p>
+                </div>
+                <Button variant="gold" className="rounded-2xl h-12 px-6 font-bold shadow-xl" onClick={() => setTicketDialogOpen(true)}>
+                  <Plus className="h-5 w-5 mr-2" /> Nouvelle inscription
+                </Button>
               </div>
+
+              {/* Filtres de recherche */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Nom ou Référence..." 
+                    className="pl-12 h-12 bg-card border-border/50 rounded-xl"
+                    value={searchTicket}
+                    onChange={(e) => { setSearchTicket(e.target.value); setTicketPage(1); }}
+                  />
+                </div>
+                <Select value={filterEvent} onValueChange={(v) => { setFilterEvent(v); setTicketPage(1); }}>
+                  <SelectTrigger className="h-12 bg-card border-border/50 rounded-xl">
+                    <SelectValue placeholder="Tous les événements" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les événements</SelectItem>
+                    {events.map(e => <SelectItem key={e.id} value={e.id}>{e.title}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select value={filterStatus} onValueChange={(v) => { setFilterStatus(v); setTicketPage(1); }}>
+                  <SelectTrigger className="h-12 bg-card border-border/50 rounded-xl">
+                    <SelectValue placeholder="Tous les statuts" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les statuts</SelectItem>
+                    <SelectItem value="soumis">Soumis (à valider)</SelectItem>
+                    <SelectItem value="validé">Validé</SelectItem>
+                    <SelectItem value="utilisé">Utilisé</SelectItem>
+                    <SelectItem value="annulé">Annulé</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="glass-card rounded-3xl border border-border/50 overflow-hidden shadow-2xl">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm text-left">
-                    <thead className="bg-secondary/20 text-muted-foreground uppercase tracking-widest text-[10px]">
-                      <tr><th className="px-8 py-5">Réf / Client</th><th className="px-8 py-5">Événement</th><th className="px-8 py-5">Status</th><th className="px-8 py-5 text-right">Actions</th></tr>
+                    <thead className="bg-secondary/20 text-muted-foreground uppercase tracking-widest text-[10px] font-bold">
+                      <tr>
+                        <th className="px-8 py-5">Réf / Client</th>
+                        <th className="px-8 py-5">Événement</th>
+                        <th className="px-8 py-5">Status</th>
+                        <th className="px-8 py-5 text-right">Actions</th>
+                      </tr>
                     </thead>
                     <tbody className="divide-y divide-border/30">
-                      {filteredTickets.map((ticket) => (
-                        <tr key={ticket.id} className="hover:bg-secondary/10 cursor-pointer" onClick={() => { setSelectedTicket(ticket); setShowTicketModal(true); }}>
-                          <td className="px-8 py-5">
-                            <span className="text-gold font-bold block">REF: {ticket.id.split("-")[0].toUpperCase()}</span>
-                            <span className="font-medium text-foreground">{ticket.full_name || ticket.name}</span>
-                          </td>
-                          <td className="px-8 py-5">
-                            <div className="max-w-[200px] truncate">{events.find(e => e.id === (ticket.event_id || ticket.eventId))?.title}</div>
-                          </td>
-                          <td className="px-8 py-5"><Badge variant="outline" className={ticket.status === 'validé' ? "text-green-600" : "text-orange-600"}>{ticket.status}</Badge></td>
-                          <td className="px-8 py-5 text-right flex justify-end gap-2">
-                             {ticket.status === 'validé' ? (
-                               <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); downloadTicket(ticket.id); }}><Download className="h-4 w-4" /></Button>
-                             ) : (
-                               <Button variant="ghost" size="icon" className="text-green-500" onClick={(e) => { e.stopPropagation(); setSelectedTicket(ticket); setConfirmValidateOpen(true); }}><CheckCircle className="h-4 w-4" /></Button>
-                             )}
-                          </td>
-                        </tr>
-                      ))}
+                      {paginatedTickets.length === 0 ? (
+                        <tr><td colSpan={4} className="text-center py-20 text-muted-foreground">Aucune réservation trouvée.</td></tr>
+                      ) : (
+                        paginatedTickets.map((ticket) => (
+                          <tr key={ticket.id} className="hover:bg-secondary/5 transition-colors cursor-pointer group" onClick={() => { setSelectedTicket(ticket); setShowTicketModal(true); }}>
+                            <td className="px-8 py-5">
+                              <span className="text-gold font-bold block text-xs mb-1">REF: {ticket.id.split("-")[0].toUpperCase()}</span>
+                              <span className="font-semibold text-foreground group-hover:text-gold transition-colors">{ticket.full_name || ticket.name}</span>
+                            </td>
+                            <td className="px-8 py-5">
+                              <div className="max-w-[200px] truncate text-muted-foreground">{events.find(e => e.id === (ticket.event_id || ticket.eventId))?.title || "N/A"}</div>
+                            </td>
+                            <td className="px-8 py-5">
+                              <Badge variant="outline" className={
+                                ticket.status === 'validé' ? "text-green-600 bg-green-500/5 border-green-500/10" : 
+                                ticket.status === 'utilisé' ? "text-slate-500 bg-slate-500/5 border-slate-500/10" :
+                                ticket.status === 'annulé' ? "text-destructive bg-destructive/5 border-destructive/10" :
+                                "text-orange-600 bg-orange-500/5 border-orange-500/10"
+                              }>
+                                {ticket.status}
+                              </Badge>
+                            </td>
+                            <td className="px-8 py-5 text-right">
+                               <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                                 {ticket.status === 'soumis' && (
+                                   <>
+                                     <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10" onClick={() => cancelTicket(ticket.id)}><XCircle className="h-4 w-4" /></Button>
+                                     <Button variant="ghost" size="icon" className="text-green-500 hover:bg-green-500/10" onClick={() => { setSelectedTicket(ticket); setConfirmValidateOpen(true); }}><CheckCircle className="h-4 w-4" /></Button>
+                                   </>
+                                 )}
+                                 {(ticket.status === 'validé' || ticket.status === 'utilisé') && (
+                                   <Button variant="ghost" size="icon" className="text-gold hover:bg-gold/10" onClick={() => downloadTicket(ticket.id)}>
+                                     {isDownloading === ticket.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                                   </Button>
+                                 )}
+                               </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
+
+                {/* Pagination Tickets */}
+                {totalTicketPages > 1 && (
+                  <div className="p-6 border-t border-border/30 flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">Page {ticketPage} sur {totalTicketPages}</p>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        disabled={ticketPage === 1}
+                        onClick={() => setTicketPage(p => p - 1)}
+                        className="rounded-lg h-9"
+                      >
+                        Précédent
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        disabled={ticketPage === totalTicketPages}
+                        onClick={() => setTicketPage(p => p + 1)}
+                        className="rounded-lg h-9"
+                      >
+                        Suivant
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1119,8 +1227,22 @@ const AdminDashboard = () => {
               <div><Label className="opacity-50 uppercase text-[10px] font-bold">Statut</Label><p className="text-gold font-bold">{selectedTicket.status}</p></div>
             </div>
             <div className="flex gap-4">
-              {selectedTicket.status === 'validé' && <Button className="flex-1" onClick={() => downloadTicket(selectedTicket.id)}>PDF</Button>}
-              <Button variant="outline" className="flex-1 text-destructive" onClick={() => cancelTicket(selectedTicket.id)}>Annuler</Button>
+              {(selectedTicket.status === 'validé' || selectedTicket.status === 'utilisé') && (
+                <Button className="flex-1 bg-gold text-[#32140c] hover:bg-gold/90 font-bold" onClick={() => downloadTicket(selectedTicket.id)}>
+                  {isDownloading === selectedTicket.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+                  Télécharger PDF
+                </Button>
+              )}
+              {selectedTicket.status === 'soumis' && (
+                <Button className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold" onClick={() => { setShowTicketModal(false); setConfirmValidateOpen(true); }}>
+                  Valider le billet
+                </Button>
+              )}
+              {selectedTicket.status !== 'utilisé' && selectedTicket.status !== 'annulé' && (
+                <Button variant="outline" className="flex-1 text-destructive border-destructive/20 hover:bg-destructive/5" onClick={() => cancelTicket(selectedTicket.id)}>
+                  Annuler
+                </Button>
+              )}
             </div>
          </div>}
       </DialogContent></Dialog>
