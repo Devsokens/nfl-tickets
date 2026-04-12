@@ -32,7 +32,8 @@ import {
   Mail as MailIcon,
   Activity,
   Image as ImageIcon,
-  Loader2
+  Loader2,
+  FileText
 } from "lucide-react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -180,7 +181,8 @@ const AdminDashboard = () => {
   const [newsletterForm, setNewsletterForm] = useState({
     subject: "",
     content: "",
-    sendToAll: true
+    sendToAll: true,
+    attachmentFile: null as File | null
   });
 
   const [ticketPage, setTicketPage] = useState(1);
@@ -259,15 +261,29 @@ const AdminDashboard = () => {
     }
 
     setIsSendingNewsletter(true);
+    let attachmentUrl = undefined;
+    let attachmentName = undefined;
+
     try {
+      if (newsletterForm.attachmentFile) {
+        const formData = new FormData();
+        formData.append('file', newsletterForm.attachmentFile);
+        // On réutilise la route uploadImage (qui uploade dans 'events' et fonctionne pour tout fichier)
+        const uploadRes = await EventsAPI.uploadImage(formData);
+        attachmentUrl = uploadRes.imageUrl;
+        attachmentName = newsletterForm.attachmentFile.name;
+      }
+
       await NewsletterAPI.sendManual({
         subject: newsletterForm.subject,
         content: newsletterForm.content,
-        recipientEmails: recipients
+        recipientEmails: recipients,
+        attachmentUrl,
+        attachmentName
       });
       toast.success(`Newsletter envoyée à ${recipients.length} abonnés !`);
       setIsComposeOpen(false);
-      setNewsletterForm({ subject: "", content: "", sendToAll: true });
+      setNewsletterForm({ subject: "", content: "", sendToAll: true, attachmentFile: null });
       setSelectedEmails([]);
       refetchHistory();
     } catch (err: any) {
@@ -562,20 +578,21 @@ const AdminDashboard = () => {
   }, [events, tickets]);
  
   const ticketsByStatus = useMemo(() => {
-    const statusCounts: Record<string, number> = { "En attente": 0, "Confirmé": 0, "Annulé": 0, "Validé": 0 };
+    const statusCounts: Record<string, number> = { "Soumis": 0, "Validé": 0, "Utilisé": 0, "Annulé": 0 };
     tickets.forEach(t => {
       const statusValue = (t.status || "").toLowerCase();
-      let s = "En attente";
+      let s = "Soumis";
       if (statusValue === 'validé' || statusValue === 'validated') s = "Validé";
-      else if (statusValue === 'confirmé' || statusValue === 'confirmed') s = "Confirmé";
+      else if (statusValue === 'utilisé' || statusValue === 'used') s = "Utilisé";
       else if (statusValue === 'annulé' || statusValue === 'cancelled') s = "Annulé";
+      else if (statusValue === 'soumis' || statusValue === 'submitted' || statusValue === 'en attente') s = "Soumis";
       
       if (statusCounts[s] !== undefined) statusCounts[s]++;
     });
     return Object.entries(statusCounts).map(([name, value]) => ({ name, value }));
   }, [tickets]);
  
-  const COLORS = ['#FFBB28', '#00C49F', '#FF8042', '#0088FE'];
+  const COLORS = ['#f97316', '#22c55e', '#64748b', '#ef4444']; // Orange(Soumis), Vert(Validé), Gris(Utilisé), Rouge(Annulé)
  
   const [ticketDialogOpen, setTicketDialogOpen] = useState(false);
   const [ticketForm, setTicketForm] = useState({ name: "", email: "", phone: "", eventId: "" });
@@ -688,7 +705,7 @@ const AdminDashboard = () => {
                   <div className="h-[300px]"><ResponsiveContainer><BarChart data={revenueByEvent}><XAxis dataKey="name"/><YAxis/><Tooltip/><Bar dataKey="revenue" fill="#d4af37" radius={[4, 4, 0, 0]}/></BarChart></ResponsiveContainer></div>
                 </div>
                 <div className="glass-card rounded-3xl p-8 border border-border/50">
-                  <h3 className="font-bold mb-6 flex items-center gap-2"><PieChart className="h-5 w-5 text-gold" /> Répartition</h3>
+                  <h3 className="font-bold mb-6 flex items-center gap-2"><PieChart className="h-5 w-5 text-gold" /> Répartition des réservations</h3>
                   <div className="h-[300px]"><ResponsiveContainer><PieChart><Pie data={ticketsByStatus} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">{ticketsByStatus.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}</Pie><Tooltip/><Legend/></PieChart></ResponsiveContainer></div>
                 </div>
               </div>
@@ -710,7 +727,11 @@ const AdminDashboard = () => {
                 </div>
                 <div className="h-[300px]">
                   <ResponsiveContainer>
-                    <AreaChart data={analyticsPeriod === "7days" ? (analyticsData?.chartData7Days || []) : (analyticsData?.chartData30Days || [])}>
+                    <AreaChart data={
+                      analyticsPeriod === "7days" 
+                        ? (analyticsData?.chartData7Days || analyticsData?.chartData || []) 
+                        : (analyticsData?.chartData30Days || analyticsData?.chartData || [])
+                    }>
                       <defs>
                         <linearGradient id="colorVisites" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#d4af37" stopOpacity={0.3}/>
@@ -1373,6 +1394,52 @@ const AdminDashboard = () => {
                   className="h-[250px] mb-12"
                 />
               </div>
+            </div>
+
+            <div className="space-y-3 pt-4">
+              <Label className="text-base">Pièce jointe (Optionnel)</Label>
+              {!newsletterForm.attachmentFile ? (
+                <Label 
+                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border/50 rounded-2xl cursor-pointer bg-secondary/20 hover:bg-gold/5 hover:border-gold/30 transition-all group"
+                >
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <UploadCloud className="w-8 h-8 mb-3 text-gold/50 group-hover:text-gold transition-colors" />
+                    <p className="mb-2 text-sm text-muted-foreground">
+                      <span className="font-semibold text-gold">Cliquez pour parcourir</span> ou glissez un fichier
+                    </p>
+                    <p className="text-xs text-muted-foreground/60">PDF, Images, DOC (Max 5MB)</p>
+                  </div>
+                  <Input 
+                    type="file" 
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    onChange={(e) => setNewsletterForm(p => ({ ...p, attachmentFile: e.target.files?.[0] || null }))}
+                    className="hidden"
+                  />
+                </Label>
+              ) : (
+                <div className="flex items-center justify-between p-4 bg-gold/5 border border-gold/20 rounded-xl relative overflow-hidden group transition-all">
+                  <div className="absolute inset-0 bg-gold/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  <div className="flex items-center gap-4 overflow-hidden relative z-10 w-full">
+                    <div className="p-3 bg-white shadow-sm border border-border/50 rounded-lg shrink-0">
+                      <FileText className="h-6 w-6 text-gold" />
+                    </div>
+                    <div className="truncate flex-1">
+                      <p className="text-sm font-bold truncate text-foreground">{newsletterForm.attachmentFile.name}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {(newsletterForm.attachmentFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive shrink-0 h-10 w-10 ml-2"
+                      onClick={(e) => { e.preventDefault(); setNewsletterForm(p => ({ ...p, attachmentFile: null })); }}
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <Button 

@@ -133,7 +133,7 @@ export const NewsletterAPI = {
     const res = await api.get('/newsletter/history');
     return res.data;
   },
-  sendManual: async (data: { subject: string; content: string; recipientEmails: string[] }) => {
+  sendManual: async (data: { subject: string; content: string; recipientEmails: string[]; attachmentUrl?: string; attachmentName?: string; }) => {
     const res = await api.post('/newsletter/send', data);
     return res.data;
   },
