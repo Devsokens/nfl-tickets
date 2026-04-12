@@ -569,12 +569,19 @@ const AdminDashboard = () => {
   };
 
   const revenueByEvent = useMemo(() => {
-    return events.map(event => ({
-      name: event.title.substring(0, 15),
-      revenue: (tickets || [])
-        .filter(t => (t.event_id || t.eventId) === event.id && (t.status === 'confirmed' || t.status === 'validated' || t.status === 'validé'))
-        .length * event.price
-    })).filter(d => d.revenue > 0);
+    return events.map(event => {
+      const ticketsCount = (tickets || []).filter(t => {
+        const isMatchEvent = (t.event_id || t.eventId) === event.id;
+        const statusValue = (t.status || "").toLowerCase();
+        const isPaid = statusValue === 'validé' || statusValue === 'validated' || statusValue === 'confirmé' || statusValue === 'confirmed' || statusValue === 'utilisé' || statusValue === 'used';
+        return isMatchEvent && isPaid;
+      }).length;
+      
+      return {
+        name: event.title.substring(0, 15) + (event.title.length > 15 ? "..." : ""),
+        revenue: ticketsCount * (event.price || 0)
+      };
+    }).filter(d => d.revenue > 0);
   }, [events, tickets]);
  
   const ticketsByStatus = useMemo(() => {
