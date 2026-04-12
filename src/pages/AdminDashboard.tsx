@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, EventsAPI, TicketsAPI, NewsletterAPI, ContactAPI, type Event, type Ticket } from "@/lib/api";
+import { api, EventsAPI, TicketsAPI, NewsletterAPI, ContactAPI, AnalyticsAPI, type Event, type Ticket } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +36,8 @@ import {
 } from "lucide-react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  PieChart, Pie, Cell, Legend 
+  PieChart, Pie, Cell, Legend,
+  AreaChart, Area
 } from 'recharts';
 import nflLogo from "@/assets/Logo_NFL_fond_marron-removebg-preview.png";
 import { toast } from "sonner";
@@ -69,6 +70,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 type Tab = "dashboard" | "events" | "tickets" | "demandes" | "newsletter" | "scanner";
 
 const DemandesList = () => {
+  const [selectedDemande, setSelectedDemande] = useState<any>(null);
   const { data: demandes = [], isLoading } = useQuery<any[]>({
     queryKey: ["contacts"],
     queryFn: ContactAPI.getAll,
@@ -80,7 +82,7 @@ const DemandesList = () => {
   return (
     <>
       {demandes.map((d) => (
-        <tr key={d.id} className="hover:bg-muted/5 transition-colors group">
+        <tr key={d.id} className="hover:bg-muted/5 transition-colors group cursor-pointer" onClick={() => setSelectedDemande(d)}>
           <td className="px-6 py-5">
             <div className="font-bold text-foreground">{d.name}</div>
             <div className="text-xs text-muted-foreground">{d.email}</div>
@@ -109,6 +111,21 @@ const DemandesList = () => {
           </td>
         </tr>
       ))}
+      <Dialog open={!!selectedDemande} onOpenChange={(open) => !open && setSelectedDemande(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Demande de {selectedDemande?.name}</DialogTitle>
+            <DialogDescription>{selectedDemande?.email}</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <h4 className="font-bold text-gold uppercase mb-2">{selectedDemande?.subject}</h4>
+            <p className="whitespace-pre-wrap text-muted-foreground">{selectedDemande?.message}</p>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setSelectedDemande(null)}>Fermer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
@@ -128,6 +145,7 @@ const AdminDashboard = () => {
   });
 
   const [searchTicket, setSearchTicket] = useState("");
+  const [analyticsPeriod, setAnalyticsPeriod] = useState<"7days" | "30days">("7days");
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [scanInput, setScanInput] = useState("");
   const [scanMode, setScanMode] = useState<"manual" | "camera">("camera");
@@ -137,6 +155,11 @@ const AdminDashboard = () => {
   const { data: subscribers = [] } = useQuery<any[]>({
     queryKey: ["subscribers"],
     queryFn: NewsletterAPI.getAll,
+  });
+
+  const { data: analyticsData } = useQuery({
+    queryKey: ["analyticsStats"],
+    queryFn: AnalyticsAPI.getStats,
   });
 
   const [filterEvent, setFilterEvent] = useState<string>("all");
@@ -667,6 +690,40 @@ const AdminDashboard = () => {
                 <div className="glass-card rounded-3xl p-8 border border-border/50">
                   <h3 className="font-bold mb-6 flex items-center gap-2"><PieChart className="h-5 w-5 text-gold" /> Répartition</h3>
                   <div className="h-[300px]"><ResponsiveContainer><PieChart><Pie data={ticketsByStatus} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">{ticketsByStatus.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}</Pie><Tooltip/><Legend/></PieChart></ResponsiveContainer></div>
+                </div>
+              </div>
+
+              {/* Flux de visites */}
+              <div className="glass-card rounded-3xl p-8 border border-border/50">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                  <h3 className="font-bold flex items-center gap-2"><Activity className="h-5 w-5 text-gold" /> Flux de visites</h3>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <Select value={analyticsPeriod} onValueChange={(v: "7days"|"30days") => setAnalyticsPeriod(v)}>
+                      <SelectTrigger className="w-[180px]"><SelectValue placeholder="Période" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="7days">7 derniers jours</SelectItem>
+                        <SelectItem value="30days">30 derniers jours</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Badge variant="outline" className="text-gold border-gold/20">{analyticsData?.totalVisits || 0} visites au total (30j)</Badge>
+                  </div>
+                </div>
+                <div className="h-[300px]">
+                  <ResponsiveContainer>
+                    <AreaChart data={analyticsPeriod === "7days" ? (analyticsData?.chartData7Days || []) : (analyticsData?.chartData30Days || [])}>
+                      <defs>
+                        <linearGradient id="colorVisites" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#d4af37" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#d4af37" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                      <Area type="monotone" dataKey="visites" stroke="#d4af37" fillOpacity={1} fill="url(#colorVisites)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
 

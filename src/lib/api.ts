@@ -160,3 +160,18 @@ export const ContactAPI = {
     return res.data;
   },
 };
+
+export const AnalyticsAPI = {
+  track: async (path: string) => {
+    try {
+      const res = await api.post('/analytics/track', { path });
+      return res.data;
+    } catch (e) {
+      console.warn("Analytics tracking failed", e);
+    }
+  },
+  getStats: async () => {
+    const res = await api.get('/analytics/stats');
+    return res.data;
+  }
+};
