@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
-import { Calendar, MapPin, Clock } from "lucide-react";
+import { Calendar, MapPin, Clock, Share2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import type { Event } from "@/lib/api";
 
 import nflImg1 from "@/assets/nfl img1.jpeg";
@@ -41,10 +42,37 @@ const EventCard = ({ event }: EventCardProps) => {
   // Logic to determine if event is past (yesterday or older)
   const isPast = eventDate < new Date(new Date().setHours(0, 0, 0, 0));
 
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const eventLink = event.slug ? event.slug : event.id;
+    const url = `${window.location.origin}/event/${eventLink}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: event.title,
+          text: `Découvrez cet événement : ${event.title}`,
+          url: url,
+        });
+      } catch (err) {
+        console.log("Erreur de partage:", err);
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success("Lien copié dans le presse-papier !");
+      } catch (err) {
+        toast.error("Impossible de copier le lien.");
+      }
+    }
+  };
+
   return (
-    <div className="group block h-full cursor-pointer">
+    <div className="group block h-full cursor-pointer relative">
       <Link 
-        to={`/event/${event.id}`} 
+        to={`/event/${event.slug || event.id}`} 
         className="block h-full"
       >
       <div className={`glass-card rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 h-full flex flex-col ${isPast ? 'grayscale-[20%] opacity-90' : ''}`}>
@@ -66,6 +94,13 @@ const EventCard = ({ event }: EventCardProps) => {
               </Badge>
             )}
           </div>
+          <button
+            onClick={handleShare}
+            className="absolute top-3 right-3 p-2.5 bg-[#32140c]/80 hover:bg-[#32140c] backdrop-blur-md rounded-full shadow-md text-foreground transition-all duration-300 transform hover:scale-110 z-10 border border-gold/20"
+            title="Partager cet événement"
+          >
+            <Share2 className="h-4 w-4 text-gold shrink-0" />
+          </button>
           <div className="absolute bottom-3 left-3 right-3">
             <p className="text-primary-foreground font-display text-lg font-semibold leading-tight">
               {event.title}

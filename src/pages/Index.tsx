@@ -226,15 +226,15 @@ const Index = () => {
         ))}
         <div className="absolute inset-0 bg-gradient-to-b from-[#32140c]/90 via-[#32140c]/70 to-background" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(199,157,79,0.28),transparent_45%)]" />
-        <div className="relative z-10 text-center px-4 space-y-8 animate-fade-in max-w-5xl mx-auto mt-6">
-          <h1 className="font-display text-5xl md:text-7xl font-bold text-primary-foreground leading-tight tracking-tight drop-shadow-xl mb-4">
+        <div className="relative z-10 text-center px-4 space-y-8 animate-fade-in max-w-5xl mx-auto mt-6 w-full">
+          <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-primary-foreground leading-[1.1] tracking-tight drop-shadow-xl mb-4">
             L'exigence du <span className="text-gradient-gold">Résultat.</span>
           </h1>
-          <div className="bg-background/20 backdrop-blur-sm p-6 rounded-2xl border border-gold/10 inline-block shadow-2xl">
-            <h3 className="text-gold font-semibold text-xl md:text-2xl mb-3">
+          <div className="bg-background/20 backdrop-blur-sm p-5 md:p-6 rounded-2xl border border-gold/10 inline-block shadow-2xl w-[90%] sm:w-auto">
+            <h3 className="text-gold font-semibold text-lg sm:text-xl md:text-2xl mb-3 leading-snug">
               Transformez vos managers en leaders inspirants et vos commerciaux en experts du closing.
             </h3>
-            <p className="text-primary-foreground/90 text-base md:text-lg max-w-4xl mx-auto font-light leading-relaxed">
+            <p className="text-primary-foreground/90 text-sm sm:text-base md:text-lg max-w-4xl mx-auto font-light leading-relaxed">
               LOUISE AUDYLL Ongoum accompagne depuis plus de 30 ans les directions générales, directions commerciales et équipes de vente vers l'excellence. Une approche terrain, des résultats mesurables.
             </p>
           </div>

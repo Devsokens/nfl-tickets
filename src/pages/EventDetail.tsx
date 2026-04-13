@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { EventsAPI, TicketsAPI, type Event } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, ArrowLeft, Clock, CheckCircle2, Phone } from "lucide-react";
+import { Calendar, MapPin, ArrowLeft, Clock, CheckCircle2, Phone, Share2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -107,6 +107,28 @@ const EventDetail = () => {
     setStep(2);
   };
 
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: event?.title || "Événement",
+          text: `Découvrez cet événement : ${event?.title}`,
+          url: url,
+        });
+      } catch (err) {
+        console.log("Erreur de partage:", err);
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        toast({ title: "Lien copié !", description: "Le lien de l'événement a bien été copié dans votre presse-papier." });
+      } catch (err) {
+        toast({ variant: "destructive", title: "Erreur", description: "Impossible de copier le lien." });
+      }
+    }
+  };
+
   const handlePaymentDone = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
@@ -204,6 +226,13 @@ const EventDetail = () => {
                   <Badge variant="destructive" className="border-0 px-3 py-1 text-sm">Terminé</Badge>
                 )}
               </div>
+              <button
+                onClick={handleShare}
+                className="absolute top-4 right-4 p-3 bg-[#32140c]/80 hover:bg-[#32140c] backdrop-blur-md rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 z-10 border border-gold/30"
+                title="Partager cet événement"
+              >
+                <Share2 className="h-5 w-5 text-gold shrink-0" />
+              </button>
             </div>
 
             <div className="space-y-8 animate-fade-in">

@@ -20,6 +20,7 @@ export interface Event {
   newsletter_status?: string;
   send_newsletter?: boolean;
   status?: 'publié' | 'brouillon' | 'annulé';
+  slug?: string;
 }
 
 export interface Ticket {
