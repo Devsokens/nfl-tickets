@@ -42,6 +42,13 @@ const EventDetail = () => {
     enabled: !!id,
   });
 
+  // Remplacer l'URL du navigateur par le slug si disponible
+  useEffect(() => {
+    if (event?.slug && id !== event.slug) {
+      window.history.replaceState(null, '', `/event/${event.slug}`);
+    }
+  }, [event?.slug, id]);
+
   const { data: allUpcoming = [] } = useQuery<Event[]>({
     queryKey: ["upcomingEvents"],
     queryFn: EventsAPI.getUpcoming,
@@ -108,7 +115,8 @@ const EventDetail = () => {
   };
 
   const handleShare = async () => {
-    const url = window.location.href;
+    const eventLink = event?.slug ? event.slug : event?.id;
+    const url = `${window.location.origin}/event/${eventLink}`;
     if (navigator.share) {
       try {
         await navigator.share({
