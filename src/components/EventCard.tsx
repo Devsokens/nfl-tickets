@@ -125,11 +125,6 @@ const EventCard = ({ event }: EventCardProps) => {
               <span className="text-gradient-gold font-display text-xl font-bold">
                 {event.price.toLocaleString()} {event.currency}
               </span>
-              {!isPast && (
-                <span className="text-xs text-muted-foreground">
-                  {event.capacity - (event.ticketsSold || 0)} places restantes
-                </span>
-              )}
             </div>
             {isPast ? (
               <Button variant="outline" className="w-full border-gold/30 text-gold hover:bg-gold/10 rounded-xl">

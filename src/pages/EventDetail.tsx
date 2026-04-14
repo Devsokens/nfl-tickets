@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { EventsAPI, TicketsAPI, type Event } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, ArrowLeft, Clock, CheckCircle2, Phone, Share2 } from "lucide-react";
+import { Calendar, MapPin, ArrowLeft, Clock, CheckCircle2, Phone, Share2, Copy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -265,9 +265,6 @@ const EventDetail = () => {
                   <p className="text-gradient-gold font-display text-4xl font-bold mb-1">
                     {event.price.toLocaleString()} {event.currency}
                   </p>
-                  {!isPast && (
-                    <p className="text-sm text-muted-foreground">{remaining} places restantes / {event.capacity}</p>
-                  )}
                 </div>
               </div>
 
@@ -361,11 +358,29 @@ const EventDetail = () => {
                         <p><strong>Montant total :</strong> {totalAmount.toLocaleString()} {event.currency}</p>
                         <p><strong>Participant :</strong> {participants[0].fullName}</p>
                       </div>
-                      <div className="rounded-2xl border border-gold/20 p-4 bg-card space-y-2">
+                      <div className="rounded-2xl border border-gold/20 p-4 bg-card space-y-3">
                         <p className="font-semibold">Instructions de paiement</p>
                         <p className="text-sm text-muted-foreground">Veuillez effectuer le paiement du montant total via Airtel Money ou Moov Money.</p>
-                        <p className="text-sm"><strong>Numéro Airtel (Paiement) :</strong> 077 57 73 83</p>
-                        <p className="text-sm"><strong>Numéro Moov (Paiement) :</strong> 066 69 23 38</p>
+                        <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                          <div className="flex-1 bg-secondary/30 p-3 rounded-xl border border-border/50 flex items-center justify-between">
+                            <div>
+                              <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-1">Airtel Money</p>
+                              <p className="font-mono text-lg tracking-wider font-semibold">077757383</p>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-10 w-10 text-gold hover:bg-gold/10 rounded-full" onClick={() => { navigator.clipboard.writeText("077757383"); toast({ title: "Copié !", description: "Numéro Airtel copié." }); }}>
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="flex-1 bg-secondary/30 p-3 rounded-xl border border-border/50 flex items-center justify-between">
+                            <div>
+                              <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-1">Moov Money</p>
+                              <p className="font-mono text-lg tracking-wider font-semibold">066692338</p>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-10 w-10 text-gold hover:bg-gold/10 rounded-full" onClick={() => { navigator.clipboard.writeText("066692338"); toast({ title: "Copié !", description: "Numéro Moov copié." }); }}>
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
                       </div>
                       {paymentPending && (
                         <div className="rounded-2xl border border-gold/30 bg-gold/10 p-4 flex items-start gap-3">

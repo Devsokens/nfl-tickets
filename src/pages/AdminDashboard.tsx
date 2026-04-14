@@ -836,8 +836,9 @@ const AdminDashboard = () => {
                       <h3 className="font-bold text-xl mb-2">{event.title}</h3>
                       <p className="text-sm text-muted-foreground mb-4 font-mono">{new Date(event.date).toLocaleDateString()} - {event.location}</p>
                       <div className="mt-auto pt-4 border-t border-border/50">
-                        <div className="flex justify-between text-xs font-bold text-muted-foreground mb-2"><span>{event.ticketsSold || 0} / {event.capacity}</span></div>
-                        <div className="h-1.5 bg-secondary rounded-full overflow-hidden"><div className="h-full bg-gold transition-all" style={{ width: `${((event.ticketsSold || 0) / event.capacity) * 100}%` }} /></div>
+                        <div className="flex text-sm font-bold text-muted-foreground">
+                          <span className="text-gold mr-1">{event.ticketsSold || 0}</span> places validées
+                        </div>
                       </div>
                     </div>
                   </div>
