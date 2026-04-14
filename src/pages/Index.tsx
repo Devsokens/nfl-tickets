@@ -242,7 +242,15 @@ const Index = () => {
             <Button variant="gold" size="lg" className="w-full sm:w-auto text-base rounded-full px-8 h-14 shadow-lg shadow-gold/20" asChild>
               <Link to="/formations">Formations <ArrowRight className="ml-2 h-5 w-5" /></Link>
             </Button>
-            <Button variant="outline" size="lg" className="w-full sm:w-auto text-base rounded-full px-8 h-14 bg-background/30 backdrop-blur-md text-white border-gold/30 hover:bg-gold/20 font-bold" onClick={() => document.getElementById("evenements")?.scrollIntoView({ behavior: "smooth" })}>
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="w-full sm:w-auto text-base rounded-full px-8 h-14 bg-background/30 backdrop-blur-md text-white border-gold/30 hover:bg-gold/20 font-bold" 
+              onClick={() => {
+                const targetId = upcomingEvents.length > 0 ? "evenements" : "evenements-passes";
+                document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
               Séminaires / Masterclass <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </div>
@@ -250,45 +258,70 @@ const Index = () => {
       </section>
 
       {/* 2. NEXT DATES */}
-      <section id="evenements" className="py-20 bg-background relative z-10">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-            <div className="max-w-2xl">
-              <h2 className="font-display text-4xl font-bold text-foreground">Prochaines <span className="text-gradient-gold">dates</span></h2>
-              <p className="text-muted-foreground text-lg mt-4">Inscrivez-vous à nos séminaires et masterclass à venir.</p>
-            </div>
-            <Button variant="gold" size="lg" className="rounded-full px-6" asChild>
-              <Link to="/events">Voir tous les événements <ArrowRight className="ml-2 h-4 w-4" /></Link>
-            </Button>
-          </div>
-          {isLoading ? (
-            <div className="flex justify-center py-10 w-full">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
-            </div>
-          ) : upcomingEvents.length === 0 ? (
-            <div className="glass-card p-12 text-center border border-gold/20 rounded-3xl">
-              <p className="text-muted-foreground text-lg">Aucune date n'est prévue pour le moment. Abonnez-vous à la newsletter pour être informé des prochaines sessions.</p>
-            </div>
-          ) : (
-            <div 
-              ref={scrollRefUpcoming}
-              onMouseEnter={() => setIsHoveredUpcoming(true)}
-              onMouseLeave={() => setIsHoveredUpcoming(false)}
-              className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-8 -mx-4 px-4 scrollbar-hide"
-            >
-              {homeUpcomingEvents.map((event, i) => (
-                <div 
-                  key={event.id} 
-                  className="animate-fade-in w-[85vw] snap-center sm:w-auto sm:min-w-[60%] md:min-w-[45%] lg:min-w-[23%] flex-shrink-0" 
-                  style={{ animationDelay: `${Math.min(i * 80, 300)}ms` }}
-                >
-                  <EventCard event={event} />
+      {upcomingEvents.length > 0 && (
+        <section id="evenements" className={`${upcomingEvents.length === 1 ? "py-12 pb-16" : "py-20"} bg-background relative z-10`}>
+          <div className="container mx-auto px-4">
+            {upcomingEvents.length === 1 ? (
+              <div className="flex flex-col md:flex-row items-center gap-10 bg-card/30 p-8 md:p-12 rounded-[2.5rem] border border-gold/10 shadow-xl overflow-hidden relative group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 rounded-full blur-3xl -z-0 pointer-events-none" />
+                <div className="flex-1 space-y-6 relative z-10">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-gold/10 text-gold rounded-full text-xs font-bold uppercase tracking-widest border border-gold/20">
+                    Prochaine Date
+                  </div>
+                  <h2 className="font-display text-4xl md:text-5xl font-bold text-foreground leading-tight">
+                    Notre prochain <span className="text-gradient-gold">rendez-vous</span>
+                  </h2>
+                  <p className="text-muted-foreground text-lg max-w-md">
+                    Ne manquez pas notre prochaine session de formation. Une opportunité unique de booster vos compétences.
+                  </p>
+                  <div className="pt-2">
+                    <Button variant="gold" size="lg" className="rounded-full px-8 h-12 shadow-lg shadow-gold/10" asChild>
+                      <Link to="/events">Voir tous les événements <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                    </Button>
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+                <div className="w-full md:w-[400px] shrink-0 relative z-10 transform transition-transform group-hover:scale-[1.02] duration-500">
+                  <EventCard event={upcomingEvents[0]} />
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+                  <div className="max-w-2xl">
+                    <h2 className="font-display text-4xl font-bold text-foreground">Prochaines <span className="text-gradient-gold">dates</span></h2>
+                    <p className="text-muted-foreground text-lg mt-4">Inscrivez-vous à nos séminaires et masterclass à venir.</p>
+                  </div>
+                  <Button variant="gold" size="lg" className="rounded-full px-6" asChild>
+                    <Link to="/events">Voir tous les événements <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                  </Button>
+                </div>
+                {isLoading ? (
+                  <div className="flex justify-center py-10 w-full">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
+                  </div>
+                ) : (
+                  <div 
+                    ref={scrollRefUpcoming}
+                    onMouseEnter={() => setIsHoveredUpcoming(true)}
+                    onMouseLeave={() => setIsHoveredUpcoming(false)}
+                    className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-8 -mx-4 px-4 scrollbar-hide"
+                  >
+                    {homeUpcomingEvents.map((event, i) => (
+                      <div 
+                        key={event.id} 
+                        className="animate-fade-in w-[85vw] snap-center sm:w-auto sm:min-w-[60%] md:min-w-[45%] lg:min-w-[23%] flex-shrink-0" 
+                        style={{ animationDelay: `${Math.min(i * 80, 300)}ms` }}
+                      >
+                        <EventCard event={event} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* 3. EVENEMENTS PASSES */}
       <section id="evenements-passes" className="py-20 bg-card border-t border-b border-border/50">

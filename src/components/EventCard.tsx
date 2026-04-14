@@ -81,19 +81,10 @@ const EventCard = ({ event }: EventCardProps) => {
             src={image}
             alt={event.title}
             loading="lazy"
-            className="w-full h-full object-contain bg-muted/30 transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
-          <div className="absolute top-3 left-3 flex gap-2">
-            <Badge className={`${categoryColors[event.category]} border-0`}>
-              {event.category}
-            </Badge>
-            {isPast && (
-              <Badge variant="destructive" className="border-0">
-                Terminé
-              </Badge>
-            )}
-          </div>
+          {/* Étiquettes retirées à la demande de l'utilisateur */}
           <button
             onClick={handleShare}
             className="absolute top-3 right-3 p-2.5 bg-[#32140c]/80 hover:bg-[#32140c] backdrop-blur-md rounded-full shadow-md text-foreground transition-all duration-300 transform hover:scale-110 z-10 border border-gold/20"

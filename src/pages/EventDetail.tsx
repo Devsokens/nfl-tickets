@@ -51,7 +51,7 @@ const EventDetail = () => {
 
   const { data: allUpcoming = [] } = useQuery<Event[]>({
     queryKey: ["upcomingEvents"],
-    queryFn: EventsAPI.getUpcoming,
+    queryFn: () => EventsAPI.getAll(),
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -193,7 +193,8 @@ const EventDetail = () => {
   };
 
   const otherEvents = allUpcoming
-    .filter((e) => e.id !== id && new Date(e.date) >= new Date(new Date().setHours(0,0,0,0)))
+    .filter((e) => e.id !== event?.id && e.slug !== event?.slug && e.status !== 'brouillon')
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 8);
 
   return (
@@ -226,14 +227,9 @@ const EventDetail = () => {
         <div className="flex flex-col lg:flex-row gap-10">
           <div className="flex-1 lg:max-w-[800px] xl:max-w-[900px]">
             <div className={`relative h-[40vh] md:h-[50vh] rounded-3xl overflow-hidden mb-8 shadow-2xl bg-muted/20 ${isPast ? 'grayscale-[30%]' : ''}`}>
-              <img src={image} alt={event.title} className="w-full h-full object-contain" width={1920} height={800} />
+              <img src={image} alt={event.title} className="w-full h-full object-cover" width={1920} height={800} />
               <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
-              <div className="absolute top-4 left-4 flex gap-2">
-                <Badge className="bg-gold text-accent-foreground border-0 px-3 py-1 text-sm">{event.category}</Badge>
-                {isPast && (
-                  <Badge variant="destructive" className="border-0 px-3 py-1 text-sm">Terminé</Badge>
-                )}
-              </div>
+              {/* Étiquettes retirées à la demande de l'utilisateur */}
               <button
                 onClick={handleShare}
                 className="absolute top-4 right-4 p-3 bg-[#32140c]/80 hover:bg-[#32140c] backdrop-blur-md rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 z-10 border border-gold/30"
