@@ -112,11 +112,13 @@ const EventCard = ({ event }: EventCardProps) => {
             </div>
           </div>
           <div className="flex flex-col gap-4 pt-3 border-t border-border/50 mt-auto">
-            <div className="flex items-center justify-between">
-              <span className="text-gradient-gold font-display text-xl font-bold">
-                {event.price.toLocaleString()} {event.currency}
-              </span>
-            </div>
+            {!isPast && (
+              <div className="flex items-center justify-between">
+                <span className="text-gradient-gold font-display text-xl font-bold">
+                  {event.price.toLocaleString()} {event.currency}
+                </span>
+              </div>
+            )}
             {isPast ? (
               <Button variant="outline" className="w-full border-gold/30 text-gold hover:bg-gold/10 rounded-xl">
                 Voir plus

@@ -257,11 +257,13 @@ const EventDetail = () => {
                     </ReactMarkdown>
                   </div>
                 </div>
-                <div className="shrink-0 text-left md:text-right">
-                  <p className="text-gradient-gold font-display text-4xl font-bold mb-1">
-                    {event.price.toLocaleString()} {event.currency}
-                  </p>
-                </div>
+                {!isPast && (
+                  <div className="shrink-0 text-left md:text-right">
+                    <p className="text-gradient-gold font-display text-4xl font-bold mb-1">
+                      {event.price.toLocaleString()} {event.currency}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

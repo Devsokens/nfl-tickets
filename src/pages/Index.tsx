@@ -239,13 +239,13 @@ const Index = () => {
             </p>
           </div>
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button variant="gold" size="lg" className="w-full sm:w-auto text-base rounded-full px-8 h-14 shadow-lg shadow-gold/20" asChild>
+            {/* <Button variant="gold" size="lg" className="w-full sm:w-auto text-base rounded-full px-8 h-14 shadow-lg shadow-gold/20" asChild>
               <Link to="/formations">Formations <ArrowRight className="ml-2 h-5 w-5" /></Link>
-            </Button>
+            </Button> */}
             <Button 
               variant="outline" 
               size="lg" 
-              className="w-full sm:w-auto text-base rounded-full px-8 h-14 bg-background/30 backdrop-blur-md text-white border-gold/30 hover:bg-gold/20 font-bold" 
+              className="w-full sm:w-auto text-base rounded-full px-8 h-14 bg-background/30 backdrop-blur-md text-primary border-gold/30 hover:bg-gold/20 font-bold" 
               onClick={() => {
                 const targetId = upcomingEvents.length > 0 ? "evenements" : "evenements-passes";
                 document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth" });
@@ -385,7 +385,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* 5. FORMATIONS PRIVEES */}
+      {/* 5. FORMATIONS PRIVEES 
       <section id="formations" className="py-24 bg-background">
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
@@ -454,8 +454,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+      */}
 
-      {/* 6. FAQ */}
+      {/* 6. FAQ 
       <section id="faq" className="py-20 bg-card border-t border-border">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
@@ -482,8 +483,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+      */}
 
-      {/* 7. BIOGRAPHIE (Présentation personnelle) */}
+      {/* 7. BIOGRAPHIE (Présentation personnelle) 
       <section id="biographie" className="py-24 bg-background">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto glass-card rounded-[2.5rem] p-8 md:p-12 border border-gold/20 shadow-2xl relative overflow-hidden">
@@ -525,6 +527,7 @@ const Index = () => {
           </div>
         </div>
       </section>
+      */}
 
       {/* 8. CONTACT */}
       <section id="contact" className="py-24 bg-card relative overflow-hidden">

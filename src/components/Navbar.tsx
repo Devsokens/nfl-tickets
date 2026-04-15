@@ -83,7 +83,7 @@ const Navbar = () => {
           <button onClick={() => handleScroll("evenements-passes")} className="text-xs font-bold uppercase tracking-wider text-primary-foreground/80 hover:text-gold transition-colors">
             Événements passés
           </button>
-          <button onClick={() => handleScroll("formations")} className="text-xs font-bold uppercase tracking-wider text-primary-foreground/80 hover:text-gold transition-colors">
+          {/* <button onClick={() => handleScroll("formations")} className="text-xs font-bold uppercase tracking-wider text-primary-foreground/80 hover:text-gold transition-colors">
             Formations Privées
           </button>
           <button onClick={() => handleScroll("faq")} className="text-xs font-bold uppercase tracking-wider text-primary-foreground/80 hover:text-gold transition-colors">
@@ -91,7 +91,7 @@ const Navbar = () => {
           </button>
           <button onClick={() => handleScroll("biographie")} className="text-xs font-bold uppercase tracking-wider text-primary-foreground/80 hover:text-gold transition-colors">
             Biographie
-          </button>
+          </button> */}
           <button onClick={() => handleScroll("contact")} className="text-xs font-bold uppercase tracking-wider text-primary-foreground/80 hover:text-gold transition-colors">
             Contact
           </button>
@@ -112,9 +112,9 @@ const Navbar = () => {
               <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="text-lg font-bold uppercase tracking-wide text-primary-foreground hover:text-gold transition-colors">Accueil</Link>
               <button onClick={() => handleScroll("evenements")} className="text-lg font-bold uppercase tracking-wide text-left text-primary-foreground hover:text-gold transition-colors">Prochaines dates</button>
               <button onClick={() => handleScroll("evenements-passes")} className="text-lg font-bold uppercase tracking-wide text-left text-primary-foreground hover:text-gold transition-colors">Événements passés</button>
-              <button onClick={() => handleScroll("formations")} className="text-lg font-bold uppercase tracking-wide text-left text-primary-foreground hover:text-gold transition-colors">Formations Privées</button>
+              {/* <button onClick={() => handleScroll("formations")} className="text-lg font-bold uppercase tracking-wide text-left text-primary-foreground hover:text-gold transition-colors">Formations Privées</button>
               <button onClick={() => handleScroll("faq")} className="text-lg font-bold uppercase tracking-wide text-left text-primary-foreground hover:text-gold transition-colors">FAQ</button>
-              <button onClick={() => handleScroll("biographie")} className="text-lg font-bold uppercase tracking-wide text-left text-primary-foreground hover:text-gold transition-colors">Biographie</button>
+              <button onClick={() => handleScroll("biographie")} className="text-lg font-bold uppercase tracking-wide text-left text-primary-foreground hover:text-gold transition-colors">Biographie</button> */}
               <button onClick={() => handleScroll("contact")} className="text-lg font-bold uppercase tracking-wide text-left text-primary-foreground hover:text-gold transition-colors">Contact</button>
               
               <div className="mt-8 pt-8 border-t border-white/10 space-y-4">

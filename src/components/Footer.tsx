@@ -48,9 +48,9 @@ const Footer = () => {
               <li><button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-gold transition-colors block">Accueil</button></li>
               <li><button onClick={() => document.getElementById('evenements')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-gold transition-colors text-left">Prochaines dates</button></li>
               <li><button onClick={() => document.getElementById('evenements-passes')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-gold transition-colors text-left">Événements passés</button></li>
-              <li><button onClick={() => document.getElementById('formations')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-gold transition-colors text-left">Formations Privées</button></li>
+              {/* <li><button onClick={() => document.getElementById('formations')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-gold transition-colors text-left">Formations Privées</button></li>
               <li><button onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-gold transition-colors text-left">FAQ</button></li>
-              <li><button onClick={() => document.getElementById('biographie')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-gold transition-colors text-left">Biographie</button></li>
+              <li><button onClick={() => document.getElementById('biographie')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-gold transition-colors text-left">Biographie</button></li> */}
               <li><button onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-gold transition-colors text-left">Contact</button></li>
               <li><Link to="/admin/login" className="hover:text-gold transition-colors block text-gold/60">Connexion Admin</Link></li>
             </ul>
