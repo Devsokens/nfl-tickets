@@ -18,6 +18,8 @@ import nflImg1 from "@/assets/nfl img1.jpeg";
 import nflImg2 from "@/assets/nfl img2.jpeg";
 import nflImg3 from "@/assets/nfl img3.jpeg";
 import nflImg4 from "@/assets/nfl img 4.jpeg";
+import airtelLogo from "@/assets/airtel.png";
+import moovLogo from "@/assets/moov.png";
 
 const categoryImages: Record<string, string> = {
   soirée: nflImg1,
@@ -192,11 +194,6 @@ const EventDetail = () => {
     }
   };
 
-  const otherEvents = allUpcoming
-    .filter((e) => e.id !== event?.id && e.slug !== event?.slug && e.status !== 'brouillon')
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 8);
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Helmet>
@@ -209,7 +206,7 @@ const EventDetail = () => {
       <Navbar />
 
       <main className="flex-1 container mx-auto px-4 py-10">
-        <div className="flex flex-wrap items-center gap-4 mb-6">
+        <div className="flex flex-wrap items-center gap-4 mb-8">
           <Link
             to="/"
             className="inline-flex items-center gap-2 text-gold font-bold hover:text-gold-dark transition-all bg-gold/5 px-4 py-2 rounded-full border border-gold/10 text-sm"
@@ -218,208 +215,217 @@ const EventDetail = () => {
           </Link>
           <Link
             to="/events"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
           >
             Voir tous les événements
           </Link>
         </div>
         
-        <div className="flex flex-col lg:flex-row gap-10">
-          <div className="flex-1 lg:max-w-[800px] xl:max-w-[900px]">
-            <div className={`relative h-[40vh] md:h-[50vh] rounded-3xl overflow-hidden mb-8 shadow-2xl bg-muted/20 ${isPast ? 'grayscale-[30%]' : ''}`}>
-              <img src={image} alt={event.title} className="w-full h-full object-cover" width={1920} height={800} />
-              <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
-              {/* Étiquettes retirées à la demande de l'utilisateur */}
+        <div className="flex flex-col lg:flex-row gap-12 items-start">
+          {/* Colonne GAUCHE : Visuel + Description */}
+          <div className="flex-1 space-y-10 animate-fade-in w-full">
+            <div className={`relative h-[45vh] md:h-[55vh] rounded-[2rem] overflow-hidden shadow-2xl bg-muted/20 ${isPast ? 'grayscale-[30%]' : ''}`}>
+              <img src={image} alt={event.title} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
               <button
                 onClick={handleShare}
-                className="absolute top-4 right-4 p-3 bg-[#32140c]/80 hover:bg-[#32140c] backdrop-blur-md rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 z-10 border border-gold/30"
+                className="absolute top-6 right-6 p-3.5 bg-background/80 hover:bg-background backdrop-blur-md rounded-full shadow-xl transition-all duration-300 transform hover:scale-110 z-10 border border-border/50"
                 title="Partager cet événement"
               >
-                <Share2 className="h-5 w-5 text-gold shrink-0" />
+                <Share2 className="h-5 w-5 text-gold" />
               </button>
             </div>
 
-            <div className="space-y-8 animate-fade-in">
-              <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div>
-                  <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4 leading-tight">{event.title}</h1>
-                  <div className="text-xl text-muted-foreground leading-relaxed markdown-content">
-                    <ReactMarkdown 
-                      components={{
-                        p: ({node, ...props}) => <p className="mb-4 last:mb-0" {...props} />,
-                        ul: ({node, ...props}) => <ul className="list-disc pl-6 mb-4 space-y-2" {...props} />,
-                        ol: ({node, ...props}) => <ol className="list-decimal pl-6 mb-4 space-y-2" {...props} />,
-                        li: ({node, ...props}) => <li className="pl-1" {...props} />,
-                        strong: ({node, ...props}) => <strong className="font-bold text-foreground" {...props} />
-                      }}
-                    >
-                      {event.description}
-                    </ReactMarkdown>
-                  </div>
-                </div>
-                {!isPast && (
-                  <div className="shrink-0 text-left md:text-right">
-                    <p className="text-gradient-gold font-display text-4xl font-bold mb-1">
-                      {event.price.toLocaleString()} {event.currency}
-                    </p>
-                  </div>
-                )}
+            <div className="space-y-6">
+              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-black text-foreground leading-tight tracking-tight">
+                {event.title}
+              </h1>
+              <div className="text-xl text-muted-foreground leading-relaxed markdown-content">
+                <ReactMarkdown 
+                  components={{
+                    p: ({node, ...props}) => <p className="mb-6 last:mb-0" {...props} />,
+                    ul: ({node, ...props}) => <ul className="list-disc pl-6 mb-6 space-y-3" {...props} />,
+                    ol: ({node, ...props}) => <ol className="list-decimal pl-6 mb-6 space-y-3" {...props} />,
+                    li: ({node, ...props}) => <li className="pl-2" {...props} />,
+                    strong: ({node, ...props}) => <strong className="font-bold text-foreground" {...props} />
+                  }}
+                >
+                  {event.description}
+                </ReactMarkdown>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="flex items-center gap-4 p-4 rounded-2xl bg-secondary/50 border border-border/50">
-                  <div className="p-3 bg-secondary rounded-xl shrink-0"><Calendar className="h-6 w-6 text-gold" /></div>
-                  <div>
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Date</p>
-                    <p className="text-sm font-semibold capitalize">{formattedDate}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 p-4 rounded-2xl bg-secondary/50 border border-border/50">
-                  <div className="p-3 bg-secondary rounded-xl shrink-0"><MapPin className="h-6 w-6 text-gold" /></div>
-                  <div>
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Lieu</p>
-                    <p className="text-sm font-semibold">{event.location}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4 p-4 rounded-2xl bg-secondary/50 border border-border/50">
-                  <div className="p-3 bg-secondary rounded-xl shrink-0"><Clock className="h-6 w-6 text-gold" /></div>
-                  <div>
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Heure</p>
-                    <p className="text-sm font-semibold">{event.time}</p>
-                  </div>
-                </div>
-              </div>
-
-              {isPast ? (
-                <div className="bg-muted/30 p-8 rounded-3xl border border-dashed border-border flex flex-col items-center justify-center text-center gap-4 animate-fade-in shadow-inner">
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-                    <Calendar className="h-8 w-8 text-muted-foreground opacity-50" />
-                  </div>
-                  <div>
-                    <h3 className="font-display text-2xl font-bold text-foreground mb-2">Événement terminé</h3>
-                    <p className="text-muted-foreground max-w-sm">
-                      Cet événement a déjà eu lieu. Les inscriptions ne sont plus disponibles, mais vous pouvez consulter nos prochaines dates.
-                    </p>
-                  </div>
-                  <Button variant="outline" asChild className="rounded-full px-8 mt-2">
-                    <Link to="/events">Voir le catalogue complet</Link>
-                  </Button>
-                </div>
-              ) : (
-                <div className="bg-card p-6 rounded-3xl border border-border/50 shadow-sm space-y-6">
-                  <div className="flex flex-wrap items-center gap-3">
-                    {[1, 2].map((n) => (
-                      <div key={n} className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${step >= n ? "bg-gold text-accent-foreground" : "bg-secondary text-muted-foreground"}`}>
-                        Étape {n}
-                      </div>
-                    ))}
-                  </div>
-
-                  {step === 1 && (
-                    <div className="space-y-5 animate-fade-in">
-                      <h3 className="font-display text-2xl font-bold">Étape 1 : Vos Informations</h3>
-                      <div className="glass-card border border-gold/10 rounded-2xl p-6 space-y-4 bg-[#32140c]/5">
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label>Nom complet *</Label>
-                            <Input placeholder="Ex: Jean Mboulou" value={participants[0].fullName} onChange={(e) => updateParticipant(0, "fullName", e.target.value)} required />
-                          </div>
-                          <div className="grid sm:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label>Email (pour recevoir le billet) *</Label>
-                              <Input type="email" placeholder="jean.mboulou@email.com" value={participants[0].email} onChange={(e) => updateParticipant(0, "email", e.target.value)} required />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Numéro WhatsApp (Paiement) *</Label>
-                              <Input placeholder="+241 07 76 17 776" value={participants[0].phone} onChange={(e) => updateParticipant(0, "phone", e.target.value)} required />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-3">
-                        <div className="flex justify-between items-center px-2 py-1">
-                          <span className="text-muted-foreground">Total à payer :</span>
-                          <span className="text-gold font-bold text-xl">{totalAmount.toLocaleString()} FCFA</span>
-                        </div>
-                        <Button variant="gold" className="w-full h-12 rounded-xl font-bold shadow-lg shadow-gold/20" onClick={handleStep2} disabled={!isStep1Valid}>
-                          Continuer vers le paiement
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {step === 2 && (
-                    <div className="space-y-5 animate-fade-in">
-                      <h3 className="font-display text-2xl font-bold">Étape 2 : Paiement + confirmation</h3>
-                      <div className="rounded-2xl border border-gold/20 p-4 bg-secondary/30 space-y-2">
-                        <p><strong>Événement :</strong> {event.title}</p>
-                        <p><strong>Montant total :</strong> {totalAmount.toLocaleString()} {event.currency}</p>
-                        <p><strong>Participant :</strong> {participants[0].fullName}</p>
-                      </div>
-                      <div className="rounded-2xl border border-gold/20 p-4 bg-card space-y-3">
-                        <p className="font-semibold">Instructions de paiement</p>
-                        <p className="text-sm text-muted-foreground">Veuillez effectuer le paiement du montant total via Airtel Money ou Moov Money.</p>
-                        <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                          <div className="flex-1 bg-secondary/30 p-3 rounded-xl border border-border/50 flex items-center justify-between">
-                            <div>
-                              <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-1">Airtel Money</p>
-                              <p className="font-mono text-lg tracking-wider font-semibold">077757383</p>
-                            </div>
-                            <Button variant="ghost" size="icon" className="h-10 w-10 text-gold hover:bg-gold/10 rounded-full" onClick={() => { navigator.clipboard.writeText("077757383"); toast({ title: "Copié !", description: "Numéro Airtel copié." }); }}>
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <div className="flex-1 bg-secondary/30 p-3 rounded-xl border border-border/50 flex items-center justify-between">
-                            <div>
-                              <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold mb-1">Moov Money</p>
-                              <p className="font-mono text-lg tracking-wider font-semibold">066692338</p>
-                            </div>
-                            <Button variant="ghost" size="icon" className="h-10 w-10 text-gold hover:bg-gold/10 rounded-full" onClick={() => { navigator.clipboard.writeText("066692338"); toast({ title: "Copié !", description: "Numéro Moov copié." }); }}>
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                      {paymentPending && (
-                        <div className="rounded-2xl border border-gold/30 bg-gold/10 p-4 flex items-start gap-3">
-                          <CheckCircle2 className="text-gold mt-0.5 h-5 w-5" />
-                          <p className="text-sm">
-                            Réservation enregistrée avec le statut <strong>"Paiement en cours de vérification"</strong>.
-                            Finalisez maintenant sur WhatsApp pour validation.
-                          </p>
-                        </div>
-                      )}
-                      <div className="grid sm:grid-cols-2 gap-3">
-                        <Button variant="outline" className="h-12 rounded-xl" onClick={() => setStep(1)}>Retour</Button>
-                        <Button variant="gold" className="h-12 rounded-xl bg-orange-500 hover:bg-orange-600 text-white" onClick={handlePaymentDone} disabled={isSubmitting}>
-                          <Phone className="h-4 w-4 mr-2" /> {isSubmitting ? "Enregistrement..." : "J'ai effectué le paiement"}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           </div>
 
-          <div className="lg:w-[350px] xl:w-[400px] shrink-0">
-            <div className="sticky top-24">
-              <h3 className="font-display text-2xl font-bold mb-6 flex items-center gap-2">
-                Autres événements
-              </h3>
-              <div className="flex flex-col md:flex-col lg:flex-col gap-6 overflow-y-auto lg:max-h-[calc(100vh-160px)] scrollbar-hide pr-2 pb-10 sm:flex-row sm:overflow-x-auto">
-                <div className="flex flex-row lg:flex-col gap-6 w-full overflow-x-auto lg:overflow-x-visible pb-4 lg:pb-0 scrollbar-hide">
-                  {otherEvents.map((evt) => (
-                    <div key={evt.id} className="min-w-[280px] lg:min-w-full h-[320px] flex-shrink-0">
-                       <EventCard event={evt} />
-                    </div>
-                  ))}
+          {/* Colonne DROITE : Actions + Infos */}
+          <div className="lg:w-[480px] shrink-0 w-full lg:sticky lg:top-28 space-y-8">
+            {/* Infos clés déplacées ici */}
+            <div className="grid grid-cols-1 gap-4">
+              <div className="flex items-center gap-5 p-5 rounded-3xl bg-secondary/40 border border-border/40 backdrop-blur-sm">
+                <div className="p-4 bg-secondary rounded-2xl shrink-0 shadow-sm"><Calendar className="h-7 w-7 text-gold" /></div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-0.5">Date de l'événement</p>
+                  <p className="text-base font-bold capitalize">{formattedDate}</p>
                 </div>
-                {otherEvents.length === 0 && (
-                  <p className="text-muted-foreground text-sm">Aucun autre événement à venir.</p>
-                )}
+              </div>
+              <div className="flex items-center gap-5 p-5 rounded-3xl bg-secondary/40 border border-border/40 backdrop-blur-sm">
+                <div className="p-4 bg-secondary rounded-2xl shrink-0 shadow-sm"><MapPin className="h-7 w-7 text-gold" /></div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-0.5">Lieu</p>
+                  <p className="text-base font-bold">{event.location}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-5 p-5 rounded-3xl bg-secondary/40 border border-border/40 backdrop-blur-sm">
+                <div className="p-4 bg-secondary rounded-2xl shrink-0 shadow-sm"><Clock className="h-7 w-7 text-gold" /></div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-0.5">Heure</p>
+                  <p className="text-base font-bold">{event.time}</p>
+                </div>
               </div>
             </div>
+
+            {/* Inscription / Statut */}
+            {isPast ? (
+              <div className="bg-muted/30 p-10 rounded-[2.5rem] border border-dashed border-border flex flex-col items-center justify-center text-center gap-6 animate-fade-in">
+                <div className="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center border border-border">
+                  <Calendar className="h-10 w-10 text-muted-foreground/40" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-display text-2xl font-bold text-foreground">Événement terminé</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Les inscriptions sont closes pour cet événement. Découvrez nos prochaines sessions.
+                  </p>
+                </div>
+                <Button variant="outline" asChild className="rounded-full px-10 h-12 font-bold">
+                  <Link to="/events">Consulter l'agenda</Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="bg-card p-10 rounded-[2.5rem] border border-border/50 shadow-2xl space-y-8 relative overflow-hidden ring-1 ring-gold/10">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-display text-3xl font-black tracking-tight">Inscription</h3>
+                  <div className="flex gap-1.5 font-mono text-[10px] font-bold">
+                    <span className={`px-2 py-1 rounded-md ${step >= 1 ? 'bg-gold text-white' : 'bg-muted text-muted-foreground'}`}>1</span>
+                    <span className={`px-2 py-1 rounded-md ${step >= 2 ? 'bg-gold text-white' : 'bg-muted text-muted-foreground'}`}>2</span>
+                  </div>
+                </div>
+
+                {step === 1 && (
+                  <div className="space-y-6 animate-fade-in">
+                    <div className="space-y-5">
+                      <div className="space-y-2.5">
+                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Nom complet</Label>
+                        <Input 
+                          placeholder="Ex: Jean Mboulou" 
+                          className="h-14 rounded-2xl bg-secondary/30 border-border/50 focus:ring-gold"
+                          value={participants[0].fullName} 
+                          onChange={(e) => updateParticipant(0, "fullName", e.target.value)} 
+                          required 
+                        />
+                      </div>
+                      <div className="space-y-2.5">
+                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Email</Label>
+                        <Input 
+                          type="email" 
+                          placeholder="jean.mboulou@email.com" 
+                          className="h-14 rounded-2xl bg-secondary/30 border-border/50 focus:ring-gold"
+                          value={participants[0].email} 
+                          onChange={(e) => updateParticipant(0, "email", e.target.value)} 
+                          required 
+                        />
+                      </div>
+                      <div className="space-y-2.5">
+                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">WhatsApp</Label>
+                        <Input 
+                          placeholder="+241 07 76 17 776" 
+                          className="h-14 rounded-2xl bg-secondary/30 border-border/50 focus:ring-gold"
+                          value={participants[0].phone} 
+                          onChange={(e) => updateParticipant(0, "phone", e.target.value)} 
+                          required 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-4 space-y-5">
+                      <div className="flex justify-between items-end px-1">
+                        <span className="text-muted-foreground font-bold text-sm mb-1 uppercase tracking-tighter">Accès individuel</span>
+                        <div className="text-right">
+                          <span className="block text-3xl font-black text-gold leading-none">{event.price.toLocaleString()}</span>
+                          <span className="text-xs font-bold text-gold/60 uppercase">{event.currency}</span>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="gold" 
+                        className="w-full h-16 rounded-[1.25rem] font-black text-xl shadow-xl shadow-gold/20 hover:scale-[1.02] active:scale-95 transition-all" 
+                        onClick={handleStep2} 
+                        disabled={!isStep1Valid}
+                      >
+                        Continuer
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {step === 2 && (
+                  <div className="space-y-8 animate-fade-in">
+                    <div className="p-6 rounded-3xl bg-secondary/50 border border-gold/10 space-y-3">
+                      <div className="flex justify-between gap-4">
+                        <span className="text-xs font-bold text-muted-foreground uppercase">Événement</span>
+                        <span className="text-sm font-bold text-right leading-tight">{event.title}</span>
+                      </div>
+                      <div className="pt-3 border-t border-border/50 flex justify-between items-baseline">
+                        <span className="text-xs font-bold text-muted-foreground uppercase">Total</span>
+                        <span className="text-2xl font-black text-gold">{totalAmount.toLocaleString()} {event.currency}</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <p className="text-[10px] font-black text-center text-muted-foreground uppercase tracking-[0.2em]">Paiement Mobile Money</p>
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="bg-secondary/30 p-5 rounded-[1.5rem] border border-border/50 flex items-center justify-between group hover:border-gold/30 transition-all">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center p-1 shadow-sm overflow-hidden border border-border/40">
+                              <img src={airtelLogo} alt="Airtel Money" className="w-full h-full object-contain" />
+                            </div>
+                            <div>
+                              <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest mb-0.5">Airtel Money</p>
+                              <p className="font-mono text-lg font-black tracking-tight text-foreground">077757383</p>
+                            </div>
+                          </div>
+                          <Button variant="ghost" size="icon" className="h-10 w-10 text-gold hover:bg-gold/10 rounded-xl" onClick={() => { navigator.clipboard.writeText("077757383"); toast({ title: "Copié !" }); }}>
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="bg-secondary/30 p-5 rounded-[1.5rem] border border-border/50 flex items-center justify-between group hover:border-gold/30 transition-all">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center p-1 shadow-sm overflow-hidden border border-border/40">
+                              <img src={moovLogo} alt="Moov Money" className="w-full h-full object-contain" />
+                            </div>
+                            <div>
+                              <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest mb-0.5">Moov Money</p>
+                              <p className="font-mono text-lg font-black tracking-tight text-foreground">066692338</p>
+                            </div>
+                          </div>
+                          <Button variant="ghost" size="icon" className="h-10 w-10 text-gold hover:bg-gold/10 rounded-xl" onClick={() => { navigator.clipboard.writeText("066692338"); toast({ title: "Copié !" }); }}>
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <Button variant="outline" className="h-14 rounded-2xl font-bold border-border hover:bg-muted" onClick={() => setStep(1)}>Retour</Button>
+                      <Button variant="gold" className="h-14 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white font-black shadow-lg shadow-orange-600/20" onClick={handlePaymentDone} disabled={isSubmitting}>
+                        {isSubmitting ? "Validation..." : "J'ai payé"}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            <p className="text-center text-[11px] text-muted-foreground/60 font-medium px-10">
+              En vous inscrivant, vous recevrez votre ticket par email après validation du paiement confirmée via whatsapp.
+            </p>
           </div>
         </div>
       </main>

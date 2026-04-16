@@ -105,7 +105,7 @@ const Navbar = () => {
             </SheetTrigger>
             <SheetContent side="right" className="bg-[#32140c]/98 backdrop-blur-md border-l-gold/20 flex flex-col pt-16 gap-5">
               <SheetHeader>
-                <SheetTitle className="text-gold font-display font-bold text-2xl text-left">Navigation</SheetTitle>
+                {/* <SheetTitle className="text-gold font-display font-bold text-2xl text-left">Navigation</SheetTitle> */}
                 <SheetDescription className="sr-only text-left">Menu de navigation mobile pour NFL Courtier & Service</SheetDescription>
               </SheetHeader>
 

@@ -274,11 +274,11 @@ const Index = () => {
                   <p className="text-muted-foreground text-lg max-w-md">
                     Ne manquez pas notre prochaine session de formation. Une opportunité unique de booster vos compétences.
                   </p>
-                  <div className="pt-2">
+                  {/* <div className="pt-2">
                     <Button variant="gold" size="lg" className="rounded-full px-8 h-12 shadow-lg shadow-gold/10" asChild>
                       <Link to="/events">Voir tous les événements <ArrowRight className="ml-2 h-4 w-4" /></Link>
                     </Button>
-                  </div>
+                  </div> */}
                 </div>
                 <div className="w-full md:w-[400px] shrink-0 relative z-10 transform transition-transform group-hover:scale-[1.02] duration-500">
                   <EventCard event={upcomingEvents[0]} />
@@ -291,9 +291,9 @@ const Index = () => {
                     <h2 className="font-display text-4xl font-bold text-foreground">Prochaines <span className="text-gradient-gold">dates</span></h2>
                     <p className="text-muted-foreground text-lg mt-4">Inscrivez-vous à nos séminaires et masterclass à venir.</p>
                   </div>
-                  <Button variant="gold" size="lg" className="rounded-full px-6" asChild>
+                  {/* <Button variant="gold" size="lg" className="rounded-full px-6" asChild>
                     <Link to="/events">Voir tous les événements <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                  </Button>
+                  </Button> */}
                 </div>
                 {isLoading ? (
                   <div className="flex justify-center py-10 w-full">
