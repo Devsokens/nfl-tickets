@@ -21,6 +21,8 @@ export interface Event {
   send_newsletter?: boolean;
   status?: 'publié' | 'brouillon' | 'annulé';
   slug?: string;
+  certificates_sent?: boolean;
+  certificates_sent_at?: string;
 }
 
 export interface Ticket {
@@ -173,6 +175,13 @@ export const AnalyticsAPI = {
   },
   getStats: async () => {
     const res = await api.get('/analytics/stats');
+    return res.data;
+  }
+};
+
+export const CertificatesAPI = {
+  generateAndSend: async (eventId: string, ticketIds: string[]) => {
+    const res = await api.post(`/certificates/generate/${eventId}`, { ticketIds });
     return res.data;
   }
 };

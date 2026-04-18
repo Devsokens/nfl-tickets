@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, EventsAPI, TicketsAPI, NewsletterAPI, ContactAPI, AnalyticsAPI, type Event, type Ticket } from "@/lib/api";
+import { api, EventsAPI, TicketsAPI, NewsletterAPI, ContactAPI, AnalyticsAPI, CertificatesAPI, type Event, type Ticket } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -31,9 +31,10 @@ import {
   X,
   Mail as MailIcon,
   Activity,
-  Image as ImageIcon,
+  ImageIcon,
   Loader2,
-  FileText
+  FileText,
+  Award
 } from "lucide-react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -131,9 +132,124 @@ const DemandesList = () => {
   );
 };
 
+const CertificateModal = ({ event, isOpen, onClose }: { event: any, isOpen: boolean, onClose: () => void }) => {
+  const [selectedTicketIds, setSelectedTicketIds] = useState<string[]>([]);
+  const [search, setSearch] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Fetch only used tickets for this event
+  const { data: tickets = [], isLoading } = useQuery<Ticket[]>({
+    queryKey: ["eventTicketsUsed", event?.id],
+    queryFn: async () => {
+      const all = await TicketsAPI.getAll();
+      return all.filter((t: any) => 
+        (t.event_id === event?.id || t.eventId === event?.id) && 
+        (t.status?.toLowerCase() === 'utilisé' || t.status?.toLowerCase() === 'used')
+      );
+    },
+    enabled: !!event && isOpen
+  });
+
+  useEffect(() => {
+    if (tickets.length > 0) {
+      setSelectedTicketIds(tickets.map(t => t.id));
+    }
+  }, [tickets]);
+
+  const filteredTickets = tickets.filter(t => 
+    (t.full_name || t.name || "").toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleToggle = (id: string) => {
+    setSelectedTicketIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleSend = async () => {
+    if (selectedTicketIds.length === 0) return;
+    setIsSending(true);
+    try {
+      await CertificatesAPI.generateAndSend(event.id, selectedTicketIds);
+      toast.success("Certificats envoyés avec succès !");
+      queryClient.invalidateQueries({ queryKey: ["adminEvents"] });
+      onClose();
+    } catch (err: any) {
+      toast.error("Erreur lors de l'envoi : " + (err.response?.data?.message || err.message));
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && !isSending && onClose()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Générer les certificats</DialogTitle>
+          <DialogDescription>
+            Événement : <span className="font-bold text-black">{event?.title}</span>
+            <br />
+            Sélectionnez les participants qui recevront leur attestation par email.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="py-4 space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Rechercher un participant..." 
+              className="pl-10 h-10 bg-muted/20"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          <div className="max-h-[300px] overflow-y-auto border border-border/50 rounded-xl divide-y divide-border/30">
+            {isLoading ? (
+              <div className="p-10 text-center opacity-50 flex flex-col items-center gap-2">
+                <Loader2 className="h-6 w-6 animate-spin text-gold" />
+                Chargement des présences...
+              </div>
+            ) : filteredTickets.length === 0 ? (
+              <div className="p-10 text-center opacity-50">Aucun participant "présent" trouvé pour cet événement.</div>
+            ) : (
+              filteredTickets.map(t => (
+                <div key={t.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <Checkbox 
+                      id={`ticket-${t.id}`}
+                      checked={selectedTicketIds.includes(t.id)} 
+                      onCheckedChange={() => handleToggle(t.id)}
+                    />
+                    <label htmlFor={`ticket-${t.id}`} className="cursor-pointer">
+                      <div className="font-bold text-foreground">{t.full_name || t.name}</div>
+                      <div className="text-[10px] text-muted-foreground font-mono">{t.email}</div>
+                    </label>
+                  </div>
+                  <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20 uppercase text-[9px] font-black tracking-widest">Scanné</Badge>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <DialogFooter className="gap-2 sm:gap-2 pt-4 border-t border-border/10">
+          <Button variant="ghost" onClick={onClose} disabled={isSending} className="rounded-xl">Annuler</Button>
+          <Button variant="gold" onClick={handleSend} disabled={isSending || selectedTicketIds.length === 0} className="rounded-xl px-8 shadow-lg shadow-gold/20">
+            {isSending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Award className="h-4 w-4 mr-2" />}
+            Envoyer à {selectedTicketIds.length} participant(s)
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const AdminDashboard = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
+  const [selectedEventForCert, setSelectedEventForCert] = useState<Event | null>(null);
   
   const { data: events = [], refetch: refetchEvents } = useQuery<Event[]>({
     queryKey: ["adminEvents"],
@@ -829,6 +945,17 @@ const AdminDashboard = () => {
                       <div className="flex justify-between mb-4">
                         <span className="text-gold font-bold">{event.price.toLocaleString()} F</span>
                         <div className="flex gap-1">
+                          <div title={event.certificates_sent ? "Certificats déjà envoyés" : "Générer les certificats"}>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className={`h-8 w-8 ${event.certificates_sent ? 'text-green-500 opacity-50 pointer-events-none' : 'text-gold'}`} 
+                              disabled={!!event.certificates_sent}
+                              onClick={() => setSelectedEventForCert(event)}
+                            >
+                              <Award className="h-4 w-4" />
+                            </Button>
+                          </div>
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-gold" onClick={() => handleEditEvent(event)}><Pencil className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteEvent(event.id)}><Trash2 className="h-4 w-4" /></Button>
                         </div>
@@ -1505,6 +1632,11 @@ const AdminDashboard = () => {
           </div>
         </DialogContent>
       </Dialog>
+      <CertificateModal 
+        event={selectedEventForCert} 
+        isOpen={!!selectedEventForCert} 
+        onClose={() => setSelectedEventForCert(null)} 
+      />
     </div>
   );
 };
