@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, dehydrate, hydrate } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { AnalyticsAPI } from "@/lib/api";
@@ -7,6 +7,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { HelmetProvider } from 'react-helmet-async';
+import { mockEvents } from "@/lib/mockData";
 
 // Lazy loading for optimized bundle size
 const Index = lazy(() => import("./pages/Index.tsx"));
@@ -37,6 +38,38 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Restore Query Client Cache state from localStorage or pre-populate with mock data
+try {
+  const cachedState = localStorage.getItem('nfl_query_cache');
+  if (cachedState) {
+    const parsed = JSON.parse(cachedState);
+    hydrate(queryClient, parsed);
+  } else {
+    // Pre-populate query cache with mock events so there is no loading delay on first visit
+    const formattedMocks = mockEvents.map(e => ({
+      ...e,
+      image_url: e.image,
+      whatsapp_number: e.whatsappNumber,
+      status: 'publié' as const
+    }));
+    queryClient.setQueryData(["allEvents"], formattedMocks);
+    queryClient.setQueryData(["upcomingEvents"], formattedMocks);
+  }
+} catch (e) {
+  console.error("Failed to restore query cache:", e);
+}
+
+// Subscribe to query client cache changes and save it to localStorage
+queryClient.getQueryCache().subscribe(() => {
+  try {
+    const dehydratedState = dehydrate(queryClient);
+    localStorage.setItem('nfl_query_cache', JSON.stringify(dehydratedState));
+  } catch (e) {
+    console.error("Failed to persist query cache:", e);
+  }
+});
+
 
 const AnalyticsTracker = () => {
   const location = useLocation();

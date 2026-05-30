@@ -74,12 +74,65 @@ export const EventsAPI = {
     return res.data;
   },
   getAll: async (includeDrafts = false): Promise<Event[]> => {
-    const res = await api.get(`/events${includeDrafts ? '?all=true' : ''}`);
-    return res.data;
+    const cacheKey = `nfl_events_cache_${includeDrafts}`;
+    try {
+      const res = await api.get(`/events${includeDrafts ? '?all=true' : ''}`);
+      localStorage.setItem(cacheKey, JSON.stringify(res.data));
+      return res.data;
+    } catch (err) {
+      console.warn("Network fetch failed, trying local storage cache...", err);
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch (_) {}
+      }
+      // If cache is empty, we fall back to mock data
+      const { mockEvents } = await import('./mockData');
+      return mockEvents.map(e => ({
+        ...e,
+        image_url: e.image,
+        whatsapp_number: e.whatsappNumber,
+        status: 'publié' as const
+      }));
+    }
   },
-  getOne: async (id: string) => {
-    const res = await api.get(`/events/${id}`);
-    return res.data;
+  getOne: async (id: string): Promise<Event> => {
+    const cacheKey = `nfl_event_cache_${id}`;
+    try {
+      const res = await api.get(`/events/${id}`);
+      localStorage.setItem(cacheKey, JSON.stringify(res.data));
+      return res.data;
+    } catch (err) {
+      console.warn("Network fetch failed, trying local storage cache...", err);
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch (_) {}
+      }
+      // Try from list cache
+      const listCache = localStorage.getItem(`nfl_events_cache_false`);
+      if (listCache) {
+        try {
+          const events = JSON.parse(listCache) as Event[];
+          const found = events.find(e => e.id === id || e.slug === id);
+          if (found) return found;
+        } catch (_) {}
+      }
+      // Try mock
+      const { mockEvents } = await import('./mockData');
+      const foundMock = mockEvents.find(e => e.id === id);
+      if (foundMock) {
+        return {
+          ...foundMock,
+          image_url: foundMock.image,
+          whatsapp_number: foundMock.whatsappNumber,
+          status: 'publié' as const
+        };
+      }
+      throw err;
+    }
   },
   create: async (eventData: any) => {
     const res = await api.post('/events', eventData);

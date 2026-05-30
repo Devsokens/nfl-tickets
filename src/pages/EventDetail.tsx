@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EventCard from "@/components/EventCard";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { EventsAPI, TicketsAPI, type Event } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -38,10 +38,15 @@ const EventDetail = () => {
   
   const { toast } = useToast();
   
+  const queryClient = useQueryClient();
   const { data: event, isLoading: isEventLoading, isError } = useQuery<Event>({
     queryKey: ["event", id],
     queryFn: () => EventsAPI.getOne(id as string),
     enabled: !!id,
+    initialData: () => {
+      const allEvents = queryClient.getQueryData<Event[]>(["allEvents"]);
+      return allEvents?.find(e => e.id === id || e.slug === id);
+    }
   });
 
   // Remplacer l'URL du navigateur par le slug si disponible
