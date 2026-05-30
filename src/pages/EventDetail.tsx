@@ -205,7 +205,7 @@ const EventDetail = () => {
       </Helmet>
       <Navbar />
 
-      <main className="flex-1 container mx-auto px-4 py-10">
+      <main className="flex-1 container mx-auto px-4 pt-28 md:pt-32 pb-16">
         <div className="flex flex-wrap items-center gap-4 mb-8">
           <Link
             to="/"

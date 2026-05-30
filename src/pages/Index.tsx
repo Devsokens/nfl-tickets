@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { ArrowRight, ChevronUp, Calendar, Mail, MapPin, Phone, Send } from "lucide-react";
+import { ArrowRight, ChevronUp, Calendar, Mail, MapPin, Phone, Send, Facebook, Linkedin, Instagram } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import EventCard from "@/components/EventCard";
@@ -23,14 +23,27 @@ import heroImage3 from "@/assets/nfl img 6.jpeg";
 import heroImage4 from "@/assets/nfl img3.jpeg";
 import louisePhoto from "@/assets/louise2.jpeg";
 
+import nflImg1 from "@/assets/nfl img1.jpeg";
+import nflImg2 from "@/assets/nfl img2.jpeg";
+import nflImg3 from "@/assets/nfl img3.jpeg";
+import nflImg4 from "@/assets/nfl img 4.jpeg";
+
+const categoryImages: Record<string, string> = {
+  soirée: nflImg1,
+  conférence: nflImg2,
+  atelier: nflImg3,
+  concert: nflImg4,
+  seminaire: nflImg2,
+};
+
 import { useQuery } from "@tanstack/react-query";
 import { EventsAPI, NewsletterAPI, ContactAPI, type Event } from "@/lib/api";
 
 const Index = () => {
   const location = useLocation();
   const { toast } = useToast();
-  const [showBackToTop, setShowBackToTop] = useState(false);
   const [heroIndex, setHeroIndex] = useState(0);
+  const [activePastIndex, setActivePastIndex] = useState(0);
   
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [isNewsletterLoading, setIsNewsletterLoading] = useState(false);
@@ -53,11 +66,23 @@ const Index = () => {
   });
 
   const today = new Date().setHours(0, 0, 0, 0);
-  const upcomingEvents = allEvents.filter(event => new Date(event.date).getTime() >= today);
-  const pastEvents = allEvents.filter(event => new Date(event.date).getTime() < today);
+  const upcomingEvents = allEvents
+    .filter(event => new Date(event.date).getTime() >= today)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const pastEvents = allEvents
+    .filter(event => new Date(event.date).getTime() < today)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const homeUpcomingEvents = upcomingEvents.slice(0, 4);
   const homePastEvents = pastEvents.slice(0, 3);
+
+  const handlePastScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget;
+    const scrollLeft = container.scrollLeft;
+    const itemWidth = container.scrollWidth / (homePastEvents.length + 1);
+    const newIndex = Math.round(scrollLeft / itemWidth);
+    setActivePastIndex(newIndex);
+  };
 
   const scrollRefUpcoming = useRef<HTMLDivElement>(null);
   const scrollRefPast = useRef<HTMLDivElement>(null);
@@ -100,11 +125,7 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [isHoveredPast, homePastEvents.length]);
 
-  useEffect(() => {
-    const handleScroll = () => setShowBackToTop(window.scrollY > 400);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -215,45 +236,137 @@ const Index = () => {
       <Navbar />
 
       {/* 1. HERO SECTION */}
-      <section className="relative h-[86vh] flex items-center justify-center overflow-hidden">
-        {heroImages.map((img, idx) => (
-          <img
-            key={img}
-            src={img}
-            alt="NFL Courtier & service"
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${heroIndex === idx ? "opacity-100" : "opacity-0"}`}
-          />
-        ))}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#32140c]/90 via-[#32140c]/70 to-background" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(199,157,79,0.28),transparent_45%)]" />
-        <div className="relative z-10 text-center px-4 space-y-8 animate-fade-in max-w-5xl mx-auto mt-6 w-full">
-          <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-primary-foreground leading-[1.1] tracking-tight drop-shadow-xl mb-4">
-            L'exigence du <span className="text-gradient-gold">Résultat.</span>
-          </h1>
-          <div className="bg-background/20 backdrop-blur-sm p-5 md:p-6 rounded-2xl border border-gold/10 inline-block shadow-2xl w-[90%] sm:w-auto">
-            <h3 className="text-gold font-semibold text-lg sm:text-xl md:text-2xl mb-3 leading-snug">
-              Transformez vos managers en leaders inspirants et vos commerciaux en experts du closing.
-            </h3>
-            <p className="text-primary-foreground/90 text-sm sm:text-base md:text-lg max-w-4xl mx-auto font-light leading-relaxed">
-              LOUISE AUDYLL Ongoum accompagne depuis plus de 30 ans les directions générales, directions commerciales et équipes de vente vers l'excellence. Une approche terrain, des résultats mesurables.
-            </p>
+      <section className="relative min-h-screen lg:h-screen flex items-center justify-center overflow-hidden bg-[#150805] pt-24 lg:pt-0">
+        {/* Background images slideshow with reduced opacity for texture */}
+        <div className="absolute inset-0 z-0 opacity-45 pointer-events-none">
+          {heroImages.map((img, idx) => (
+            <img
+              key={img}
+              src={img}
+              alt="NFL Courtier & service background"
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${heroIndex === idx ? "opacity-100" : "opacity-0"}`}
+            />
+          ))}
+        </div>
+        
+        {/* Dark overlays and rich gold lighting gradients */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1b0a06]/95 via-[#1b0a06]/85 to-background z-0 pointer-events-none" />
+        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gold/10 rounded-full blur-[120px] pointer-events-none -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-[#32140c]/40 rounded-full blur-[150px] pointer-events-none translate-x-1/3 translate-y-1/3" />
+
+        <div className="relative z-10 container mx-auto px-4 w-full py-12 lg:py-0">
+          <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+            
+            {/* Column Left: Louise Portrait & Event Card */}
+            <div className="lg:col-span-5 relative flex flex-col items-center lg:items-start order-2 lg:order-1 w-full max-w-[500px] mx-auto lg:max-w-none animate-float">
+              {/* Main portrait photo frame */}
+              <div className="relative w-full rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border border-gold/20 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] group bg-[#32140c]/20">
+                <img 
+                  src={louisePhoto} 
+                  alt="LOUISE AUDYLL Ongoum" 
+                  className="w-full h-[480px] sm:h-[580px] lg:h-[640px] object-cover object-top transition-transform duration-700 group-hover:scale-105" 
+                />
+                {/* Bottom gradient fade inside image container */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#150805] via-transparent to-transparent opacity-95" />
+                
+                {/* Bottom Overlay Event Card */}
+                <div className="absolute bottom-5 left-5 right-5 bg-[#32140c]/90 backdrop-blur-md border border-gold/20 p-4 sm:p-5 rounded-2xl text-left z-20 shadow-2xl">
+                  {upcomingEvents.length > 0 ? (
+                    <>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[9px] font-black text-gold uppercase tracking-[0.2em]">
+                          Prochain Séminaire
+                        </span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      </div>
+                      <h4 className="text-white font-bold text-sm sm:text-base mb-2 line-clamp-1">
+                        {upcomingEvents[0].title}
+                      </h4>
+                      <p className="text-white/60 text-[10px] sm:text-xs mb-3 font-medium">
+                        Date : {new Date(upcomingEvents[0].date).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                      </p>
+                      <Button 
+                        variant="gold" 
+                        size="sm" 
+                        className="rounded-full px-4 h-8 text-[11px] font-bold w-full sm:w-auto" 
+                        asChild
+                      >
+                        <Link to={`/event/${upcomingEvents[0].slug || upcomingEvents[0].id}`}>
+                          Réserver ma place
+                        </Link>
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-[9px] font-black text-gold uppercase tracking-[0.2em] block mb-1">
+                        Catalogue Formations
+                      </span>
+                      <h4 className="text-white font-bold text-sm sm:text-base mb-2">
+                        Développez la Performance
+                      </h4>
+                      <p className="text-white/60 text-[10px] sm:text-xs mb-3 font-medium">
+                        Parcours de montée en compétences.
+                      </p>
+                      <Button 
+                        variant="gold" 
+                        size="sm" 
+                        className="rounded-full px-4 h-8 text-[11px] font-bold w-full sm:w-auto" 
+                        asChild
+                      >
+                        <Link to="/catalogue-formations">
+                          Découvrir le catalogue
+                        </Link>
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Column Right: Main Headers and descriptions */}
+            <div className="lg:col-span-7 space-y-6 lg:space-y-8 text-left order-1 lg:order-2 w-full lg:pl-4">
+              <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight drop-shadow-xl">
+                L'exigence du <span className="text-gradient-gold">Résultat.</span>
+              </h1>
+
+              <div className="space-y-4">
+                <h3 className="text-gold font-semibold text-lg sm:text-xl md:text-2xl leading-snug max-w-2xl">
+                  Transformez vos managers en leaders inspirants et vos commerciaux en experts du closing.
+                </h3>
+                <p className="text-primary-foreground/80 text-sm sm:text-base md:text-lg max-w-2xl font-light leading-relaxed">
+                  Louise Audyll Ongoum accompagne depuis plus de 30 ans les directions générales, directions commerciales et équipes de vente vers l'excellence. Une approche terrain, des résultats mesurables.
+                </p>
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-center gap-4">
+                <Button 
+                  variant="gold" 
+                  size="lg" 
+                  className="w-full sm:w-auto text-sm sm:text-base rounded-full px-8 h-12 sm:h-14 shadow-lg shadow-gold/20 font-bold hover:scale-105 transition-transform text-[#32140c]" 
+                  onClick={() => {
+                    const targetId = upcomingEvents.length > 0 ? "evenements" : "evenements-passes";
+                    document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
+                  Découvrir les Séminaires / Masterclass <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 text-[#32140c]" />
+                </Button>
+              </div>
+            </div>
+
           </div>
-          <div className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            {/* <Button variant="gold" size="lg" className="w-full sm:w-auto text-base rounded-full px-8 h-14 shadow-lg shadow-gold/20" asChild>
-              <Link to="/formations">Formations <ArrowRight className="ml-2 h-5 w-5" /></Link>
-            </Button> */}
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="w-full sm:w-auto text-base rounded-full px-8 h-14 bg-background/30 backdrop-blur-md text-primary border-gold/30 hover:bg-gold/20 font-bold" 
-              onClick={() => {
-                const targetId = upcomingEvents.length > 0 ? "evenements" : "evenements-passes";
-                document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth" });
-              }}
-            >
-              Séminaires / Masterclass <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </div>
+        </div>
+
+        {/* Bottom Right Social Links in Hero Section */}
+        <div className="absolute bottom-8 right-8 hidden lg:flex items-center gap-5 text-white/50 z-20">
+          <a href="https://www.facebook.com/nflgabon" target="_blank" rel="noreferrer" className="hover:text-gold hover:scale-115 transition-all duration-300">
+            <Facebook className="w-5 h-5" />
+          </a>
+          <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="hover:text-gold hover:scale-115 transition-all duration-300">
+            <Linkedin className="w-5 h-5" />
+          </a>
+          <a href="https://instagram.com" target="_blank" rel="noreferrer" className="hover:text-gold hover:scale-115 transition-all duration-300">
+            <Instagram className="w-5 h-5" />
+          </a>
         </div>
       </section>
 
@@ -324,35 +437,122 @@ const Index = () => {
       )}
 
       {/* 3. EVENEMENTS PASSES */}
-      <section id="evenements-passes" className="py-20 bg-card border-t border-b border-border/50">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center mb-12">
-            <h2 className="font-display text-4xl font-bold text-foreground">Événements <span className="text-gradient-gold">passés</span></h2>
-            <p className="text-muted-foreground text-lg mt-4">Retrouvez les résumés et les temps forts de nos sessions précédentes.</p>
+      <section id="evenements-passes" className="py-20 bg-background/50 relative overflow-hidden">
+        {/* Background glow for depth */}
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-gold/5 rounded-full blur-[100px] pointer-events-none" />
+
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-3xl mx-auto text-center mb-16">
+            <div className="inline-flex px-3 py-1 bg-gold/10 text-gold rounded-full text-xs font-bold uppercase tracking-widest border border-gold/20 mb-3">
+              Historique des succès
+            </div>
+            <h2 className="font-display text-4xl sm:text-5xl font-bold text-foreground">
+              Événements <span className="text-gradient-gold">passés</span>
+            </h2>
+            <p className="text-muted-foreground text-base sm:text-lg mt-4 max-w-2xl mx-auto">
+              Retrouvez les temps forts, les thématiques et les dynamiques de nos sessions de formation précédentes.
+            </p>
           </div>
+
+          {/* Smooth linear scroll on mobile, responsive grid on desktop */}
           <div 
             ref={scrollRefPast}
-            onMouseEnter={() => setIsHoveredPast(true)}
-            onMouseLeave={() => setIsHoveredPast(false)}
-            className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-8 -mx-4 px-4 scrollbar-hide"
+            onScroll={handlePastScroll}
+            className="flex gap-6 overflow-x-auto snap-x snap-mandatory pb-6 -mx-4 px-4 scrollbar-hide lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:pb-0 lg:mx-0 lg:px-0"
           >
-            {homePastEvents.map((event, i) => (
-              <div 
-                key={event.id} 
-                className="animate-fade-in w-[85vw] snap-center sm:w-auto sm:min-w-[60%] md:min-w-[45%] lg:min-w-[23%] flex-shrink-0" 
-                style={{ animationDelay: `${Math.min(i * 80, 300)}ms` }}
+            {homePastEvents.map((event, i) => {
+              const image = event.image_url || event.image || categoryImages[event.category] || nflImg1;
+              return (
+                <Link
+                  key={event.id}
+                  to={`/event/${event.slug || event.id}`}
+                  className="group relative overflow-hidden rounded-[2rem] border border-gold/15 hover:border-gold/45 bg-[#1b0a06]/20 aspect-[4/5] sm:aspect-[3/4] flex flex-col justify-end p-5 sm:p-6 shadow-xl hover:shadow-[0_20px_45px_-15px_rgba(199,157,79,0.15)] transition-all duration-500 animate-fade-in w-[80vw] sm:w-[45vw] lg:w-auto snap-center flex-shrink-0 lg:flex-shrink-1"
+                  style={{ animationDelay: `${i * 100}ms` }}
+                >
+                  {/* Background Event Image with custom hover zoom & filter */}
+                  <img
+                    src={image}
+                    alt={event.title}
+                    className="absolute inset-0 w-full h-full object-cover filter brightness-[0.7] contrast-[1.05] grayscale-[10%] group-hover:scale-110 group-hover:brightness-[0.8] transition-all duration-700 pointer-events-none"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent pointer-events-none" />
+
+                  {/* Header Badge */}
+                  <div className="flex items-center justify-between mb-3 relative z-10 w-full">
+                    <span className="text-[9px] font-black tracking-widest text-gold bg-[#32140c]/90 px-3 py-1 rounded-full border border-gold/20 uppercase">
+                      {event.category}
+                    </span>
+                    <span className="text-[9px] font-black text-[#150805] bg-white border border-white/90 px-2.5 py-0.5 rounded-full uppercase tracking-widest relative z-25">
+                      Clôturé
+                    </span>
+                  </div>
+
+                  {/* Event Title */}
+                  <h3 className="font-display text-lg sm:text-xl font-bold text-white mb-4 group-hover:text-gold transition-colors line-clamp-2 relative z-10 leading-tight">
+                    {event.title}
+                  </h3>
+
+                  {/* Date & Location */}
+                  <div className="flex flex-col gap-1.5 text-white/70 text-[11px] font-medium relative z-10">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-3.5 h-3.5 text-gold shrink-0" />
+                      <span>
+                        {new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-3.5 h-3.5 text-gold shrink-0" />
+                      <span className="truncate">{event.location}</span>
+                    </div>
+                  </div>
+
+                  {/* Premium visual call to action at the bottom of the card */}
+                  <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-gold font-bold text-xs relative z-10 group-hover:text-white transition-colors">
+                    <span>Revoir les détails</span>
+                    <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+              );
+            })}
+
+            {/* "See All" Card styled to perfectly match the grid */}
+            <div className="animate-fade-in aspect-[4/5] sm:aspect-[3/4] w-[80vw] sm:w-[45vw] lg:w-auto snap-center flex-shrink-0 lg:flex-shrink-1" style={{ animationDelay: `${homePastEvents.length * 100}ms` }}>
+              <Link
+                to="/events"
+                className="group relative overflow-hidden rounded-[2rem] border border-gold/15 hover:border-gold/45 bg-gradient-to-br from-[#32140c]/40 to-[#1b0a06]/40 p-6 sm:p-8 flex flex-col items-center justify-center text-center gap-6 transition-all duration-500 hover:shadow-[0_20px_45px_-15px_rgba(199,157,79,0.15)] h-full w-full"
               >
-                <EventCard event={event} />
-              </div>
-            ))}
-            <div className="animate-fade-in w-[85vw] snap-center sm:w-auto sm:min-w-[60%] md:min-w-[45%] lg:min-w-[23%] flex-shrink-0 flex items-center justify-center">
-              <Link to="/events" className="w-full h-full glass-card group p-8 rounded-3xl border border-gold/10 hover:border-gold/40 flex flex-col items-center justify-center text-center gap-5 transition-all duration-300 hover:shadow-xl hover:shadow-gold/5 min-h-[350px]">
-                <div className="w-16 h-16 rounded-full bg-gold/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-gold/2 transition-all duration-300">
-                  <ArrowRight className="h-7 w-7 text-gold" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(199,157,79,0.05),transparent_70%)] pointer-events-none" />
+                <div className="w-16 h-16 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center group-hover:scale-110 group-hover:bg-gold/20 transition-all duration-300">
+                  <ArrowRight className="h-6 w-6 text-gold" />
                 </div>
-                <h3 className="font-bold text-xl text-foreground">Voir tous les événements passés</h3>
+                <div>
+                  <h3 className="font-display font-bold text-xl text-white mb-2">Tous les événements</h3>
+                  <p className="text-white/60 text-xs max-w-[200px] mx-auto leading-relaxed">
+                    Explorez l'ensemble de notre historique et de nos réalisations.
+                  </p>
+                </div>
               </Link>
             </div>
+          </div>
+
+          {/* Dots Pagination Indicators for Mobile View */}
+          <div className="flex justify-center items-center gap-2 mt-6 lg:hidden">
+            {Array.from({ length: homePastEvents.length + 1 }).map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  if (scrollRefPast.current) {
+                    const itemWidth = scrollRefPast.current.scrollWidth / (homePastEvents.length + 1);
+                    scrollRefPast.current.scrollTo({
+                      left: idx * itemWidth,
+                      behavior: "smooth"
+                    });
+                  }
+                }}
+                className={`h-2 rounded-full transition-all duration-300 focus:outline-none ${activePastIndex === idx ? "w-6 bg-gold" : "w-2 bg-gold/30"}`}
+                aria-label={`Go to slide ${idx + 1}`}
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -385,76 +585,73 @@ const Index = () => {
         </div>
       </section>
 
-      {/* 5. FORMATIONS PRIVEES 
-      <section id="formations" className="py-24 bg-background">
+      {/* 5. CATALOGUE DE FORMATIONS COMMERCIALES */}
+      <section id="formations" className="py-16 md:py-24 bg-background border-t border-border/50">
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            <div className="order-2 lg:order-1 grid grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <div className="glass-card p-6 rounded-3xl border border-gold/20 bg-background/50 shadow-lg text-center h-48 flex flex-col items-center justify-center">
-                  <h4 className="text-4xl font-display font-bold text-gradient-gold mb-2">+30</h4>
-                  <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Ans d'expertise</p>
-                </div>
-                <div className="glass-card p-6 rounded-3xl border border-border bg-card shadow-lg flex flex-col justify-center h-64 relative overflow-hidden group hover:border-gold/30 transition-all">
-                  <div className="absolute inset-0 bg-gold/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <h4 className="font-bold mb-2 text-gold uppercase tracking-wide">Sur-mesure</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Des programmes adaptés à la réalité de votre secteur et aux défis spécifiques de vos équipes.
-                  </p>
-                </div>
-              </div>
-              <div className="space-y-4 pt-12">
-                <div className="glass-card p-6 rounded-3xl border border-border bg-card shadow-lg flex flex-col justify-center h-64 relative overflow-hidden group hover:border-gold/30 transition-all">
-                  <div className="absolute inset-0 bg-gold/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <h4 className="font-bold mb-2 text-gold uppercase tracking-wide">Excellence</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Une approche focalisée sur le résultat mesurable et la transformation comportementale.
-                  </p>
-                </div>
-                <div className="glass-card p-6 rounded-3xl border border-gold/20 bg-background/50 shadow-lg text-center h-48 flex flex-col items-center justify-center">
-                   <h4 className="text-4xl font-display font-bold text-foreground mb-2">100%</h4>
-                   <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Orientée terrain</p>
-                </div>
+            
+            {/* Image / Graphic Side */}
+            <div className="order-2 lg:order-1 relative">
+              <div className="absolute inset-0 bg-gold/10 rounded-[2.5rem] transform -rotate-3 scale-105 -z-10" />
+              <div className="glass-card p-8 md:p-12 rounded-[2.5rem] border border-gold/20 shadow-2xl relative bg-card/80 backdrop-blur-md">
+                <h3 className="text-2xl font-display font-bold text-foreground mb-6">La promesse NFL</h3>
+                <ul className="space-y-6">
+                  {[
+                    { title: "Structuration des compétences", desc: "Bâtir des bases solides pour chaque profil." },
+                    { title: "Professionnalisation des pratiques", desc: "Élever le niveau d'exigence et de maîtrise." },
+                    { title: "Ancrage terrain et résultats", desc: "Des KPI mesurables et un impact business direct." }
+                  ].map((item, idx) => (
+                    <li key={idx} className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0 mt-1">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-gold">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-foreground text-lg">{item.title}</h4>
+                        <p className="text-sm text-muted-foreground mt-1">{item.desc}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
-            
+
+            {/* Text Content Side */}
             <div className="order-1 lg:order-2 space-y-8">
               <div>
-                <h2 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
-                  Formations <span className="text-gradient-gold">Privées</span>
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-gold/10 text-gold rounded-full text-xs font-bold uppercase tracking-widest border border-gold/20 mb-6">
+                  Nouveauté
+                </div>
+                <h2 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
+                  Catalogue de <span className="text-gradient-gold">formations commerciales</span>
                 </h2>
+                <h3 className="text-xl md:text-2xl font-semibold text-foreground/80 mb-6 leading-snug">
+                  Développer durablement la performance commerciale, à chaque étape de maturité.
+                </h3>
                 <p className="text-muted-foreground text-lg leading-relaxed">
-                  Nos formations privées s'adressent aux entreprises souhaitant un accompagnement intense et ciblé : 
-                  direction générale, cadres dirigeants, managers intermédiaires et forces de vente.
+                  Nos formations commerciales sont conçues comme de véritables parcours de montée en
+                  compétences, alignés sur les enjeux business des entreprises.
+                </p>
+                <p className="text-muted-foreground text-lg leading-relaxed mt-4">
+                  Elles accompagnent les équipes commerciales depuis la prise de poste jusqu'au pilotage
+                  stratégique de la performance.
                 </p>
               </div>
 
-              <ul className="space-y-5">
-                {[
-                  "Audit des compétences et définition des objectifs",
-                  "Design de modules d'apprentissage interactifs",
-                  "Mises en situation réelles et jeu de rôles",
-                  "Suivi post-formation et mesure des KPI"
-                ].map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-4 animate-fade-in" style={{ animationDelay: `${idx * 100}ms` }}>
-                    <div className="h-6 w-6 rounded-full bg-gold/20 flex-shrink-0 flex items-center justify-center mt-1">
-                      <div className="h-2 w-2 rounded-full bg-gold" />
-                    </div>
-                    <span className="text-foreground font-medium">{item}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="pt-4">
-                <Button variant="gold" size="lg" className="rounded-full px-10 h-14 text-base font-bold shadow-lg shadow-gold/20 hover:scale-105 transition-transform" asChild>
-                  <Link to="/formations">Voir plus</Link>
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                <Button variant="gold" size="lg" className="rounded-full px-8 h-14 text-base font-bold shadow-lg shadow-gold/20 hover:scale-105 transition-transform w-full sm:w-auto" asChild>
+                  <Link to="/catalogue-formations">Découvrir les parcours</Link>
+                </Button>
+                <Button variant="outline" size="lg" className="rounded-full px-8 h-14 text-base font-bold bg-background/50 border-gold/30 hover:bg-gold/10 w-full sm:w-auto" onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}>
+                  Parcours sur mesure
                 </Button>
               </div>
             </div>
+            
           </div>
         </div>
       </section>
-      */}
 
       {/* 6. FAQ 
       <section id="faq" className="py-20 bg-card border-t border-border">
@@ -629,12 +826,6 @@ const Index = () => {
       </section>
 
       <Footer />
-
-      {showBackToTop && (
-        <Button variant="gold" size="icon" className="fixed bottom-8 right-8 z-[60] rounded-full w-12 h-12 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-          <ChevronUp className="h-6 w-6" />
-        </Button>
-      )}
     </div>
   );
 };

@@ -3,7 +3,7 @@ import nflLogo from "@/assets/Logo_NFL_fond_marron-removebg-preview.png";
 import { Menu, ArrowLeft } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription, SheetHeader } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { NewsletterAPI } from "@/lib/api";
 
@@ -15,6 +15,20 @@ const Navbar = () => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleScroll = (id: string) => {
     if (isHome) {
@@ -59,42 +73,49 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-[#32140c]/95 backdrop-blur-md shadow-lg transition-all duration-300">
-      <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled || !isHome ? "bg-[#32140c]/95 shadow-lg backdrop-blur-md h-20" : "bg-transparent h-24"}`}>
+      <div className="container mx-auto px-4 h-full flex items-center justify-between relative">
         <Link to="/" className="flex items-center gap-3 relative z-10">
           <img 
             src={nflLogo} 
             alt="NFL Courtier & service" 
-            className="h-32 w-auto transition-all hover:scale-110 drop-shadow-2xl translate-y-2 lg:translate-y-4" 
+            className={`w-auto transition-all duration-500 hover:scale-110 drop-shadow-2xl translate-y-2 ${isScrolled || !isHome ? "h-20 lg:h-24 lg:translate-y-2" : "h-24 lg:h-32 lg:translate-y-4"}`} 
           />
         </Link>
-        <div className="hidden lg:flex items-center gap-6">
-
+        
+        {/* Centered navigation links on desktop */}
+        <div className="hidden lg:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
           <Link
             to="/"
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="text-xs font-bold uppercase tracking-wider text-primary-foreground/80 hover:text-gold transition-colors"
+            className="text-xs font-bold uppercase tracking-wider text-primary-foreground/90 hover:text-gold transition-colors"
           >
             Accueil
           </Link>
-          <button onClick={() => handleScroll("evenements")} className="text-xs font-bold uppercase tracking-wider text-primary-foreground/80 hover:text-gold transition-colors">
+          <Link
+            to="/catalogue-formations"
+            className="text-xs font-bold uppercase tracking-wider text-primary-foreground/90 hover:text-gold transition-colors"
+          >
+            Catalogue Formations
+          </Link>
+          <button onClick={() => handleScroll("evenements")} className="text-xs font-bold uppercase tracking-wider text-primary-foreground/90 hover:text-gold transition-colors">
             Prochaines dates
           </button>
-          <button onClick={() => handleScroll("evenements-passes")} className="text-xs font-bold uppercase tracking-wider text-primary-foreground/80 hover:text-gold transition-colors">
+          <button onClick={() => handleScroll("evenements-passes")} className="text-xs font-bold uppercase tracking-wider text-primary-foreground/90 hover:text-gold transition-colors">
             Événements passés
           </button>
-          {/* <button onClick={() => handleScroll("formations")} className="text-xs font-bold uppercase tracking-wider text-primary-foreground/80 hover:text-gold transition-colors">
-            Formations Privées
-          </button>
-          <button onClick={() => handleScroll("faq")} className="text-xs font-bold uppercase tracking-wider text-primary-foreground/80 hover:text-gold transition-colors">
-            FAQ
-          </button>
-          <button onClick={() => handleScroll("biographie")} className="text-xs font-bold uppercase tracking-wider text-primary-foreground/80 hover:text-gold transition-colors">
-            Biographie
-          </button> */}
-          <button onClick={() => handleScroll("contact")} className="text-xs font-bold uppercase tracking-wider text-primary-foreground/80 hover:text-gold transition-colors">
+        </div>
+
+        {/* Right action button on desktop */}
+        <div className="hidden lg:block relative z-10">
+          <Button 
+            variant="gold" 
+            size="sm" 
+            className="rounded-full px-6 text-xs font-bold uppercase tracking-widest hover:scale-105 transition-transform" 
+            onClick={() => handleScroll("contact")}
+          >
             Contact
-          </button>
+          </Button>
         </div>
         <div className="lg:hidden">
           <Sheet>
@@ -110,6 +131,7 @@ const Navbar = () => {
               </SheetHeader>
 
               <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="text-lg font-bold uppercase tracking-wide text-primary-foreground hover:text-gold transition-colors">Accueil</Link>
+              <Link to="/catalogue-formations" className="text-lg font-bold uppercase tracking-wide text-primary-foreground hover:text-gold transition-colors">Catalogue Formations</Link>
               <button onClick={() => handleScroll("evenements")} className="text-lg font-bold uppercase tracking-wide text-left text-primary-foreground hover:text-gold transition-colors">Prochaines dates</button>
               <button onClick={() => handleScroll("evenements-passes")} className="text-lg font-bold uppercase tracking-wide text-left text-primary-foreground hover:text-gold transition-colors">Événements passés</button>
               {/* <button onClick={() => handleScroll("formations")} className="text-lg font-bold uppercase tracking-wide text-left text-primary-foreground hover:text-gold transition-colors">Formations Privées</button>

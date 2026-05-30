@@ -12,7 +12,7 @@ import { HelmetProvider } from 'react-helmet-async';
 const Index = lazy(() => import("./pages/Index.tsx"));
 const Catalog = lazy(() => import("./pages/Catalog.tsx"));
 const EventDetail = lazy(() => import("./pages/EventDetail.tsx"));
-const FormationsPage = lazy(() => import("./pages/FormationsPage.tsx"));
+const CatalogueFormation = lazy(() => import("./pages/CatalogueFormation.tsx"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard.tsx"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
@@ -64,7 +64,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/events" element={<Catalog />} />
               <Route path="/event/:id" element={<EventDetail />} />
-              <Route path="/formations" element={<FormationsPage />} />
+              <Route path="/catalogue-formations" element={<CatalogueFormation />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="*" element={<NotFound />} />

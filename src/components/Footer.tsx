@@ -1,13 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, ChevronUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { NewsletterAPI } from "@/lib/api";
+import { Button } from "@/components/ui/button";
 
 const Footer = () => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleNewsletter = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,6 +115,16 @@ const Footer = () => {
           </div>
         </div>
       </div>
+      {showBackToTop && (
+        <Button 
+          variant="gold" 
+          size="icon" 
+          className="fixed bottom-8 right-8 z-[60] rounded-full w-12 h-12 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300" 
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        >
+          <ChevronUp className="h-6 w-6" />
+        </Button>
+      )}
     </footer>
   );
 };
