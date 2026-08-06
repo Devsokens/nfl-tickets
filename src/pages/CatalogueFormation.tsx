@@ -177,12 +177,16 @@ const CatalogueFormation = () => {
               {formations.map((m) => (
                 <div key={m.id} className="bg-white border border-black/10 rounded-none overflow-hidden flex flex-col justify-between shadow-md group">
                   <div>
-                    <div className="relative h-56 overflow-hidden bg-black/5">
+                    <Link
+                      to={`/formation/${m.slug || m.id}`}
+                      onClick={isEditMode ? (e) => e.preventDefault() : undefined}
+                      className="relative h-56 overflow-hidden bg-black/5 block group/img"
+                    >
                       {m.image_url ? (
                         <img
                           src={m.image_url}
                           alt={m.title}
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105 group-hover:scale-105"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-black/5">
@@ -190,11 +194,11 @@ const CatalogueFormation = () => {
                         </div>
                       )}
                       {m.badge && (
-                        <div className="absolute top-3 left-3 bg-[#e3bd51] text-black text-lvl-footer font-bold uppercase tracking-wider px-3 py-1 rounded-none shadow-sm">
+                        <div className="absolute top-3 left-3 bg-[#e3bd51] text-black text-lvl-footer font-bold uppercase tracking-wider px-3 py-1 rounded-none shadow-sm z-10">
                           {m.badge}
                         </div>
                       )}
-                    </div>
+                    </Link>
 
                     <div className="p-6 space-y-3">
                       <h3 className="text-lvl-subtitle text-[#1c1c1c] leading-snug">
@@ -235,19 +239,19 @@ const CatalogueFormation = () => {
 
       {/* 3. PARTNERS LOGO TICKER — logos gérés depuis l'éditeur visuel (onglet Accueil) */}
       <section className="py-8 bg-[#dedcd7] text-black/70 border-t border-b border-black/10 overflow-hidden">
-        <div className="flex gap-16 items-center animate-marquee">
-          {[...Array(2)].map((_, i) => (
-            <div key={i} className="flex gap-16 items-center shrink-0">
+        <div className="flex gap-8 sm:gap-12 items-center animate-marquee w-max">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="flex gap-8 sm:gap-12 items-center shrink-0">
               {partnersList.map((p, idx) =>
                 p.logo_url ? (
                   <img
                     key={idx}
                     src={p.logo_url}
                     alt={p.name || "Partenaire NFL Courtier & Service"}
-                    className="h-8 w-auto max-w-[130px] object-contain grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all shrink-0"
+                    className="h-16 sm:h-20 w-auto max-w-[180px] sm:max-w-[240px] object-contain opacity-90 hover:opacity-100 transition-all shrink-0"
                   />
                 ) : (
-                  <span key={idx} className="font-bold text-lvl-body tracking-widest text-black/60 uppercase shrink-0 whitespace-nowrap">
+                  <span key={idx} className="font-bold text-lvl-body tracking-widest text-black/40 hover:text-black/70 uppercase shrink-0 whitespace-nowrap transition-colors">
                     {p.name}
                   </span>
                 )

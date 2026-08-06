@@ -10,6 +10,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useIsEditMode } from "@/lib/EditModeContext";
 import { EditableText } from "@/components/admin/editable/EditableText";
 import { AddInlineButton } from "@/components/admin/editable/EditableListControls";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 import nflImg1 from "@/assets/nfl img1.jpeg";
 
@@ -50,6 +54,7 @@ function formatEventDate(dateStr: string) {
 
 const Catalog = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [dateFilter, setDateFilter] = useState<Date | undefined>();
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [isSubscribing, setIsSubscribing] = useState(false);
   const navigate = useNavigate();
@@ -120,8 +125,17 @@ const Catalog = () => {
         e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         e.location.toLowerCase().includes(searchQuery.toLowerCase())
       )
+      .filter((e) => {
+        if (!dateFilter) return true;
+        const eDate = new Date(e.date);
+        return (
+          eDate.getDate() === dateFilter.getDate() &&
+          eDate.getMonth() === dateFilter.getMonth() &&
+          eDate.getFullYear() === dateFilter.getFullYear()
+        );
+      })
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [allEvents, searchQuery]);
+  }, [allEvents, searchQuery, dateFilter]);
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -312,9 +326,27 @@ const Catalog = () => {
                 />
               </div>
 
-              <button className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider px-3 sm:px-6 py-2.5 sm:py-3 rounded-none flex items-center gap-1 sm:gap-2 transition-colors shrink-0 justify-center whitespace-nowrap">
-                TRIER PAR <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              </button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className={`bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider px-3 sm:px-6 py-2.5 sm:py-3 rounded-none flex items-center gap-1 sm:gap-2 transition-colors shrink-0 justify-center whitespace-nowrap ${dateFilter ? "ring-2 ring-black" : ""}`}>
+                    {dateFilter ? format(dateFilter, "dd MMM yyyy", { locale: fr }).toUpperCase() : "TRIER PAR DATE"} <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <CalendarComponent
+                    mode="single"
+                    selected={dateFilter}
+                    onSelect={setDateFilter}
+                    initialFocus
+                    locale={fr}
+                  />
+                  {dateFilter && (
+                    <button onClick={() => setDateFilter(undefined)} className="w-full p-2 text-xs text-center border-t text-muted-foreground hover:text-foreground transition-colors uppercase font-bold">
+                      Réinitialiser la date
+                    </button>
+                  )}
+                </PopoverContent>
+              </Popover>
             </div>
 
             {isEditMode && (
