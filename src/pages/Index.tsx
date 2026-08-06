@@ -1,69 +1,205 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { ArrowRight, ChevronUp, Calendar, Mail, MapPin, Phone, Send, Facebook, Linkedin, Instagram } from "lucide-react";
+import { ArrowRight, ShieldCheck, CheckCircle2, Info, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import EventCard from "@/components/EventCard";
+import HighlightEventCard from "@/components/HighlightEventCard";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useToast } from "@/hooks/use-toast";
 import { Helmet } from "react-helmet-async";
 
-import heroImage0 from "@/assets/nfl img2.jpeg";
 import heroImage1 from "@/assets/nfl img 4.jpeg";
-import heroImage2 from "@/assets/nfl img 5.jpeg";
-import heroImage3 from "@/assets/nfl img 6.jpeg";
-import heroImage4 from "@/assets/nfl img3.jpeg";
-import louisePhoto from "@/assets/louise2.jpeg";
-
 import nflImg1 from "@/assets/nfl img1.jpeg";
 import nflImg2 from "@/assets/nfl img2.jpeg";
-import nflImg3 from "@/assets/nfl img3.jpeg";
-import nflImg4 from "@/assets/nfl img 4.jpeg";
+import nflImg5 from "@/assets/nfl img 5.jpeg";
+import louisePhoto from "@/assets/louise2.jpeg";
 
-const categoryImages: Record<string, string> = {
-  soirée: nflImg1,
-  conférence: nflImg2,
-  atelier: nflImg3,
-  concert: nflImg4,
-  seminaire: nflImg2,
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { EventsAPI, HomeContentAPI, SiteSettingsAPI, TestimonialsAPI, type Event, type HomeContent, type SiteSettings, type Testimonial } from "@/lib/api";
+import { getIcon } from "@/lib/iconMap";
+import { useIsEditMode } from "@/lib/EditModeContext";
+import { EditableText } from "@/components/admin/editable/EditableText";
+import { EditableImage } from "@/components/admin/editable/EditableImage";
+import { EditableIcon } from "@/components/admin/editable/EditableIcon";
+import { RemoveItemButton, AddCardButton, AddInlineButton } from "@/components/admin/editable/EditableListControls";
+import { HeroImagesManager } from "@/components/admin/editable/HeroImagesManager";
+
+const HERO_IMAGES = [heroImage1, nflImg1, nflImg5, nflImg2];
+
+// Contenu de repli : identique à ce qui était codé en dur avant la dynamisation.
+// Tant que l'admin n'a rien modifié dans "Contenu Accueil", le site affiche exactement ceci.
+const DEFAULT_HOME_CONTENT: HomeContent = {
+  hero: {
+    badge: "Expérience Exclusive",
+    titleLine1: "L'Excellence au service de vos ambitions",
+    titleLine2: "& le Prestige Événementiel",
+    subtitle: "Nous accompagnons les entreprises, institutions, dirigeants et personnels dans leurs projets les plus ambitieux grâce à une expertise reconnue et une satisfaction client au coeur de notre activité.",
+    ctaPrimaryText: "Découvrir nos services",
+    ctaPrimaryLink: "/catalogue-formations",
+    ctaSecondaryText: "Prochains événements",
+    ctaSecondaryLink: "#evenements",
+    badgeCardTitle: "Agréé & certifié",
+    badgeCardSubtitle: "Standard International",
+    images: [],
+  },
+  featureStrip: [
+    { icon: "ShieldCheck", title: "Masterclass", subtitle: "Solutions sur mesure" },
+    { icon: "Star", title: "Coaching", subtitle: "Prestige Libreville" },
+    { icon: "Landmark", title: "Formations sur mesure", subtitle: "Gestion de patrimoine" },
+  ],
+  pillars: [
+    { icon: "Building2", title: "Séminaires", description: "Accompagnement stratégique et organisation de séminaires sur mesure avec rigueur.", ctaText: "En savoir plus", link: "#evenements" },
+    { icon: "Users", title: "Formations", description: "Développez la performance de vos équipes en compétences concrètes et mesurables.", ctaText: "Nos experts", link: "/catalogue-formations" },
+    { icon: "Landmark", title: "Académie NFL", description: "Montée en compétences continue formée aux exigences du terrain.", ctaText: "Nos experts", link: "/catalogue-formations" },
+  ],
+  eventsSection: {
+    eyebrow: "AGENDA",
+    title: "Événements d'Exception",
+    ctaText: "VOIR TOUS LES ÉVÉNEMENTS",
+    ctaLink: "/events",
+  },
+  spotlight: {
+    badge: "ACADÉMIE NFL",
+    titleLines: ["Le Séminaire", "Commercial", "pour Performer"],
+    description: "Développez les compétences de vos équipes avec nos programmes de formation d'élite. Nous transformons le potentiel en performance réelle à travers une approche immersive et des méthodologies éprouvées.",
+    bullets: ["Psychologie de la vente haut de gamme", "Maîtrise de l'argumentaire stratégique", "Closing et fidélisation de clientèle prestige"],
+    ctaText: "CONSULTER LE CATALOGUE FORMATION",
+    ctaLink: "/catalogue-formations",
+    image: "",
+  },
+  about: {
+    title: "C'est quoi NFL?",
+    subtitle: "Une vision née de l'exigence",
+    paragraph: "Animée par le désir de partager son expérience, LOUISE-AUDYLL Ongoum fonde NFL Services & Courtier en 2019. Activement développé depuis 2023, le cabinet accompagne les entreprises dans le renforcement de leur efficacité commerciale, la formation des équipes, le management, le leadership et la culture de la performance. À travers des master classes, des formations et des accompagnements sur mesure, les organisations transforment leurs ambitions en résultats concrets.",
+    valuesIntro: "Notre approche repose sur trois principes :",
+    values: ["Excellence", "Accompagnement", "Résultat"],
+  },
+  ctaSection: {
+    title: "Prêt à élever vos standards ?",
+    description: "Qu'il s'agisse de sécuriser vos actifs ou d'orchestrer votre prochain grand événement, notre équipe est prête à relever le défi de l'excellence.",
+    primaryBtnText: "PRENDRE RENDEZ-VOUS",
+    secondaryBtnText: "NOUS CONTACTER",
+  },
 };
 
-import { useQuery } from "@tanstack/react-query";
-import { EventsAPI, NewsletterAPI, ContactAPI, type Event } from "@/lib/api";
+function mergeHomeContent(fetched?: HomeContent): Required<HomeContent> {
+  const f = fetched || {};
+  return {
+    hero: { ...DEFAULT_HOME_CONTENT.hero, ...f.hero },
+    featureStrip: f.featureStrip?.length ? f.featureStrip : DEFAULT_HOME_CONTENT.featureStrip!,
+    pillars: f.pillars?.length ? f.pillars : DEFAULT_HOME_CONTENT.pillars!,
+    eventsSection: { ...DEFAULT_HOME_CONTENT.eventsSection, ...f.eventsSection },
+    spotlight: { ...DEFAULT_HOME_CONTENT.spotlight, ...f.spotlight },
+    about: { ...DEFAULT_HOME_CONTENT.about, ...f.about },
+    ctaSection: { ...DEFAULT_HOME_CONTENT.ctaSection, ...f.ctaSection },
+  } as Required<HomeContent>;
+}
+
+// Un lien de section commence par "#" (ancre sur la page) ; sinon c'est une route.
+function isAnchor(link?: string) {
+  return !!link && link.startsWith("#");
+}
 
 const Index = () => {
   const location = useLocation();
-  const { toast } = useToast();
-  const [heroIndex, setHeroIndex] = useState(0);
-  const [activePastIndex, setActivePastIndex] = useState(0);
-  
-  const [newsletterEmail, setNewsletterEmail] = useState("");
-  const [isNewsletterLoading, setIsNewsletterLoading] = useState(false);
+  const isEditMode = useIsEditMode();
+  const queryClient = useQueryClient();
 
-  // Contact form state
-  const [contactForm, setContactForm] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: ""
-  });
-  const [isSubmittingContact, setIsSubmittingContact] = useState(false);
+  // Hero slideshow state
+  const [heroSlideIndex, setHeroSlideIndex] = useState(0);
 
-  const heroImages = [heroImage0, heroImage1, heroImage2, heroImage3, heroImage4];
-  
   // Fetch ALL events (past and upcoming)
   const { data: allEvents = [], isLoading } = useQuery<Event[]>({
     queryKey: ["allEvents"],
     queryFn: () => EventsAPI.getAll(),
   });
+
+  const { data: homeContentRaw } = useQuery<HomeContent>({
+    queryKey: ["homeContent"],
+    queryFn: HomeContentAPI.get,
+  });
+  const mergedContent = mergeHomeContent(homeContentRaw);
+
+  // En mode édition uniquement : état local optimiste, pour que les ajouts/
+  // suppressions d'éléments (piliers, bullets...) s'affichent instantanément
+  // sans attendre l'aller-retour réseau. Sur le site public, jamais utilisé :
+  // `content` reste alors la simple dérivation des données serveur.
+  const [editableOverride, setEditableOverride] = useState<Required<HomeContent> | null>(null);
+  useEffect(() => { setEditableOverride(null); }, [homeContentRaw]);
+  const content = editableOverride || mergedContent;
+
+  // Persiste une section entière (fusion côté serveur au premier niveau) et
+  // met à jour l'aperçu local immédiatement.
+  const saveHomeSection = async (patch: Partial<Required<HomeContent>>) => {
+    const next = { ...content, ...patch } as Required<HomeContent>;
+    setEditableOverride(next);
+    const updated = await HomeContentAPI.update(patch as HomeContent);
+    queryClient.setQueryData(["homeContent"], (prev: HomeContent | undefined) => ({ ...(prev || {}), ...updated }));
+  };
+
+  // Champ scalaire imbriqué dans une section objet, ex. hero.titleLine1
+  const makeFieldSaver = <K extends keyof Required<HomeContent>>(sectionKey: K, fieldKey: string) =>
+    async (value: any) => {
+      await saveHomeSection({ [sectionKey]: { ...(content as any)[sectionKey], [fieldKey]: value } } as any);
+    };
+
+  // Champ d'un item dans une liste d'objets, ex. pillars[2].title
+  const makeArrayItemFieldSaver = (sectionKey: "pillars" | "featureStrip", index: number, fieldKey: string) =>
+    async (value: any) => {
+      const list = [...(content[sectionKey] as any[])];
+      list[index] = { ...list[index], [fieldKey]: value };
+      await saveHomeSection({ [sectionKey]: list } as any);
+    };
+
+  const addListItem = (sectionKey: "pillars" | "featureStrip", newItem: any) =>
+    saveHomeSection({ [sectionKey]: [...(content[sectionKey] as any[]), newItem] } as any);
+  const removeListItem = (sectionKey: "pillars" | "featureStrip", index: number) =>
+    saveHomeSection({ [sectionKey]: (content[sectionKey] as any[]).filter((_, i) => i !== index) } as any);
+
+  // Liste de chaînes simples imbriquée dans une section, ex. spotlight.bullets[1] / about.values[0]
+  const makeStringListItemSaver = (sectionKey: "spotlight" | "about", listKey: string, index: number) =>
+    async (value: string) => {
+      const list = [...((content as any)[sectionKey][listKey] as string[])];
+      list[index] = value;
+      await saveHomeSection({ [sectionKey]: { ...(content as any)[sectionKey], [listKey]: list } } as any);
+    };
+  const addStringListItem = (sectionKey: "spotlight" | "about", listKey: string, defaultValue = "Nouvel élément") => {
+    const list = [...((content as any)[sectionKey][listKey] as string[]), defaultValue];
+    return saveHomeSection({ [sectionKey]: { ...(content as any)[sectionKey], [listKey]: list } } as any);
+  };
+  const removeStringListItem = (sectionKey: "spotlight" | "about", listKey: string, index: number) => {
+    const list = ((content as any)[sectionKey][listKey] as string[]).filter((_, i) => i !== index);
+    return saveHomeSection({ [sectionKey]: { ...(content as any)[sectionKey], [listKey]: list } } as any);
+  };
+
+  const { data: siteSettings } = useQuery<SiteSettings>({
+    queryKey: ["siteSettings"],
+    queryFn: SiteSettingsAPI.get,
+  });
+
+  const { data: testimonials = [] } = useQuery<Testimonial[]>({
+    queryKey: ["testimonials"],
+    queryFn: () => TestimonialsAPI.getAll(false),
+  });
+  // Le marquee a besoin de plusieurs cartes pour tourner en continu :
+  // on répète les témoignages disponibles jusqu'à un minimum visuel de 6.
+  const marqueeTestimonials = testimonials.length
+    ? Array.from({ length: Math.max(6, testimonials.length) }, (_, i) => testimonials[i % testimonials.length])
+    : [];
+
+  const heroImages = content.hero.images?.length ? content.hero.images : HERO_IMAGES;
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeroSlideIndex((prev) => (prev + 1) % heroImages.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [heroImages.length]);
 
   const today = new Date().setHours(0, 0, 0, 0);
   const upcomingEvents = allEvents
@@ -73,66 +209,9 @@ const Index = () => {
     .filter(event => new Date(event.date).getTime() < today)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const homeUpcomingEvents = upcomingEvents.slice(0, 4);
-  const homePastEvents = pastEvents.slice(0, 3);
-
-  const handlePastScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const container = e.currentTarget;
-    const scrollLeft = container.scrollLeft;
-    const itemWidth = container.scrollWidth / (homePastEvents.length + 1);
-    const newIndex = Math.round(scrollLeft / itemWidth);
-    setActivePastIndex(newIndex);
-  };
-
-  const scrollRefUpcoming = useRef<HTMLDivElement>(null);
-  const scrollRefPast = useRef<HTMLDivElement>(null);
-  const [isHoveredUpcoming, setIsHoveredUpcoming] = useState(false);
-  const [isHoveredPast, setIsHoveredPast] = useState(false);
-
-  // Auto-scroll effect for Upcoming Events
-  useEffect(() => {
-    if (isHoveredUpcoming || !scrollRefUpcoming.current || homeUpcomingEvents.length <= 1) return;
-
-    const interval = setInterval(() => {
-      if (scrollRefUpcoming.current) {
-        const { scrollLeft, scrollWidth, clientWidth } = scrollRefUpcoming.current;
-        if (scrollLeft + clientWidth >= scrollWidth - 5) {
-          scrollRefUpcoming.current.scrollTo({ left: 0, behavior: "smooth" });
-        } else {
-          scrollRefUpcoming.current.scrollBy({ left: 300, behavior: "smooth" });
-        }
-      }
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, [isHoveredUpcoming, homeUpcomingEvents.length]);
-
-  // Auto-scroll effect for Past Events
-  useEffect(() => {
-    if (isHoveredPast || !scrollRefPast.current || homePastEvents.length <= 1) return;
-
-    const interval = setInterval(() => {
-      if (scrollRefPast.current) {
-        const { scrollLeft, scrollWidth, clientWidth } = scrollRefPast.current;
-        if (scrollLeft + clientWidth >= scrollWidth - 5) {
-          scrollRefPast.current.scrollTo({ left: 0, behavior: "smooth" });
-        } else {
-          scrollRefPast.current.scrollBy({ left: 300, behavior: "smooth" });
-        }
-      }
-    }, 4500);
-
-    return () => clearInterval(interval);
-  }, [isHoveredPast, homePastEvents.length]);
-
-
-
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      setHeroIndex((prev) => (prev + 1) % heroImages.length);
-    }, 5000);
-    return () => window.clearInterval(interval);
-  }, [heroImages.length]);
+  // Curated highlight row: soonest upcoming events first, filled out with the
+  // most recent past ones so the section always has content to show.
+  const featuredEvents = [...upcomingEvents, ...pastEvents].slice(0, 3);
 
   useEffect(() => {
     if (!location.hash) return;
@@ -141,72 +220,29 @@ const Index = () => {
     if (node) node.scrollIntoView({ behavior: "smooth" });
   }, [location.hash]);
 
-  const handleNewsletter = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newsletterEmail) return;
-    setIsNewsletterLoading(true);
-    try {
-      const res = await NewsletterAPI.subscribe(newsletterEmail);
-      toast({
-        title: "Inscription réussie",
-        description: res.message || "Vous êtes bien inscrit à la newsletter.",
-      });
-      setNewsletterEmail("");
-    } catch (err: any) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: err.response?.data?.message || "Une erreur est survenue.",
-      });
-    } finally {
-      setIsNewsletterLoading(false);
-    }
-  };
-
-  const handleContactSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmittingContact(true);
-    try {
-      await ContactAPI.send(contactForm);
-      toast({
-        title: "Message envoyé",
-        description: "Nous avons bien reçu votre message. Nous vous répondrons dans les plus brefs délais.",
-      });
-      setContactForm({ name: "", email: "", subject: "", message: "" });
-    } catch (err: any) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible d'envoyer votre message pour le moment.",
-      });
-    } finally {
-      setIsSubmittingContact(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Helmet>
-        <title>NFL Courtier & Service — Accueil | Billetterie & Formations au Gabon</title>
-        <meta name="description" content="Bienvenue chez NFL Courtier & Service. Découvrez nos prochains événements, masterclass et services de formation pour les entreprises au Gabon." />
+        <title>{siteSettings?.site_name || "NFL Courtier & Service"} — Accueil | Billetterie & Formations au Gabon</title>
+        <meta name="description" content={siteSettings?.meta_description_default || "Bienvenue chez NFL Courtier & Service. Découvrez nos prochains événements, masterclass et services de formation pour les entreprises au Gabon."} />
         <script type="application/ld+json">
           {`
             {
               "@context": "https://schema.org",
               "@type": "Organization",
-              "name": "NFL Courtier & Service",
-              "url": "https://nfl-ga.com",
-              "logo": "https://nfl-ga.com/favicon.jpg",
+              "name": "${siteSettings?.site_name || "NFL Courtier & Service"}",
+              "url": "${siteSettings?.site_url || "https://nfl-ga.com"}",
+              "logo": "${siteSettings?.logo_url || "https://nfl-ga.com/favicon.jpg"}",
               "contactPoint": {
                 "@type": "ContactPoint",
-                "telephone": "+241 066 69 23 38",
+                "telephone": "${siteSettings?.phone || "+241 066 69 23 38"}",
                 "contactType": "customer service",
-                "email": "seminaireslao@outlook.fr",
+                "email": "${siteSettings?.contact_email || "seminaireslao@outlook.fr"}",
                 "areaServed": "GA",
                 "availableLanguage": "French"
               },
               "sameAs": [
-                "https://www.facebook.com/nflgabon"
+                "${siteSettings?.facebook_url || "https://www.facebook.com/nflgabon"}"
               ]
             }
           `}
@@ -216,11 +252,11 @@ const Index = () => {
             {
               "@context": "https://schema.org",
               "@type": "WebSite",
-              "url": "https://nfl-ga.com",
+              "url": "${siteSettings?.site_url || "https://nfl-ga.com"}",
               "name": "NFL-GA",
               "potentialAction": {
                 "@type": "SearchAction",
-                "target": "https://nfl-ga.com/events?q={search_term_string}",
+                "target": "${siteSettings?.site_url || "https://nfl-ga.com"}/events?q={search_term_string}",
                 "query-input": "required name=search_term_string"
               }
             }
@@ -236,419 +272,465 @@ const Index = () => {
       <Navbar />
 
       {/* 1. HERO SECTION */}
-      <section className="relative min-h-screen lg:h-screen flex items-center justify-center overflow-hidden bg-[#150805] pt-24 lg:pt-0">
-        {/* Background images slideshow with reduced opacity for texture */}
-        <div className="absolute inset-0 z-0 opacity-45 pointer-events-none">
-          {heroImages.map((img, idx) => (
-            <img
-              key={img}
-              src={img}
-              alt="NFL Courtier & service background"
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${heroIndex === idx ? "opacity-100" : "opacity-0"}`}
-            />
-          ))}
-        </div>
-        
-        {/* Dark overlays and rich gold lighting gradients */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1b0a06]/95 via-[#1b0a06]/85 to-background z-0 pointer-events-none" />
+      <section className="relative overflow-hidden bg-[#0c0705] pt-32 pb-16 lg:pt-40 lg:pb-20">
+        {/* Rich gold lighting gradients */}
         <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gold/10 rounded-full blur-[120px] pointer-events-none -translate-x-1/2 -translate-y-1/2" />
         <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-[#32140c]/40 rounded-full blur-[150px] pointer-events-none translate-x-1/3 translate-y-1/3" />
 
-        <div className="relative z-10 container mx-auto px-4 w-full py-12 lg:py-0">
+        <div className="relative z-10 container mx-auto px-4">
           <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-            
-            {/* Column Left: Louise Portrait & Event Card */}
-            <div className="lg:col-span-5 relative flex flex-col items-center lg:items-start order-2 lg:order-1 w-full max-w-[500px] mx-auto lg:max-w-none animate-float">
-              {/* Main portrait photo frame */}
-              <div className="relative w-full rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border border-gold/20 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] group bg-[#32140c]/20">
-                <img 
-                  src={louisePhoto} 
-                  alt="LOUISE AUDYLL Ongoum" 
-                  className="w-full h-[480px] sm:h-[580px] lg:h-[640px] object-cover object-top transition-transform duration-700 group-hover:scale-105" 
-                />
-                {/* Bottom gradient fade inside image container */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#150805] via-transparent to-transparent opacity-95" />
-                
-                {/* Bottom Overlay Event Card */}
-                <div className="absolute bottom-5 left-5 right-5 bg-[#32140c]/90 backdrop-blur-md border border-gold/20 p-4 sm:p-5 rounded-2xl text-left z-20 shadow-2xl">
-                  {upcomingEvents.length > 0 ? (
-                    <>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[9px] font-black text-gold uppercase tracking-[0.2em]">
-                          Prochain Séminaire
-                        </span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      </div>
-                      <h4 className="text-white font-bold text-sm sm:text-base mb-2 line-clamp-1">
-                        {upcomingEvents[0].title}
-                      </h4>
-                      <p className="text-white/60 text-[10px] sm:text-xs mb-3 font-medium">
-                        Date : {new Date(upcomingEvents[0].date).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
-                      </p>
-                      <Button 
-                        variant="gold" 
-                        size="sm" 
-                        className="rounded-full px-4 h-8 text-[11px] font-bold w-full sm:w-auto" 
-                        asChild
-                      >
-                        <Link to={`/event/${upcomingEvents[0].slug || upcomingEvents[0].id}`}>
-                          Réserver ma place
-                        </Link>
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-[9px] font-black text-gold uppercase tracking-[0.2em] block mb-1">
-                        Catalogue Formations
-                      </span>
-                      <h4 className="text-white font-bold text-sm sm:text-base mb-2">
-                        Développez la Performance
-                      </h4>
-                      <p className="text-white/60 text-[10px] sm:text-xs mb-3 font-medium">
-                        Parcours de montée en compétences.
-                      </p>
-                      <Button 
-                        variant="gold" 
-                        size="sm" 
-                        className="rounded-full px-4 h-8 text-[11px] font-bold w-full sm:w-auto" 
-                        asChild
-                      >
-                        <Link to="/catalogue-formations">
-                          Découvrir le catalogue
-                        </Link>
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
 
-            {/* Column Right: Main Headers and descriptions */}
-            <div className="lg:col-span-7 space-y-6 lg:space-y-8 text-left order-1 lg:order-2 w-full lg:pl-4">
-              <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight drop-shadow-xl">
-                L'exigence du <span className="text-gradient-gold">Résultat.</span>
+            {/* Column Left: Headline & CTAs */}
+            <div className="lg:col-span-6 space-y-6 text-left">
+              <div className="inline-flex px-4 py-1.5 border border-gold/40 rounded-full text-[11px] font-bold uppercase tracking-[0.2em] text-gold">
+                <EditableText value={content.hero.badge || ""} onSave={makeFieldSaver("hero", "badge")} label="Badge du hero" />
+              </div>
+
+              <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold leading-[1.15] tracking-tight text-balance">
+                <span className="block text-white">
+                  <EditableText value={content.hero.titleLine1 || ""} onSave={makeFieldSaver("hero", "titleLine1")} label="Titre — ligne 1" multiline />
+                </span>
+                <span className="block italic text-gold mt-1">
+                  <EditableText value={content.hero.titleLine2 || ""} onSave={makeFieldSaver("hero", "titleLine2")} label="Titre — ligne 2 (accent)" multiline />
+                </span>
               </h1>
 
-              <div className="space-y-4">
-                <h3 className="text-gold font-semibold text-lg sm:text-xl md:text-2xl leading-snug max-w-2xl">
-                  Transformez vos managers en leaders inspirants et vos commerciaux en experts du closing.
-                </h3>
-                <p className="text-primary-foreground/80 text-sm sm:text-base md:text-lg max-w-2xl font-light leading-relaxed">
-                  Louise Audyll Ongoum accompagne depuis plus de 30 ans les directions générales, directions commerciales et équipes de vente vers l'excellence. Une approche terrain, des résultats mesurables.
-                </p>
-              </div>
+              <p className="text-white/70 text-base md:text-lg max-w-xl font-light leading-relaxed">
+                <EditableText value={content.hero.subtitle || ""} onSave={makeFieldSaver("hero", "subtitle")} label="Sous-titre" multiline as="div" />
+              </p>
 
-              <div className="pt-2 flex flex-col sm:flex-row items-center gap-4">
-                <Button 
-                  variant="gold" 
-                  size="lg" 
-                  className="w-full sm:w-auto text-sm sm:text-base rounded-full px-8 h-12 sm:h-14 shadow-lg shadow-gold/20 font-bold hover:scale-105 transition-transform text-[#32140c]" 
-                  onClick={() => {
-                    const targetId = upcomingEvents.length > 0 ? "evenements" : "evenements-passes";
-                    document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth" });
+              <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                <Button variant="gold" size="lg" className="uppercase text-xs font-bold tracking-widest px-8" asChild={!isEditMode}>
+                  {isEditMode ? (
+                    <EditableText value={content.hero.ctaPrimaryText || ""} onSave={makeFieldSaver("hero", "ctaPrimaryText")} label="Texte du bouton principal" />
+                  ) : (
+                    <Link to={content.hero.ctaPrimaryLink || "/catalogue-formations"}>{content.hero.ctaPrimaryText}</Link>
+                  )}
+                </Button>
+                <Button
+                  variant="gold-outline"
+                  size="lg"
+                  className="uppercase text-xs font-bold tracking-widest px-8"
+                  onClick={isEditMode ? undefined : () => {
+                    const link = content.hero.ctaSecondaryLink || "#evenements";
+                    if (isAnchor(link)) document.getElementById(link.slice(1))?.scrollIntoView({ behavior: "smooth" });
+                    else window.location.href = link;
                   }}
                 >
-                  Découvrir les Séminaires / Masterclass <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 text-[#32140c]" />
+                  {isEditMode ? (
+                    <EditableText value={content.hero.ctaSecondaryText || ""} onSave={makeFieldSaver("hero", "ctaSecondaryText")} label="Texte du bouton secondaire" />
+                  ) : content.hero.ctaSecondaryText}
                 </Button>
               </div>
             </div>
 
-          </div>
-        </div>
-
-        {/* Bottom Right Social Links in Hero Section */}
-        <div className="absolute bottom-8 right-8 hidden lg:flex items-center gap-5 text-white/50 z-20">
-          <a href="https://www.facebook.com/nflgabon" target="_blank" rel="noreferrer" className="hover:text-gold hover:scale-115 transition-all duration-300">
-            <Facebook className="w-5 h-5" />
-          </a>
-          <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="hover:text-gold hover:scale-115 transition-all duration-300">
-            <Linkedin className="w-5 h-5" />
-          </a>
-          <a href="https://instagram.com" target="_blank" rel="noreferrer" className="hover:text-gold hover:scale-115 transition-all duration-300">
-            <Instagram className="w-5 h-5" />
-          </a>
-        </div>
-      </section>
-
-      {/* 2. NEXT DATES */}
-      {upcomingEvents.length > 0 && (
-        <section id="evenements" className={`${upcomingEvents.length === 1 ? "py-12 pb-16" : "py-20"} bg-background relative z-10`}>
-          <div className="container mx-auto px-4">
-            {upcomingEvents.length === 1 ? (
-              <div className="flex flex-col md:flex-row items-center gap-10 bg-card/30 p-8 md:p-12 rounded-[2.5rem] border border-gold/10 shadow-xl overflow-hidden relative group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 rounded-full blur-3xl -z-0 pointer-events-none" />
-                <div className="flex-1 space-y-6 relative z-10">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-gold/10 text-gold rounded-full text-xs font-bold uppercase tracking-widest border border-gold/20">
-                    Prochaine Date
-                  </div>
-                  <h2 className="font-display text-4xl md:text-5xl font-bold text-foreground leading-tight">
-                    Notre prochain <span className="text-gradient-gold">rendez-vous</span>
-                  </h2>
-                  <p className="text-muted-foreground text-lg max-w-md">
-                    Ne manquez pas notre prochaine session de formation. Une opportunité unique de booster vos compétences.
-                  </p>
-                  {/* <div className="pt-2">
-                    <Button variant="gold" size="lg" className="rounded-full px-8 h-12 shadow-lg shadow-gold/10" asChild>
-                      <Link to="/events">Voir tous les événements <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                    </Button>
-                  </div> */}
-                </div>
-                <div className="w-full md:w-[400px] shrink-0 relative z-10 transform transition-transform group-hover:scale-[1.02] duration-500">
-                  <EventCard event={upcomingEvents[0]} />
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-                  <div className="max-w-2xl">
-                    <h2 className="font-display text-4xl font-bold text-foreground">Prochaines <span className="text-gradient-gold">dates</span></h2>
-                    <p className="text-muted-foreground text-lg mt-4">Inscrivez-vous à nos séminaires et masterclass à venir.</p>
-                  </div>
-                  {/* <Button variant="gold" size="lg" className="rounded-full px-6" asChild>
-                    <Link to="/events">Voir tous les événements <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                  </Button> */}
-                </div>
-                {isLoading ? (
-                  <div className="flex justify-center py-10 w-full">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
-                  </div>
-                ) : (
-                  <div 
-                    ref={scrollRefUpcoming}
-                    onMouseEnter={() => setIsHoveredUpcoming(true)}
-                    onMouseLeave={() => setIsHoveredUpcoming(false)}
-                    className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-8 -mx-4 px-4 scrollbar-hide"
-                  >
-                    {homeUpcomingEvents.map((event, i) => (
-                      <div 
-                        key={event.id} 
-                        className="animate-fade-in w-[85vw] snap-center sm:w-auto sm:min-w-[60%] md:min-w-[45%] lg:min-w-[23%] flex-shrink-0" 
-                        style={{ animationDelay: `${Math.min(i * 80, 300)}ms` }}
-                      >
-                        <EventCard event={event} />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* 3. EVENEMENTS PASSES */}
-      <section id="evenements-passes" className="py-20 bg-background/50 relative overflow-hidden">
-        {/* Background glow for depth */}
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-gold/5 rounded-full blur-[100px] pointer-events-none" />
-
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-3xl mx-auto text-center mb-16">
-            <div className="inline-flex px-3 py-1 bg-gold/10 text-gold rounded-full text-xs font-bold uppercase tracking-widest border border-gold/20 mb-3">
-              Historique des succès
-            </div>
-            <h2 className="font-display text-4xl sm:text-5xl font-bold text-foreground">
-              Événements <span className="text-gradient-gold">passés</span>
-            </h2>
-            <p className="text-muted-foreground text-base sm:text-lg mt-4 max-w-2xl mx-auto">
-              Retrouvez les temps forts, les thématiques et les dynamiques de nos sessions de formation précédentes.
-            </p>
-          </div>
-
-          {/* Smooth linear scroll on mobile, responsive grid on desktop */}
-          <div 
-            ref={scrollRefPast}
-            onScroll={handlePastScroll}
-            className="flex gap-6 overflow-x-auto snap-x snap-mandatory pb-6 -mx-4 px-4 scrollbar-hide lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:pb-0 lg:mx-0 lg:px-0"
-          >
-            {homePastEvents.map((event, i) => {
-              const image = event.image_url || event.image || categoryImages[event.category] || nflImg1;
-              return (
-                <Link
-                  key={event.id}
-                  to={`/event/${event.slug || event.id}`}
-                  className="group relative overflow-hidden rounded-[2rem] border border-gold/15 hover:border-gold/45 bg-[#1b0a06]/20 aspect-[4/5] sm:aspect-[3/4] flex flex-col justify-end p-5 sm:p-6 shadow-xl hover:shadow-[0_20px_45px_-15px_rgba(199,157,79,0.15)] transition-all duration-500 animate-fade-in w-[80vw] sm:w-[45vw] lg:w-auto snap-center flex-shrink-0 lg:flex-shrink-1"
-                  style={{ animationDelay: `${i * 100}ms` }}
-                >
-                  {/* Background Event Image with custom hover zoom & filter */}
+            {/* Column Right: Auto-Animated Image Slideshow */}
+            <div className="lg:col-span-6 relative mb-8 lg:mb-6">
+              <div className="relative rounded-[2rem] overflow-hidden border border-gold/20 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)]">
+                {/* Crossfade Slides */}
+                {heroImages.map((img, idx) => (
                   <img
-                    src={image}
-                    alt={event.title}
-                    className="absolute inset-0 w-full h-full object-cover filter brightness-[0.7] contrast-[1.05] grayscale-[10%] group-hover:scale-110 group-hover:brightness-[0.8] transition-all duration-700 pointer-events-none"
+                    key={idx}
+                    src={img}
+                    alt={`NFL Courtier & Service — image ${idx + 1}`}
+                    className={`w-full h-[320px] sm:h-[420px] lg:h-[480px] object-cover absolute inset-0 transition-opacity duration-1000 ${
+                      idx === heroSlideIndex ? "opacity-100 z-10" : "opacity-0 z-0"
+                    } ${idx === 0 ? "static" : "absolute"}`}
+                    style={{ position: idx === 0 ? "relative" : "absolute" }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent pointer-events-none" />
+                ))}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0c0705]/50 via-transparent to-transparent z-20" />
 
-                  {/* Header Badge */}
-                  <div className="flex items-center justify-between mb-3 relative z-10 w-full">
-                    <span className="text-[9px] font-black tracking-widest text-gold bg-[#32140c]/90 px-3 py-1 rounded-full border border-gold/20 uppercase">
-                      {event.category}
-                    </span>
-                    <span className="text-[9px] font-black text-[#150805] bg-white border border-white/90 px-2.5 py-0.5 rounded-full uppercase tracking-widest relative z-25">
-                      Clôturé
-                    </span>
-                  </div>
+                {/* Dot Indicators */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
+                  {heroImages.map((_, idx) => (
+                    <button
+                      key={idx}
+                      aria-label={`Image ${idx + 1}`}
+                      onClick={() => setHeroSlideIndex(idx)}
+                      className={`transition-all duration-300 rounded-full ${
+                        idx === heroSlideIndex
+                          ? "w-5 h-2 bg-[#e3bd51]"
+                          : "w-2 h-2 bg-white/40 hover:bg-white/60"
+                      }`}
+                    />
+                  ))}
+                </div>
 
-                  {/* Event Title */}
-                  <h3 className="font-display text-lg sm:text-xl font-bold text-white mb-4 group-hover:text-gold transition-colors line-clamp-2 relative z-10 leading-tight">
-                    {event.title}
-                  </h3>
+                {isEditMode && (
+                  <HeroImagesManager
+                    images={heroImages}
+                    onSave={(images) => saveHomeSection({ hero: { ...content.hero, images } })}
+                  />
+                )}
+              </div>
 
-                  {/* Date & Location */}
-                  <div className="flex flex-col gap-1.5 text-white/70 text-[11px] font-medium relative z-10">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-3.5 h-3.5 text-gold shrink-0" />
-                      <span>
-                        {new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-3.5 h-3.5 text-gold shrink-0" />
-                      <span className="truncate">{event.location}</span>
-                    </div>
-                  </div>
-
-                  {/* Premium visual call to action at the bottom of the card */}
-                  <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-gold font-bold text-xs relative z-10 group-hover:text-white transition-colors">
-                    <span>Revoir les détails</span>
-                    <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-              );
-            })}
-
-            {/* "See All" Card styled to perfectly match the grid */}
-            <div className="animate-fade-in aspect-[4/5] sm:aspect-[3/4] w-[80vw] sm:w-[45vw] lg:w-auto snap-center flex-shrink-0 lg:flex-shrink-1" style={{ animationDelay: `${homePastEvents.length * 100}ms` }}>
-              <Link
-                to="/events"
-                className="group relative overflow-hidden rounded-[2rem] border border-gold/15 hover:border-gold/45 bg-gradient-to-br from-[#32140c]/40 to-[#1b0a06]/40 p-6 sm:p-8 flex flex-col items-center justify-center text-center gap-6 transition-all duration-500 hover:shadow-[0_20px_45px_-15px_rgba(199,157,79,0.15)] h-full w-full"
-              >
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(199,157,79,0.05),transparent_70%)] pointer-events-none" />
-                <div className="w-16 h-16 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center group-hover:scale-110 group-hover:bg-gold/20 transition-all duration-300">
-                  <ArrowRight className="h-6 w-6 text-gold" />
+              <div className="absolute -bottom-6 left-6 bg-[#150805] border border-gold/20 rounded-2xl px-5 py-4 shadow-2xl flex items-center gap-3 max-w-[280px] z-30">
+                <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-5 h-5 text-gold" />
                 </div>
                 <div>
-                  <h3 className="font-display font-bold text-xl text-white mb-2">Tous les événements</h3>
-                  <p className="text-white/60 text-xs max-w-[200px] mx-auto leading-relaxed">
-                    Explorez l'ensemble de notre historique et de nos réalisations.
+                  <p className="text-[10px] uppercase tracking-widest text-white/50 font-bold">
+                    <EditableText value={content.hero.badgeCardTitle || ""} onSave={makeFieldSaver("hero", "badgeCardTitle")} label="Encart — titre" />
+                  </p>
+                  <p className="text-white font-semibold text-sm">
+                    <EditableText value={content.hero.badgeCardSubtitle || ""} onSave={makeFieldSaver("hero", "badgeCardSubtitle")} label="Encart — sous-titre" />
                   </p>
                 </div>
-              </Link>
+              </div>
             </div>
           </div>
 
-          {/* Dots Pagination Indicators for Mobile View */}
-          <div className="flex justify-center items-center gap-2 mt-6 lg:hidden">
-            {Array.from({ length: homePastEvents.length + 1 }).map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => {
-                  if (scrollRefPast.current) {
-                    const itemWidth = scrollRefPast.current.scrollWidth / (homePastEvents.length + 1);
-                    scrollRefPast.current.scrollTo({
-                      left: idx * itemWidth,
-                      behavior: "smooth"
-                    });
-                  }
-                }}
-                className={`h-2 rounded-full transition-all duration-300 focus:outline-none ${activePastIndex === idx ? "w-6 bg-gold" : "w-2 bg-gold/30"}`}
-                aria-label={`Go to slide ${idx + 1}`}
-              />
+          {/* Feature strip */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-white/10 border-t border-white/10 mt-16 lg:mt-20 pt-10">
+            {content.featureStrip.map(({ icon, title, subtitle }, idx) => (
+              <div key={idx} className="group relative flex items-center gap-4 py-6 sm:py-0 sm:px-8 first:sm:pl-0 last:sm:pr-0">
+                {isEditMode && content.featureStrip.length > 1 && (
+                  <RemoveItemButton onClick={() => removeListItem("featureStrip", idx)} label="Retirer cet item" />
+                )}
+                <div className="w-11 h-11 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
+                  <EditableIcon value={icon} onSave={makeArrayItemFieldSaver("featureStrip", idx, "icon")} className="w-5 h-5 text-gold" />
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm sm:text-base">
+                    <EditableText value={title || ""} onSave={makeArrayItemFieldSaver("featureStrip", idx, "title")} label="Titre" />
+                  </p>
+                  <p className="text-white/50 text-xs sm:text-sm">
+                    <EditableText value={subtitle || ""} onSave={makeArrayItemFieldSaver("featureStrip", idx, "subtitle")} label="Sous-titre" />
+                  </p>
+                </div>
+              </div>
             ))}
+            {isEditMode && (
+              <div className="flex items-center py-6 sm:py-0 sm:px-8">
+                <button
+                  onClick={() => addListItem("featureStrip", { icon: "Star", title: "Nouvel item", subtitle: "Sous-titre" })}
+                  className="text-[#e3bd51] text-xs font-bold uppercase tracking-wider hover:text-[#d4af37] transition-colors"
+                >
+                  + Ajouter un item
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* 4. NEWSLETTER */}
-      <section id="newsletter" className="py-20 bg-primary/5 relative overflow-hidden">
-        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/3 w-96 h-96 bg-gold/10 rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/3 w-96 h-96 bg-gold/10 rounded-full blur-[100px] pointer-events-none" />
-        <div className="container mx-auto px-4 z-10 relative">
-          <div className="max-w-3xl mx-auto text-center glass-card p-10 md:p-14 rounded-[2.5rem] border border-gold/30 shadow-2xl bg-background/60 backdrop-blur-xl">
-            <Mail className="w-12 h-12 text-gold mx-auto mb-6" />
-            <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">La Minute Excellence</h2>
-            <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
-              Recevez 2 fois par mois des conseils pratiques pour booster votre performance commerciale et managériale.
-            </p>
-            <form onSubmit={handleNewsletter} className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">
-              <Input 
-                type="email" 
-                placeholder="Entrez votre adresse email" 
-                className="h-14 bg-background border-gold/20 focus-visible:ring-gold rounded-xl px-6 text-base shadow-sm" 
-                value={newsletterEmail} 
-                onChange={e => setNewsletterEmail(e.target.value)} 
-                required 
-              />
-              <Button type="submit" variant="gold" className="h-14 px-8 rounded-xl font-bold shadow-lg shadow-gold/20" disabled={isNewsletterLoading}>
-                {isNewsletterLoading ? "Inscription..." : "S'abonner"}
-              </Button>
-            </form>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. CATALOGUE DE FORMATIONS COMMERCIALES */}
-      <section id="formations" className="py-16 md:py-24 bg-background border-t border-border/50">
+      {/* 2. NOS PILIERS D'ACCOMPAGNEMENT */}
+      <section className="py-20 md:py-28 bg-[#E5E2E1]">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            
-            {/* Image / Graphic Side */}
-            <div className="order-2 lg:order-1 relative">
-              <div className="absolute inset-0 bg-gold/10 rounded-[2.5rem] transform -rotate-3 scale-105 -z-10" />
-              <div className="glass-card p-8 md:p-12 rounded-[2.5rem] border border-gold/20 shadow-2xl relative bg-card/80 backdrop-blur-md">
-                <h3 className="text-2xl font-display font-bold text-foreground mb-6">La promesse NFL</h3>
-                <ul className="space-y-6">
-                  {[
-                    { title: "Structuration des compétences", desc: "Bâtir des bases solides pour chaque profil." },
-                    { title: "Professionnalisation des pratiques", desc: "Élever le niveau d'exigence et de maîtrise." },
-                    { title: "Ancrage terrain et résultats", desc: "Des KPI mesurables et un impact business direct." }
-                  ].map((item, idx) => (
-                    <li key={idx} className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0 mt-1">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-gold">
-                          <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-foreground text-lg">{item.title}</h4>
-                        <p className="text-sm text-muted-foreground mt-1">{item.desc}</p>
-                      </div>
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <span className="text-gold-dark text-xs font-bold uppercase tracking-[0.2em]">Expertise</span>
+            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mt-3">
+              Nos Piliers d'Accompagnement
+            </h2>
+            <div className="w-16 h-[3px] gradient-gold mx-auto mt-5 rounded-full" />
+          </div>
+
+          {/* 3 Cards on 1 Single Line on Mobile & Grid on Desktop (No Scroll, Compact Height, All Text Visible) */}
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-6 md:gap-8">
+            {content.pillars.map((pillar, idx) => {
+              const link = pillar.link || "";
+              return (
+                <div
+                  key={idx}
+                  className="group relative bg-[#DEDAD7] rounded-md p-2 sm:p-7 md:p-9 flex flex-col justify-between shadow-sm border border-black/5 min-h-[140px] sm:min-h-[360px] md:min-h-[400px]"
+                >
+                  {isEditMode && content.pillars.length > 1 && (
+                    <RemoveItemButton onClick={() => removeListItem("pillars", idx)} label="Retirer ce pilier" />
+                  )}
+                  <div>
+                    <EditableIcon value={pillar.icon} onSave={makeArrayItemFieldSaver("pillars", idx, "icon")} className="w-4 h-4 sm:w-8 sm:h-8 text-gold-dark mb-1 sm:mb-5 shrink-0" />
+                    <h3 className="font-display text-[11px] sm:text-2xl font-bold text-[#1c1c1c] mb-1 sm:mb-3 leading-tight">
+                      <EditableText value={pillar.title || ""} onSave={makeArrayItemFieldSaver("pillars", idx, "title")} label="Titre" />
+                    </h3>
+                    <p className="text-[#555] text-[9px] sm:text-[15px] leading-tight sm:leading-relaxed mb-2 sm:mb-6 font-sans font-normal">
+                      <EditableText value={pillar.description || ""} onSave={makeArrayItemFieldSaver("pillars", idx, "description")} label="Description" multiline as="div" />
+                    </p>
+                  </div>
+                  {isEditMode ? (
+                    <span className="text-[8px] sm:text-xs font-bold uppercase tracking-tighter sm:tracking-wider text-gold-dark inline-flex items-center gap-0.5 sm:gap-2 mt-auto pt-1">
+                      <EditableText value={pillar.ctaText || ""} onSave={makeArrayItemFieldSaver("pillars", idx, "ctaText")} label="Texte du bouton" /> <ArrowRight className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 shrink-0" />
+                    </span>
+                  ) : !isAnchor(link) ? (
+                    <Link
+                      to={link}
+                      className="text-[8px] sm:text-xs font-bold uppercase tracking-tighter sm:tracking-wider text-gold-dark hover:text-gold inline-flex items-center gap-0.5 sm:gap-2 transition-colors mt-auto pt-1"
+                    >
+                      <span>{pillar.ctaText}</span> <ArrowRight className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 shrink-0" />
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={() => document.getElementById(link.slice(1))?.scrollIntoView({ behavior: "smooth" })}
+                      className="text-[8px] sm:text-xs font-bold uppercase tracking-tighter sm:tracking-wider text-gold-dark hover:text-gold inline-flex items-center gap-0.5 sm:gap-2 transition-colors w-fit text-left mt-auto pt-1"
+                    >
+                      <span>{pillar.ctaText}</span> <ArrowRight className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 shrink-0" />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+            {isEditMode && (
+              <AddCardButton
+                onClick={() => addListItem("pillars", { icon: "Star", title: "Nouveau pilier", description: "Description...", ctaText: "En savoir plus", link: "/" })}
+                label="Ajouter un pilier"
+              />
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* 3. EVENEMENTS D'EXCEPTION */}
+      <section id="evenements" className="py-20 md:py-24 bg-[#4c5462] relative overflow-hidden">
+        <div className="container mx-auto px-4 max-w-6xl relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
+            <div>
+              <span className="text-[#c29c38] text-[11px] font-bold uppercase tracking-[0.2em]">
+                <EditableText value={content.eventsSection.eyebrow || ""} onSave={makeFieldSaver("eventsSection", "eyebrow")} label="Eyebrow" />
+              </span>
+              <h2 className="font-serif text-3xl sm:text-4xl font-semibold text-white mt-1">
+                <EditableText value={content.eventsSection.title || ""} onSave={makeFieldSaver("eventsSection", "title")} label="Titre de section" />
+              </h2>
+            </div>
+            <Link
+              to={content.eventsSection.ctaLink || "/events"}
+              className="inline-flex items-center gap-2 bg-white text-black text-[11px] font-bold uppercase tracking-wider px-5 py-2.5 rounded-none hover:bg-white/90 transition-colors w-fit shadow-sm"
+              onClick={isEditMode ? (e) => e.preventDefault() : undefined}
+            >
+              {isEditMode ? (
+                <EditableText value={content.eventsSection.ctaText || ""} onSave={makeFieldSaver("eventsSection", "ctaText")} label="Texte du bouton" />
+              ) : content.eventsSection.ctaText}
+            </Link>
+          </div>
+
+          <div className="relative">
+            {isEditMode && (
+              <div className="flex items-center gap-2 text-white/50 text-[11px] mb-4 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 w-fit">
+                <Info className="w-3.5 h-3.5 text-[#e3bd51] shrink-0" />
+                Les événements affichés ici sont gérés depuis l'onglet <strong className="text-white/80">Événements</strong>.
+              </div>
+            )}
+            {featuredEvents.length === 0 ? (
+              <div className="text-center py-16 text-white/50 border border-white/10">
+                Aucun événement à afficher pour le moment.
+              </div>
+            ) : (
+              <div className={`flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 md:grid md:grid-cols-3 md:gap-6 scrollbar-none -mx-4 px-4 md:mx-0 md:px-0 ${isEditMode ? "pointer-events-none" : ""}`}>
+                {featuredEvents.map((event) => (
+                  <div key={event.id} className="w-[85vw] max-w-[320px] md:w-auto shrink-0 snap-center">
+                    <HighlightEventCard event={event} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. SPOTLIGHT - ACADÉMIE NFL */}
+      <section className="py-20 md:py-32 bg-[#e6e4e0] relative overflow-hidden">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="flex flex-col lg:flex-row items-center justify-center relative">
+            {/* Left Composition (3 Layers: Wireframe, White Mat, Photo) */}
+            <div className="relative shrink-0 z-0">
+              {/* Layer 1: Top-Left Wireframe Box */}
+              <div className="hidden lg:block absolute -top-12 -left-12 w-[320px] h-[340px] border border-[#a8a59e] pointer-events-none" />
+
+              {/* Layer 2 & 3: White Frame Mat + Photo */}
+              <div className="relative bg-[#f5f3ef] p-4 sm:p-6 shadow-md rounded-none border border-black/5 w-full max-w-[480px] sm:w-[480px]">
+                <div className="relative overflow-hidden shadow-sm w-full h-[360px] sm:h-[480px]">
+                  <EditableImage
+                    src={content.spotlight.image || heroImage1}
+                    alt="Séminaire commercial NFL Courtier & Service"
+                    className="w-full h-full object-cover block"
+                    wrapperClassName="w-full h-full"
+                    onSave={(url) => saveHomeSection({ spotlight: { ...content.spotlight, image: url } })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Right Floating Content Card (Side-by-side horizontally overlapping photo) */}
+            <div className="relative z-10 -mt-16 lg:mt-0 lg:-ml-24 w-full max-w-[500px]">
+              <div className="bg-white text-[#1c1c1c] p-8 sm:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.15)] rounded-none border border-black/5">
+                <span className="text-[#a28229] text-[10px] font-bold uppercase tracking-[0.25em] block text-right mb-3">
+                  <EditableText value={content.spotlight.badge || ""} onSave={makeFieldSaver("spotlight", "badge")} label="Badge" />
+                </span>
+                <h2 className="font-serif text-2xl sm:text-3xl md:text-[34px] font-bold text-[#1c1c1c] mb-4 leading-[1.25]">
+                  {isEditMode ? (
+                    [0, 1, 2].map((i) => (
+                      <span key={i} className="block">
+                        <EditableText
+                          value={(content.spotlight.titleLines || [])[i] || ""}
+                          onSave={async (v) => {
+                            const lines = [...(content.spotlight.titleLines || ["", "", ""])];
+                            lines[i] = v;
+                            await saveHomeSection({ spotlight: { ...content.spotlight, titleLines: lines } });
+                          }}
+                          label={`Titre — ligne ${i + 1}`}
+                        />
+                      </span>
+                    ))
+                  ) : (
+                    (content.spotlight.titleLines || []).map((line, i, arr) => (
+                      <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
+                    ))
+                  )}
+                </h2>
+                <p className="text-[#666666] text-xs sm:text-sm leading-relaxed mb-6 font-sans">
+                  <EditableText value={content.spotlight.description || ""} onSave={makeFieldSaver("spotlight", "description")} label="Description" multiline as="div" />
+                </p>
+                <ul className="space-y-3 mb-8">
+                  {(content.spotlight.bullets || []).map((item, idx) => (
+                    <li key={idx} className="group relative flex items-start gap-3 text-xs sm:text-sm text-[#333333] font-medium">
+                      <CheckCircle2 className="w-4.5 h-4.5 text-[#655410] shrink-0 mt-0.5" />
+                      <span className="flex-1">
+                        <EditableText value={item} onSave={makeStringListItemSaver("spotlight", "bullets", idx)} label="Point clé" as="div" />
+                      </span>
+                      {isEditMode && (content.spotlight.bullets || []).length > 1 && (
+                        <button onClick={() => removeStringListItem("spotlight", "bullets", idx)} className="text-destructive opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </li>
                   ))}
                 </ul>
+                {isEditMode && (
+                  <AddInlineButton onClick={() => addStringListItem("spotlight", "bullets", "Nouveau point clé")} label="Ajouter un point clé" />
+                )}
+                <Link
+                  to={content.spotlight.ctaLink || "/catalogue-formations"}
+                  className="block text-center bg-[#655410] hover:bg-[#52440b] text-white font-bold text-[10px] sm:text-[11px] uppercase tracking-wider py-3.5 px-6 rounded-none transition-colors shadow-sm mt-4"
+                  onClick={isEditMode ? (e) => e.preventDefault() : undefined}
+                >
+                  {isEditMode ? (
+                    <EditableText value={content.spotlight.ctaText || ""} onSave={makeFieldSaver("spotlight", "ctaText")} label="Texte du bouton" />
+                  ) : content.spotlight.ctaText}
+                </Link>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
 
-            {/* Text Content Side */}
-            <div className="order-1 lg:order-2 space-y-8">
-              <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-gold/10 text-gold rounded-full text-xs font-bold uppercase tracking-widest border border-gold/20 mb-6">
-                  Nouveauté
-                </div>
-                <h2 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
-                  Catalogue de <span className="text-gradient-gold">formations commerciales</span>
-                </h2>
-                <h3 className="text-xl md:text-2xl font-semibold text-foreground/80 mb-6 leading-snug">
-                  Développer durablement la performance commerciale, à chaque étape de maturité.
-                </h3>
-                <p className="text-muted-foreground text-lg leading-relaxed">
-                  Nos formations commerciales sont conçues comme de véritables parcours de montée en
-                  compétences, alignés sur les enjeux business des entreprises.
-                </p>
-                <p className="text-muted-foreground text-lg leading-relaxed mt-4">
-                  Elles accompagnent les équipes commerciales depuis la prise de poste jusqu'au pilotage
-                  stratégique de la performance.
-                </p>
-              </div>
+      {/* 5. TEMOIGNAGES - Linear Infinite Marquee */}
+      <section className="py-20 md:py-24 bg-[#0a0b0d] overflow-hidden relative">
+        <div className="w-full relative">
+          {/* Subtle edge fade overlays for smooth scrolling transition */}
+          <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
+          <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
 
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Button variant="gold" size="lg" className="rounded-full px-8 h-14 text-base font-bold shadow-lg shadow-gold/20 hover:scale-105 transition-transform w-full sm:w-auto" asChild>
-                  <Link to="/catalogue-formations">Découvrir les parcours</Link>
-                </Button>
-                <Button variant="outline" size="lg" className="rounded-full px-8 h-14 text-base font-bold bg-background/50 border-gold/30 hover:bg-gold/10 w-full sm:w-auto" onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}>
-                  Parcours sur mesure
-                </Button>
-              </div>
+          {isEditMode && (
+            <div className="flex items-center gap-2 text-white/50 text-[11px] mb-4 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 w-fit relative z-20">
+              <Info className="w-3.5 h-3.5 text-[#e3bd51] shrink-0" />
+              Les témoignages affichés ici sont gérés depuis l'onglet <strong className="text-white/80">Témoignages</strong>.
             </div>
-            
+          )}
+          {/* Marquee Track */}
+          {marqueeTestimonials.length > 0 && (
+            <div className={`flex animate-marquee gap-6 w-max ${isEditMode ? "pointer-events-none" : ""}`}>
+              {marqueeTestimonials.map((t, index) => {
+                const initials = t.author_name
+                  ? t.author_name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
+                  : "NFL";
+                return (
+                  <div
+                    key={`${t.id}-${index}`}
+                    className="w-[310px] sm:w-[350px] min-h-[460px] h-[480px] bg-[#282a2e] border border-white/5 p-8 sm:p-9 rounded-none flex flex-col justify-between shrink-0 shadow-2xl"
+                  >
+                    <p className="font-serif italic text-white/90 text-sm sm:text-base leading-relaxed tracking-wide">
+                      "{t.quote}"
+                    </p>
+
+                    <div className="flex items-end gap-3.5 mt-auto pt-6">
+                      {t.avatar_url ? (
+                        <img src={t.avatar_url} alt={t.author_name} className="w-10 h-10 rounded-none object-cover shrink-0" />
+                      ) : (
+                        <div className="w-10 h-10 bg-[#e3bd51] text-black font-bold text-xs flex items-center justify-center rounded-none shrink-0">
+                          {initials}
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-white font-bold text-sm leading-tight">{t.author_name}</p>
+                        <p className="text-[#e3bd51] text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider mt-0.5">
+                          {[t.author_role, t.author_company].filter(Boolean).join(", ").toUpperCase()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* 6. PRÊT À ÉLEVER VOS STANDARDS ? (CTA) */}
+      <section id="contact" className="py-20 md:py-24 bg-[#e2dfdb] text-center border-t border-black/10">
+        <div className="container mx-auto px-4 max-w-2xl">
+          <h2 className="font-serif text-3xl sm:text-4xl md:text-[40px] font-bold text-[#1c1c1c] mb-4">
+            <EditableText value={content.ctaSection.title || ""} onSave={makeFieldSaver("ctaSection", "title")} label="Titre" />
+          </h2>
+          <p className="text-[#555] text-xs sm:text-sm leading-relaxed mb-8 max-w-xl mx-auto font-sans font-normal">
+            <EditableText value={content.ctaSection.description || ""} onSave={makeFieldSaver("ctaSection", "description")} label="Description" multiline as="div" />
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={isEditMode ? undefined : () => document.getElementById("footer-contact")?.scrollIntoView({ behavior: "smooth" })}
+              className="bg-[#655410] hover:bg-[#52440b] text-white font-bold text-[10px] sm:text-[11px] uppercase tracking-wider py-3.5 px-8 rounded-none shadow-sm transition-colors"
+            >
+              {isEditMode ? (
+                <EditableText value={content.ctaSection.primaryBtnText || ""} onSave={makeFieldSaver("ctaSection", "primaryBtnText")} label="Bouton principal" />
+              ) : content.ctaSection.primaryBtnText}
+            </button>
+            <button
+              onClick={isEditMode ? undefined : () => document.getElementById("footer-contact")?.scrollIntoView({ behavior: "smooth" })}
+              className="border border-black/30 bg-transparent hover:bg-black/5 text-[#1c1c1c] font-bold text-[10px] sm:text-[11px] uppercase tracking-wider py-3.5 px-8 rounded-none transition-colors"
+            >
+              {isEditMode ? (
+                <EditableText value={content.ctaSection.secondaryBtnText || ""} onSave={makeFieldSaver("ctaSection", "secondaryBtnText")} label="Bouton secondaire" />
+              ) : content.ctaSection.secondaryBtnText}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. C'EST QUOI NFL ? */}
+      <section className="py-20 md:py-28 bg-[#e8e6e2] border-t-8 border-black text-center">
+        <div className="container mx-auto px-4 max-w-3xl">
+          <h2 className="font-serif text-3xl sm:text-4xl md:text-[42px] font-bold text-[#1c1c1c] mb-6">
+            <EditableText value={content.about.title || ""} onSave={makeFieldSaver("about", "title")} label="Titre" />
+          </h2>
+          <p className="text-[#444] text-base sm:text-lg font-normal mb-6 font-sans">
+            <EditableText value={content.about.subtitle || ""} onSave={makeFieldSaver("about", "subtitle")} label="Sous-titre" />
+          </p>
+          <p className="text-[#555] text-xs sm:text-sm leading-relaxed mb-8 max-w-2xl mx-auto font-sans font-normal">
+            <EditableText value={content.about.paragraph || ""} onSave={makeFieldSaver("about", "paragraph")} label="Paragraphe" multiline as="div" />
+          </p>
+          <p className="text-[#333] text-xs sm:text-sm font-medium mb-4">
+            <EditableText value={content.about.valuesIntro || ""} onSave={makeFieldSaver("about", "valuesIntro")} label="Intro des valeurs" />
+          </p>
+          <div className="flex flex-col items-start gap-3 max-w-xs mx-auto">
+            {(content.about.values || []).map((item, idx) => (
+              <div
+                key={idx}
+                className="group relative flex items-center gap-3 text-[#333] font-medium text-xs sm:text-sm w-full"
+              >
+                <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#655410]/10 border border-[#655410]/30 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-[#655410] shrink-0" />
+                </span>
+                <span className="font-semibold tracking-wide">
+                  <EditableText value={item} onSave={makeStringListItemSaver("about", "values", idx)} label="Valeur" />
+                </span>
+                {isEditMode && (content.about.values || []).length > 1 && (
+                  <button onClick={() => removeStringListItem("about", "values", idx)} className="text-destructive opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-auto">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            ))}
+            {isEditMode && (
+              <AddInlineButton onClick={() => addStringListItem("about", "values", "Nouvelle valeur")} label="Ajouter une valeur" />
+            )}
           </div>
         </div>
       </section>
@@ -725,105 +807,6 @@ const Index = () => {
         </div>
       </section>
       */}
-
-      {/* 8. CONTACT */}
-      <section id="contact" className="py-24 bg-card relative overflow-hidden">
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-5xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-16">
-              <div className="space-y-8">
-                <div>
-                  <h2 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">Prêt à <span className="text-gradient-gold">collaborer ?</span></h2>
-                  <p className="text-muted-foreground text-lg">
-                    Contactez-nous pour toute demande de formation privée, d'audit de votre force de vente, ou pour toute question concernant nos masterclass.
-                  </p>
-                </div>
-                
-                <div className="space-y-6">
-                  <div className="flex gap-4 items-start">
-                     <div className="w-12 h-12 bg-gold/10 rounded-full flex items-center justify-center shrink-0">
-                        <MapPin className="w-6 h-6 text-gold" />
-                     </div>
-                     <div>
-                        <h4 className="font-bold text-lg">Nos bureaux</h4>
-                        <p className="text-muted-foreground">Libreville, Gabon</p>
-                     </div>
-                  </div>
-                  <div className="flex gap-4 items-start">
-                     <div className="w-12 h-12 bg-gold/10 rounded-full flex items-center justify-center shrink-0">
-                        <Mail className="w-6 h-6 text-gold" />
-                     </div>
-                     <div>
-                        <h4 className="font-bold text-lg">Email direct</h4>
-                        <a href="mailto:seminaireslao@outlook.fr" className="text-muted-foreground hover:text-gold transition-colors">seminaireslao@outlook.fr</a>
-                     </div>
-                  </div>
-                  <div className="flex gap-4 items-start">
-                     <div className="w-12 h-12 bg-gold/10 rounded-full flex items-center justify-center shrink-0">
-                        <Phone className="w-6 h-6 text-gold" />
-                     </div>
-                     <div>
-                        <h4 className="font-bold text-lg">Téléphone</h4>
-                        <p className="text-muted-foreground">+241 066 69 23 38</p>
-                     </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="glass-card p-8 md:p-10 rounded-3xl border border-gold/20 shadow-xl bg-background/80">
-                <form onSubmit={handleContactSubmit} className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-foreground">Prénom & Nom</label>
-                      <Input 
-                        required 
-                        className="border-border/50 focus-visible:ring-gold bg-background/50 h-12" 
-                        placeholder="Jean Dupont"
-                        value={contactForm.name}
-                        onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-foreground">Email</label>
-                      <Input 
-                        type="email" 
-                        required 
-                        className="border-border/50 focus-visible:ring-gold bg-background/50 h-12" 
-                        placeholder="jean@entreprise.com"
-                        value={contactForm.email}
-                        onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-foreground">Sujet</label>
-                    <Input 
-                      required 
-                      className="border-border/50 focus-visible:ring-gold bg-background/50 h-12" 
-                      placeholder="Demande de devis" 
-                      value={contactForm.subject}
-                      onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-foreground">Message</label>
-                    <Textarea 
-                      required 
-                      className="border-border/50 focus-visible:ring-gold bg-background/50 min-h-[150px] resize-none" 
-                      placeholder="Détaillez votre besoin ici..." 
-                      value={contactForm.message}
-                      onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                    />
-                  </div>
-                  <Button type="submit" variant="gold" className="w-full h-14 text-base font-bold rounded-xl shadow-lg shadow-gold/10" disabled={isSubmittingContact}>
-                    {isSubmittingContact ? "Envoi en cours..." : "Envoyer le message"} <Send className="ml-2 w-5 h-5" />
-                  </Button>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <Footer />
     </div>

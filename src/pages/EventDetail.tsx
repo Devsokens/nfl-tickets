@@ -1,439 +1,649 @@
-import { useEffect, useMemo, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { useParams, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import EventCard from "@/components/EventCard";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { EventsAPI, TicketsAPI, type Event } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { EventsAPI, TicketsAPI, TestimonialsAPI, type Event, type Testimonial } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, ArrowLeft, Clock, CheckCircle2, Phone, Share2, Copy } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import ReactMarkdown from 'react-markdown';
+import { Calendar, MapPin, Clock, CheckCircle2, ArrowRight, ArrowLeft, UserCheck, Award, Users } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 
 import nflImg1 from "@/assets/nfl img1.jpeg";
-import nflImg2 from "@/assets/nfl img2.jpeg";
-import nflImg3 from "@/assets/nfl img3.jpeg";
-import nflImg4 from "@/assets/nfl img 4.jpeg";
-import airtelLogo from "@/assets/airtel.png";
-import moovLogo from "@/assets/moov.png";
+import nflImg5 from "@/assets/nfl img 5.jpeg";
 
-const categoryImages: Record<string, string> = {
-  soirée: nflImg1,
-  conférence: nflImg2,
-  atelier: nflImg3,
-  concert: nflImg4,
-  seminaire: nflImg2,
-};
+function formatEventDate(dateStr?: string) {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+}
+
+// Fait défiler un carrousel horizontal snap vers l'item `index` et notifie `onIndexChange`.
+function scrollCarouselTo(container: HTMLDivElement | null, index: number) {
+  if (!container) return;
+  const scrollAmount = container.clientWidth * 0.85;
+  container.scrollTo({ left: index * scrollAmount, behavior: "smooth" });
+}
 
 const EventDetail = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const { toast } = useToast();
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-  
-  const { toast } = useToast();
-  
-  const queryClient = useQueryClient();
-  const { data: event, isLoading: isEventLoading, isError } = useQuery<Event>({
+
+  const { data: event } = useQuery<Event>({
     queryKey: ["event", id],
     queryFn: () => EventsAPI.getOne(id as string),
     enabled: !!id,
-    initialData: () => {
-      const allEvents = queryClient.getQueryData<Event[]>(["allEvents"]);
-      return allEvents?.find(e => e.id === id || e.slug === id);
-    }
   });
 
-  // Remplacer l'URL du navigateur par le slug si disponible
-  useEffect(() => {
-    if (event?.slug && id !== event.slug) {
-      window.history.replaceState(null, '', `/event/${event.slug}`);
-    }
-  }, [event?.slug, id]);
-
-  const { data: allUpcoming = [] } = useQuery<Event[]>({
-    queryKey: ["upcomingEvents"],
-    queryFn: () => EventsAPI.getAll(),
+  const { data: testimonials = [] } = useQuery<Testimonial[]>({
+    queryKey: ["testimonials"],
+    queryFn: () => TestimonialsAPI.getAll(false),
   });
 
+  const speakers = event?.speakers || [];
+  const program = event?.program || [];
+
+  // Form state
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [nbPlaces, setNbPlaces] = useState("1 Place");
+  const [selectedFormule, setSelectedFormule] = useState<"individuel" | "corporate">("individuel");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [step, setStep] = useState<1 | 2>(1);
-  const quantity = 1;
-  const [participants, setParticipants] = useState([{ fullName: "", email: "", phone: "" }]);
-  const [paymentPending, setPaymentPending] = useState(false);
 
-  const totalAmount = useMemo(() => (event?.price || 0) * quantity, [event?.price, quantity]);
+  // Carousel states & refs for Intervenants and Testimonials
+  const [activeSpeakerIndex, setActiveSpeakerIndex] = useState(0);
+  const speakersRef = useRef<HTMLDivElement>(null);
 
-  const updateParticipant = (index: number, field: "fullName" | "email" | "phone", value: string) => {
-    setParticipants((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
-  };
+  const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(0);
+  const testimonialsRef = useRef<HTMLDivElement>(null);
 
-  const isStep1Valid = participants[0].fullName.trim().length > 0 && participants[0].email.trim().length > 0 && participants[0].phone.trim().length > 0;
+  // Autoscroll intervenants (seulement s'il y en a plus d'un)
+  useEffect(() => {
+    if (speakers.length <= 1) return;
+    const timer = setInterval(() => {
+      setActiveSpeakerIndex((prev) => {
+        const nextIndex = (prev + 1) % speakers.length;
+        scrollCarouselTo(speakersRef.current, nextIndex);
+        return nextIndex;
+      });
+    }, 3500);
+    return () => clearInterval(timer);
+  }, [speakers.length]);
 
-  if (isEventLoading) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <Navbar />
-        <div className="flex-1 flex justify-center items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold"></div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (isError || !event) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <Navbar />
-        <div className="flex-1 container mx-auto px-4 py-20 text-center flex flex-col items-center justify-center">
-          <h1 className="font-display text-4xl font-bold mb-4">Événement introuvable</h1>
-          <p className="text-muted-foreground mb-8">L'événement que vous cherchez n'existe pas ou n'est plus disponible.</p>
-          <Button variant="gold" asChild>
-            <Link to="/events">Retour au catalogue</Link>
-          </Button>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
-  const image = event.image_url || event.image || categoryImages[event.category] || nflImg1;
-  const eventDate = new Date(event.date);
-  const isPast = eventDate < new Date(new Date().setHours(0, 0, 0, 0));
-
-  const formattedDate = eventDate.toLocaleDateString("fr-FR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-  
-  const remaining = event?.capacity - (event?.ticketsSold || 0);
-
-  const handleStep2 = () => {
-    if (!isStep1Valid) return;
-    setStep(2);
-  };
-
-  const handleShare = async () => {
-    const eventLink = event?.slug ? event.slug : event?.id;
-    const url = `${window.location.origin}/event/${eventLink}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: event?.title || "Événement",
-          text: `Découvrez cet événement : ${event?.title}`,
-          url: url,
-        });
-      } catch (err) {
-        console.log("Erreur de partage:", err);
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(url);
-        toast({ title: "Lien copié !", description: "Le lien de l'événement a bien été copié dans votre presse-papier." });
-      } catch (err) {
-        toast({ variant: "destructive", title: "Erreur", description: "Impossible de copier le lien." });
-      }
+  const handleSpeakersScroll = () => {
+    if (!speakersRef.current || speakers.length === 0) return;
+    const container = speakersRef.current;
+    const scrollAmount = container.clientWidth * 0.85;
+    if (scrollAmount > 0) {
+      const newIndex = Math.round(container.scrollLeft / scrollAmount);
+      setActiveSpeakerIndex(Math.min(speakers.length - 1, Math.max(0, newIndex)));
     }
   };
 
-  const handlePaymentDone = async () => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
-    try {
-      const p = participants[0];
-      await TicketsAPI.create({
-        event_id: event.id,
-        full_name: p.fullName,
-        email: p.email,
-        phone: p.phone,
-        payer_phone: p.phone.trim(),
+  // Autoscroll témoignages (seulement s'il y en a plus d'un)
+  useEffect(() => {
+    if (testimonials.length <= 1) return;
+    const timer = setInterval(() => {
+      setActiveTestimonialIndex((prev) => {
+        const nextIndex = (prev + 1) % testimonials.length;
+        scrollCarouselTo(testimonialsRef.current, nextIndex);
+        return nextIndex;
       });
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [testimonials.length]);
 
-      toast({
-        title: "Réservation enregistrée !",
-        description: "Redirection vers WhatsApp pour confirmer votre paiement...",
-      });
+  const handleTestimonialsScroll = () => {
+    if (!testimonialsRef.current || testimonials.length === 0) return;
+    const container = testimonialsRef.current;
+    const scrollAmount = container.clientWidth * 0.85;
+    if (scrollAmount > 0) {
+      const newIndex = Math.round(container.scrollLeft / scrollAmount);
+      setActiveTestimonialIndex(Math.min(testimonials.length - 1, Math.max(0, newIndex)));
+    }
+  };
 
-      const message = `Bonjour NFL Courtier & Service,\n\n` +
-                      `Je viens de réserver ma place pour l'événement : *${event.title}*.\n\n` +
-                      `*Détails de ma réservation :*\n` +
-                      `- *Date* : ${formattedDate}\n` +
-                      `- *Montant* : ${totalAmount.toLocaleString()} FCFA\n` +
-                      `- *Participant* : ${p.fullName}\n` +
-                      `- *Téléphone* : ${p.phone}\n\n` +
-                      `Merci de valider ma commande dès réception du transfert.`;
+  const eventTitle = event?.title || "Événement NFL Courtier & Service";
+  const eventLocation = event?.location || "Libreville, Gabon";
+  const eventImage = event?.image_url || event?.image || nflImg1;
+  const eventPrice = event?.price || 0;
+  const corporatePrice = eventPrice * 8;
 
-      const encodedMessage = encodeURIComponent(message);
-      let whatsappNumber = (event as any).whatsapp_number || "24166692338";
-      
-      let cleanNumber = whatsappNumber.replace(/\D/g, "");
-      if (cleanNumber.startsWith("2410")) {
-        cleanNumber = "241" + cleanNumber.substring(4);
-      } else if (cleanNumber.startsWith("0")) {
-        cleanNumber = "241" + cleanNumber.substring(1);
-      }
+  // Statistiques réelles disponibles pour cet événement (on n'affiche que ce qui est vrai)
+  const infoStats = [
+    event?.capacity ? `${event.capacity} places disponibles` : null,
+    speakers.length > 0 ? `${speakers.length} intervenant${speakers.length > 1 ? "s" : ""}` : null,
+    event?.category ? `Catégorie : ${event.category}` : null,
+  ].filter(Boolean) as string[];
 
-      const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodedMessage}`;
-      
-      setTimeout(() => {
-        navigate("/");
-        window.location.href = whatsappUrl;
-      }, 1500);
-
-    } catch (error: any) {
-      const errorMsg = error.response?.data?.message || "Erreur lors de la réservation. Cet e-mail est peut-être déjà utilisé.";
+  const handleBooking = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fullName || !email || !phone) {
       toast({
         variant: "destructive",
-        title: "Réservation impossible",
-        description: errorMsg,
+        title: "Champs requis",
+        description: "Veuillez remplir tous les champs du formulaire.",
       });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      if (event?.id) {
+        await TicketsAPI.create({
+          event_id: event.id,
+          full_name: fullName,
+          email,
+          phone,
+          payer_phone: phone,
+        });
+      }
+
+      toast({
+        title: "Demande reçue !",
+        description: "Redirection vers WhatsApp pour finaliser votre ticket...",
+      });
+
+      const priceStr = selectedFormule === "individuel"
+        ? `${eventPrice.toLocaleString()} FCFA`
+        : `${corporatePrice.toLocaleString()} FCFA`;
+      const message = `Bonjour NFL Courtier & Service,\n\n` +
+                      `Je souhaite réserver pour l'événement : *${eventTitle}*.\n\n` +
+                      `*Détails du participant :*\n` +
+                      `- *Nom complet* : ${fullName}\n` +
+                      `- *Email* : ${email}\n` +
+                      `- *Nombre de places* : ${nbPlaces}\n` +
+                      `- *Téléphone WhatsApp* : ${phone}\n` +
+                      `- *Formule choisie* : ${selectedFormule === "individuel" ? "Tarif individuel" : "Table Corporate (8 pers.)"} (${priceStr})\n\n` +
+                      `Merci de valider ma réservation.`;
+
+      const whatsappUrl = `https://wa.me/24166692338?text=${encodeURIComponent(message)}`;
+      setTimeout(() => {
+        window.location.href = whatsappUrl;
+      }, 1000);
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la réservation.",
+      });
+    } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-[#0d0e11] flex flex-col text-white">
       <Helmet>
-        <title>{event ? `${event.title} | NFL Courtier & Service` : 'Événement | NFL Courtier & Service'}</title>
-        <meta name="description" content={event ? `${event.description?.substring(0, 160)}...` : 'Découvrez les détails de cet événement NFL Courtier & Service au Gabon.'} />
-        <meta property="og:title" content={event?.title} />
-        <meta property="og:description" content={event?.description?.substring(0, 160)} />
-        <meta property="og:image" content={event?.image_url || '/favicon.jpg'} />
+        <title>{`${eventTitle} | NFL Courtier & Service`}</title>
+        <meta name="description" content={event?.description || `Découvrez les intervenants, le programme et réservez votre place pour ${eventTitle}.`} />
       </Helmet>
       <Navbar />
 
-      <main className="flex-1 container mx-auto px-4 pt-28 md:pt-32 pb-16">
-        <div className="flex flex-wrap items-center gap-4 mb-8">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-gold font-bold hover:text-gold-dark transition-all bg-gold/5 px-4 py-2 rounded-full border border-gold/10 text-sm"
-          >
-            <ArrowLeft className="h-4 w-4" /> Retour à l'accueil
-          </Link>
-          <Link
-            to="/events"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
-          >
-            Voir tous les événements
-          </Link>
-        </div>
-        
-        <div className="flex flex-col lg:flex-row gap-12 items-start">
-          {/* Colonne GAUCHE : Visuel + Description */}
-          <div className="flex-1 space-y-10 animate-fade-in w-full">
-            <div className={`relative h-[45vh] md:h-[55vh] rounded-[2rem] overflow-hidden shadow-2xl bg-muted/20 ${isPast ? 'grayscale-[30%]' : ''}`}>
-              <img src={image} alt={event.title} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
-              <button
-                onClick={handleShare}
-                className="absolute top-6 right-6 p-3.5 bg-background/80 hover:bg-background backdrop-blur-md rounded-full shadow-xl transition-all duration-300 transform hover:scale-110 z-10 border border-border/50"
-                title="Partager cet événement"
-              >
-                <Share2 className="h-5 w-5 text-gold" />
-              </button>
-            </div>
+      {/* 1. HERO SECTION WITH IMAGE BACKGROUND & BOUTON RETOUR */}
+      <section className="relative pt-28 pb-20 md:pt-36 md:pb-24 overflow-hidden border-b border-white/10 bg-[#0d0e11]">
+        <img
+          src={eventImage}
+          alt={eventTitle}
+          className="absolute inset-0 w-full h-full object-cover filter brightness-[0.25] contrast-[1.15]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0d0e11] via-[#0d0e11]/85 to-[#0d0e11]/90" />
 
-            <div className="space-y-6">
-              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-black text-foreground leading-tight tracking-tight">
-                {event.title}
-              </h1>
-              <div className="text-xl text-muted-foreground leading-relaxed markdown-content">
-                <ReactMarkdown 
-                  components={{
-                    p: ({node, ...props}) => <p className="mb-6 last:mb-0" {...props} />,
-                    ul: ({node, ...props}) => <ul className="list-disc pl-6 mb-6 space-y-3" {...props} />,
-                    ol: ({node, ...props}) => <ol className="list-decimal pl-6 mb-6 space-y-3" {...props} />,
-                    li: ({node, ...props}) => <li className="pl-2" {...props} />,
-                    strong: ({node, ...props}) => <strong className="font-bold text-foreground" {...props} />
-                  }}
-                >
-                  {event.description}
-                </ReactMarkdown>
-              </div>
-            </div>
+        <div className="relative z-10 container mx-auto px-4 max-w-6xl">
+          <div className="mb-8">
+            <Link
+              to="/events"
+              className="inline-flex items-center gap-2 text-[#e3bd51] hover:text-[#d4af37] font-bold text-xs uppercase tracking-widest transition-all bg-white/5 border border-[#e3bd51]/30 hover:border-[#e3bd51] px-5 py-2.5 rounded-none backdrop-blur-md shadow-md"
+            >
+              <ArrowLeft className="w-4 h-4" /> RETOUR AUX ÉVÉNEMENTS
+            </Link>
           </div>
 
-          {/* Colonne DROITE : Actions + Infos */}
-          <div className="lg:w-[480px] shrink-0 w-full lg:sticky lg:top-28 space-y-8">
-            {/* Infos clés déplacées ici */}
-            <div className="grid grid-cols-1 gap-4">
-              <div className="flex items-center gap-5 p-5 rounded-3xl bg-secondary/40 border border-border/40 backdrop-blur-sm">
-                <div className="p-4 bg-secondary rounded-2xl shrink-0 shadow-sm"><Calendar className="h-7 w-7 text-gold" /></div>
-                <div>
-                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-0.5">Date de l'événement</p>
-                  <p className="text-base font-bold capitalize">{formattedDate}</p>
+          <div className="grid lg:grid-cols-12 gap-10 items-center">
+            <div className="lg:col-span-7 space-y-6">
+              <span className="text-[#e3bd51] text-[10px] font-bold uppercase tracking-[0.25em] block">
+                {event?.category ? `• ${event.category.toUpperCase()} •` : "• ÉVÉNEMENT EXCLUSIF •"}
+              </span>
+
+              <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-tight drop-shadow-md">
+                {eventTitle}
+              </h1>
+
+              <div className="flex flex-wrap items-center gap-6 text-xs text-white/90 font-medium">
+                {event?.date && (
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-[#e3bd51]" />
+                    <span>{formatEventDate(event.date)}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[#e3bd51]" />
+                  <span>{eventLocation}</span>
                 </div>
+                {event?.time && (
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-[#e3bd51]" />
+                    <span>À partir de {event.time}</span>
+                  </div>
+                )}
               </div>
-              <div className="flex items-center gap-5 p-5 rounded-3xl bg-secondary/40 border border-border/40 backdrop-blur-sm">
-                <div className="p-4 bg-secondary rounded-2xl shrink-0 shadow-sm"><MapPin className="h-7 w-7 text-gold" /></div>
-                <div>
-                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-0.5">Lieu</p>
-                  <p className="text-base font-bold">{event.location}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-5 p-5 rounded-3xl bg-secondary/40 border border-border/40 backdrop-blur-sm">
-                <div className="p-4 bg-secondary rounded-2xl shrink-0 shadow-sm"><Clock className="h-7 w-7 text-gold" /></div>
-                <div>
-                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-0.5">Heure</p>
-                  <p className="text-base font-bold">{event.time}</p>
-                </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                <button
+                  onClick={() => document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth" })}
+                  className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-xs uppercase tracking-wider py-4 px-8 rounded-none transition-colors shadow-lg"
+                >
+                  Réserver ma place
+                </button>
+                <button
+                  onClick={() => document.getElementById("programme-section")?.scrollIntoView({ behavior: "smooth" })}
+                  className="border border-white/30 bg-transparent hover:bg-white/10 text-white font-bold text-xs uppercase tracking-wider py-4 px-8 rounded-none transition-colors"
+                >
+                  Voir le programme
+                </button>
               </div>
             </div>
 
-            {/* Inscription / Statut */}
-            {isPast ? (
-              <div className="bg-muted/30 p-10 rounded-[2.5rem] border border-dashed border-border flex flex-col items-center justify-center text-center gap-6 animate-fade-in">
-                <div className="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center border border-border">
-                  <Calendar className="h-10 w-10 text-muted-foreground/40" />
+            {infoStats.length > 0 && (
+              <div className="lg:col-span-5">
+                <div className="bg-[#14161a]/90 backdrop-blur-md border border-white/15 p-7 sm:p-8 rounded-none space-y-4 max-w-md ml-auto shadow-2xl">
+                  {infoStats.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-3 text-xs text-white/90 font-medium">
+                      <CheckCircle2 className="w-4.5 h-4.5 text-[#e3bd51] shrink-0" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
                 </div>
-                <div className="space-y-2">
-                  <h3 className="font-display text-2xl font-bold text-foreground">Événement terminé</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Les inscriptions sont closes pour cet événement. Découvrez nos prochaines sessions.
-                  </p>
-                </div>
-                <Button variant="outline" asChild className="rounded-full px-10 h-12 font-bold">
-                  <Link to="/events">Consulter l'agenda</Link>
-                </Button>
-              </div>
-            ) : (
-              <div className="bg-card p-10 rounded-[2.5rem] border border-border/50 shadow-2xl space-y-8 relative overflow-hidden ring-1 ring-gold/10">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-display text-3xl font-black tracking-tight">Inscription</h3>
-                  <div className="flex gap-1.5 font-mono text-[10px] font-bold">
-                    <span className={`px-2 py-1 rounded-md ${step >= 1 ? 'bg-gold text-white' : 'bg-muted text-muted-foreground'}`}>1</span>
-                    <span className={`px-2 py-1 rounded-md ${step >= 2 ? 'bg-gold text-white' : 'bg-muted text-muted-foreground'}`}>2</span>
-                  </div>
-                </div>
-
-                {step === 1 && (
-                  <div className="space-y-6 animate-fade-in">
-                    <div className="space-y-5">
-                      <div className="space-y-2.5">
-                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Nom complet</Label>
-                        <Input 
-                          placeholder="Ex: Jean Mboulou" 
-                          className="h-14 rounded-2xl bg-secondary/30 border-border/50 focus:ring-gold"
-                          value={participants[0].fullName} 
-                          onChange={(e) => updateParticipant(0, "fullName", e.target.value)} 
-                          required 
-                        />
-                      </div>
-                      <div className="space-y-2.5">
-                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Email</Label>
-                        <Input 
-                          type="email" 
-                          placeholder="jean.mboulou@email.com" 
-                          className="h-14 rounded-2xl bg-secondary/30 border-border/50 focus:ring-gold"
-                          value={participants[0].email} 
-                          onChange={(e) => updateParticipant(0, "email", e.target.value)} 
-                          required 
-                        />
-                      </div>
-                      <div className="space-y-2.5">
-                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">WhatsApp</Label>
-                        <Input 
-                          placeholder="+241 07 76 17 776" 
-                          className="h-14 rounded-2xl bg-secondary/30 border-border/50 focus:ring-gold"
-                          value={participants[0].phone} 
-                          onChange={(e) => updateParticipant(0, "phone", e.target.value)} 
-                          required 
-                        />
-                      </div>
-                    </div>
-
-                    <div className="pt-4 space-y-5">
-                      <div className="flex justify-between items-end px-1">
-                        <span className="text-muted-foreground font-bold text-sm mb-1 uppercase tracking-tighter">Accès individuel</span>
-                        <div className="text-right">
-                          <span className="block text-3xl font-black text-gold leading-none">{event.price.toLocaleString()}</span>
-                          <span className="text-xs font-bold text-gold/60 uppercase">{event.currency}</span>
-                        </div>
-                      </div>
-                      <Button 
-                        variant="gold" 
-                        className="w-full h-16 rounded-[1.25rem] font-black text-xl shadow-xl shadow-gold/20 hover:scale-[1.02] active:scale-95 transition-all" 
-                        onClick={handleStep2} 
-                        disabled={!isStep1Valid}
-                      >
-                        Continuer
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {step === 2 && (
-                  <div className="space-y-8 animate-fade-in">
-                    <div className="p-6 rounded-3xl bg-secondary/50 border border-gold/10 space-y-3">
-                      <div className="flex justify-between gap-4">
-                        <span className="text-xs font-bold text-muted-foreground uppercase">Événement</span>
-                        <span className="text-sm font-bold text-right leading-tight">{event.title}</span>
-                      </div>
-                      <div className="pt-3 border-t border-border/50 flex justify-between items-baseline">
-                        <span className="text-xs font-bold text-muted-foreground uppercase">Total</span>
-                        <span className="text-2xl font-black text-gold">{totalAmount.toLocaleString()} {event.currency}</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <p className="text-[10px] font-black text-center text-muted-foreground uppercase tracking-[0.2em]">Paiement Mobile Money</p>
-                      <div className="grid grid-cols-1 gap-3">
-                        <div className="bg-secondary/30 p-5 rounded-[1.5rem] border border-border/50 flex items-center justify-between group hover:border-gold/30 transition-all">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center p-1 shadow-sm overflow-hidden border border-border/40">
-                              <img src={airtelLogo} alt="Airtel Money" className="w-full h-full object-contain" />
-                            </div>
-                            <div>
-                              <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest mb-0.5">Airtel Money</p>
-                              <p className="font-mono text-lg font-black tracking-tight text-foreground">077757383</p>
-                            </div>
-                          </div>
-                          <Button variant="ghost" size="icon" className="h-10 w-10 text-gold hover:bg-gold/10 rounded-xl" onClick={() => { navigator.clipboard.writeText("077757383"); toast({ title: "Copié !" }); }}>
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <div className="bg-secondary/30 p-5 rounded-[1.5rem] border border-border/50 flex items-center justify-between group hover:border-gold/30 transition-all">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center p-1 shadow-sm overflow-hidden border border-border/40">
-                              <img src={moovLogo} alt="Moov Money" className="w-full h-full object-contain" />
-                            </div>
-                            <div>
-                              <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest mb-0.5">Moov Money</p>
-                              <p className="font-mono text-lg font-black tracking-tight text-foreground">066692338</p>
-                            </div>
-                          </div>
-                          <Button variant="ghost" size="icon" className="h-10 w-10 text-gold hover:bg-gold/10 rounded-xl" onClick={() => { navigator.clipboard.writeText("066692338"); toast({ title: "Copié !" }); }}>
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <Button variant="outline" className="h-14 rounded-2xl font-bold border-border hover:bg-muted" onClick={() => setStep(1)}>Retour</Button>
-                      <Button variant="gold" className="h-14 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white font-black shadow-lg shadow-orange-600/20" onClick={handlePaymentDone} disabled={isSubmitting}>
-                        {isSubmitting ? "Validation..." : "J'ai payé"}
-                      </Button>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
-            
-            <p className="text-center text-[11px] text-muted-foreground/60 font-medium px-10">
-              En vous inscrivant, vous recevrez votre ticket par email après validation du paiement confirmée via whatsapp.
-            </p>
           </div>
         </div>
-      </main>
+      </section>
+
+      {/* 2. DESCRIPTION & PROGRAMME TIMELINE */}
+      <section id="programme-section" className="py-20 bg-[#0d0e11] border-b border-white/10">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+            <div className="lg:col-span-7 space-y-6">
+              <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white leading-tight">
+                À propos de cet événement
+              </h2>
+              {event?.description ? (
+                event.description.split("\n").filter(Boolean).map((para, idx) => (
+                  <p key={idx} className="text-white/70 text-xs sm:text-sm leading-relaxed font-sans font-light">
+                    {para}
+                  </p>
+                ))
+              ) : (
+                <p className="text-white/50 text-xs sm:text-sm leading-relaxed font-sans font-light italic">
+                  Description à venir.
+                </p>
+              )}
+            </div>
+
+            <div className="lg:col-span-5 w-full">
+              <div className="bg-[#14161a] border border-white/10 p-7 sm:p-8 rounded-none space-y-6 w-full shadow-2xl">
+                <h3 className="font-serif text-xl font-bold text-white border-b border-white/10 pb-3">
+                  Programme
+                </h3>
+
+                {program.length > 0 ? (
+                  <div className="space-y-6">
+                    {program.map((p, idx) => (
+                      <div key={idx} className="flex gap-4 items-start border-b border-white/5 pb-4 last:border-0 last:pb-0">
+                        {p.time && <span className="text-[#e3bd51] font-bold text-xs shrink-0 pt-0.5 font-sans">{p.time}</span>}
+                        <div className="space-y-1">
+                          <p className="font-bold text-xs text-white leading-snug">{p.title}</p>
+                          {p.description && <p className="text-[11px] text-white/60 leading-relaxed font-sans">{p.description}</p>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-white/50 text-xs italic">Programme communiqué prochainement.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. INTERVENANTS SECTION (uniquement si renseignés par l'admin) */}
+      {speakers.length > 0 && (
+        <section className="pt-20 pb-20 md:pt-24 md:pb-24 bg-[#0d0e11] text-center border-b border-white/5">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[#e3bd51] mb-14 tracking-wide">
+              Intervenants
+            </h2>
+
+            <div className="relative">
+              <div
+                ref={speakersRef}
+                onScroll={handleSpeakersScroll}
+                className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-4 md:grid md:grid-cols-3 md:gap-8 scrollbar-none -mx-4 px-4 md:mx-0 md:px-0"
+              >
+                {speakers.map((speaker, idx) => (
+                  <div key={idx} className="w-[85vw] max-w-[320px] md:w-auto shrink-0 snap-center bg-[#14161a] border border-white/10 rounded-xl p-6 sm:p-7 flex flex-col items-center shadow-xl group hover:border-[#e3bd51]/40 transition-colors">
+                    <div className="w-full h-72 sm:h-80 rounded-lg overflow-hidden mb-6 bg-black/40 flex items-center justify-center">
+                      {speaker.photo_url ? (
+                        <img
+                          src={speaker.photo_url}
+                          alt={speaker.name}
+                          className="w-full h-full object-cover grayscale contrast-125 group-hover:scale-105 transition-transform duration-700"
+                        />
+                      ) : (
+                        <Users className="w-16 h-16 text-white/20" />
+                      )}
+                    </div>
+                    <h3 className="font-serif font-bold text-base sm:text-lg text-[#e3bd51] tracking-wide">
+                      {speaker.name}
+                    </h3>
+                    {speaker.role && (
+                      <p className="text-white/80 text-[10px] sm:text-[11px] font-bold uppercase tracking-widest mt-1">
+                        {speaker.role}
+                      </p>
+                    )}
+                    {speaker.company && (
+                      <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider mt-0.5">
+                        {speaker.company}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {speakers.length > 1 && (
+                <div className="flex md:hidden justify-center items-center gap-2 mt-4">
+                  {speakers.map((_, idx) => (
+                    <button
+                      key={idx}
+                      aria-label={`Intervenant ${idx + 1}`}
+                      onClick={() => {
+                        setActiveSpeakerIndex(idx);
+                        scrollCarouselTo(speakersRef.current, idx);
+                      }}
+                      className={`transition-all duration-300 rounded-full ${
+                        activeSpeakerIndex === idx
+                          ? "w-6 h-2.5 bg-[#e3bd51]"
+                          : "w-2.5 h-2.5 bg-white/30 hover:bg-white/50"
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 4. RETOUR SUR L'ÉDITION PRÉCÉDENTE (bandeau décoratif de marque) */}
+      <section className="relative overflow-hidden bg-black py-2 sm:py-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative min-h-[380px] sm:min-h-[460px]">
+          <div className="relative h-64 md:h-auto overflow-hidden">
+            <img
+              src={nflImg1}
+              alt="Banquet de gala"
+              className="w-full h-full object-cover filter brightness-[0.75]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/80" />
+          </div>
+
+          <div className="relative h-64 md:h-auto overflow-hidden">
+            <img
+              src={nflImg5}
+              alt="Réunion des décideurs"
+              className="w-full h-full object-cover filter brightness-[0.75]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-l from-black/60 via-transparent to-black/80" />
+          </div>
+
+          <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+            <div className="bg-[#d4af37] text-black font-bold text-xs sm:text-sm uppercase tracking-wider px-8 py-3.5 rounded-none shadow-2xl border border-black/20 pointer-events-auto hover:bg-[#c29c38] transition-colors">
+              L'esprit NFL Courtier & Service
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. TÉMOIGNAGES (issus des témoignages publiés sur le site) */}
+      {testimonials.length > 0 && (
+        <section className="py-16 md:py-20 bg-[#0d0e11] border-b border-white/5">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <div className="relative">
+              <div
+                ref={testimonialsRef}
+                onScroll={handleTestimonialsScroll}
+                className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-4 md:grid md:grid-cols-3 md:gap-6 scrollbar-none -mx-4 px-4 md:mx-0 md:px-0"
+              >
+                {testimonials.map((t) => {
+                  const initials = t.author_name
+                    ? t.author_name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
+                    : "NFL";
+                  return (
+                    <div key={t.id} className="w-[85vw] max-w-[340px] md:w-auto shrink-0 snap-center bg-[#15171b] border border-white/5 p-7 sm:p-8 rounded-none flex flex-col justify-between shadow-xl">
+                      <p className="font-serif italic text-white/90 text-sm sm:text-base leading-relaxed mb-8">
+                        "{t.quote}"
+                      </p>
+                      <div className="flex items-center gap-3.5 pt-4 border-t border-white/5">
+                        <div className="w-9 h-9 bg-[#e3bd51] text-black font-bold text-xs flex items-center justify-center rounded-none shrink-0">
+                          {initials}
+                        </div>
+                        <div>
+                          <p className="text-white font-bold text-xs sm:text-sm leading-tight">{t.author_name}</p>
+                          <p className="text-[#e3bd51] text-[10px] font-semibold uppercase tracking-wider mt-0.5">
+                            {[t.author_role, t.author_company].filter(Boolean).join(", ").toUpperCase()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {testimonials.length > 1 && (
+                <div className="flex md:hidden justify-center items-center gap-2 mt-4">
+                  {testimonials.map((_, idx) => (
+                    <button
+                      key={idx}
+                      aria-label={`Témoignage ${idx + 1}`}
+                      onClick={() => {
+                        setActiveTestimonialIndex(idx);
+                        scrollCarouselTo(testimonialsRef.current, idx);
+                      }}
+                      className={`transition-all duration-300 rounded-full ${
+                        activeTestimonialIndex === idx
+                          ? "w-6 h-2.5 bg-[#e3bd51]"
+                          : "w-2.5 h-2.5 bg-white/30 hover:bg-white/50"
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 6. VOTRE PARTICIPATION COMPREND : (offre standard NFL, commune à tous les événements) */}
+      <section className="py-20 md:py-24 bg-[#e8e6e2] text-[#1c1c1c]">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <div className="grid lg:grid-cols-12 gap-8 items-center">
+            <div className="lg:col-span-5 bg-[#f0ede8] p-8 sm:p-12 border border-black/10 shadow-sm rounded-none text-center lg:text-left min-h-[220px] flex items-center justify-center">
+              <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#1c1c1c] leading-tight">
+                Votre participation<br className="hidden sm:inline" /> comprend :
+              </h2>
+            </div>
+
+            <div className="lg:col-span-7">
+              <div className="bg-white p-8 sm:p-10 rounded-none shadow-2xl border border-black/10">
+                <div className="space-y-4">
+                  {[
+                    "Accueil et badge nominatif",
+                    "Networking",
+                    "Accès aux conférences",
+                    "Documentation",
+                    "Photos officielles",
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-3 text-xs sm:text-sm font-medium text-[#2c2c2c]">
+                      <div className="w-5 h-5 rounded-full bg-[#d4af37]/20 flex items-center justify-center shrink-0">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#655410]" />
+                      </div>
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. RÉSERVEZ VOTRE PLACE (BOOKING SECTION) */}
+      <section id="booking-form" className="py-20 md:py-28 bg-[#0c0d0f] text-white">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="grid lg:grid-cols-12 gap-12 items-start">
+            <div className="lg:col-span-5 space-y-8">
+              <div>
+                <h2 className="font-serif text-3xl sm:text-4xl md:text-[40px] font-bold text-white leading-tight mb-4">
+                  Réservez votre place
+                </h2>
+                <p className="text-white/60 text-xs sm:text-sm leading-relaxed font-sans font-normal">
+                  L'accès à cet événement est limité pour garantir une expérience de qualité supérieure.
+                </p>
+              </div>
+
+              <div className="space-y-4 pt-2">
+                <div
+                  onClick={() => setSelectedFormule("individuel")}
+                  className={`p-6 rounded-none border cursor-pointer transition-all flex items-center gap-4 ${
+                    selectedFormule === "individuel"
+                      ? "border-[#e3bd51] bg-[#e3bd51]/10"
+                      : "border-white/15 bg-white/5 hover:border-white/30"
+                  }`}
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#e3bd51]/20 flex items-center justify-center shrink-0">
+                    <UserCheck className="w-5 h-5 text-[#e3bd51]" />
+                  </div>
+                  <div>
+                    <span className="text-white/60 text-[10px] font-bold uppercase tracking-wider block">
+                      Tarif individuel
+                    </span>
+                    <span className="font-serif font-bold text-xl sm:text-2xl text-[#e3bd51]">
+                      {eventPrice.toLocaleString()} FCFA
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => setSelectedFormule("corporate")}
+                  className={`p-6 rounded-none border cursor-pointer transition-all flex items-center gap-4 ${
+                    selectedFormule === "corporate"
+                      ? "border-[#e3bd51] bg-[#e3bd51]/10"
+                      : "border-white/15 bg-white/5 hover:border-white/30"
+                  }`}
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#e3bd51]/20 flex items-center justify-center shrink-0">
+                    <Award className="w-5 h-5 text-[#e3bd51]" />
+                  </div>
+                  <div>
+                    <span className="text-white/60 text-[10px] font-bold uppercase tracking-wider block">
+                      Table Corporate (8 pers.)
+                    </span>
+                    <span className="font-serif font-bold text-xl sm:text-2xl text-[#e3bd51]">
+                      {corporatePrice.toLocaleString()} FCFA
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="lg:col-span-7">
+              <form onSubmit={handleBooking} className="bg-[#17191d] border border-white/10 p-8 sm:p-10 rounded-none space-y-5 shadow-2xl">
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-white/70">
+                      NOM COMPLET
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Ex : MOUSSAVOU ALEX"
+                      className="w-full bg-[#22252b] border border-white/10 text-xs text-white px-4 py-3.5 rounded-none placeholder:text-white/30 focus:outline-none focus:border-[#e3bd51]"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-white/70">
+                      ADRESSE EMAIL
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="moussavou@gmail.com"
+                      className="w-full bg-[#22252b] border border-white/10 text-xs text-white px-4 py-3.5 rounded-none placeholder:text-white/30 focus:outline-none focus:border-[#e3bd51]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-white/70">
+                      NOMBRE DE PLACES
+                    </label>
+                    <select
+                      value={nbPlaces}
+                      onChange={(e) => setNbPlaces(e.target.value)}
+                      className="w-full bg-[#22252b] border border-white/10 text-xs text-white px-4 py-3.5 rounded-none focus:outline-none focus:border-[#e3bd51]"
+                    >
+                      <option value="1 Place">1 Place</option>
+                      <option value="2 Places">2 Places</option>
+                      <option value="3 Places">3 Places</option>
+                      <option value="4 Places">4 Places</option>
+                      <option value="Table Corporate (8 places)">Table Corporate (8 places)</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-white/70">
+                      TÉLÉPHONE (WHATSAPP)
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+241 00 00 00 00"
+                      className="w-full bg-[#22252b] border border-white/10 text-xs text-white px-4 py-3.5 rounded-none placeholder:text-white/30 focus:outline-none focus:border-[#e3bd51]"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-4">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-xs uppercase tracking-widest py-4 px-6 rounded-none transition-colors flex items-center justify-center gap-2 shadow-lg"
+                  >
+                    {isSubmitting ? "TRAITEMENT..." : "CONFIRMER LA RÉSERVATION"} <ArrowRight className="w-4 h-4" />
+                  </button>
+                  <p className="text-[10px] text-white/40 text-center italic mt-3">
+                    Un ticket virtuel vous sera envoyé après validation.
+                  </p>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <Footer />
     </div>

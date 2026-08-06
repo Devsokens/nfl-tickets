@@ -93,11 +93,11 @@ const EventCard = ({ event }: EventCardProps) => {
             </span>
             {isPast ? (
               <span className="text-[9px] font-black text-[#150805] bg-white border border-white/90 px-2.5 py-0.5 rounded-full uppercase tracking-widest">
-                Clôturé
+                Terminé
               </span>
             ) : (
-              <span className="text-[9px] font-black text-emerald-400 bg-emerald-950/80 border border-emerald-900/50 px-2.5 py-0.5 rounded-full uppercase tracking-widest animate-pulse">
-                Disponible
+              <span className="text-[9px] font-black text-[#150805] bg-gold border border-gold/90 px-2.5 py-0.5 rounded-full uppercase tracking-widest">
+                À venir
               </span>
             )}
           </div>

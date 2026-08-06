@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, Mail, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
-import nflLogo from "@/assets/Logo_NFL_fond_blanc-removebg-preview.png";
+
 import authBg from "@/assets/nfl img3.jpeg";
 import { AuthAPI } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -73,7 +73,11 @@ const AdminLogin = () => {
 
         <div className="max-w-md w-full mx-auto space-y-8 animate-fade-in">
           <div className="text-center lg:text-left">
-            <img src={nflLogo} alt="NFL Logo" className="h-24 w-auto mb-8 mx-auto lg:mx-0" />
+            <img
+              src="/assets/Logo_NFL_fond_marron__écrits_jaune_-removebg-preview.png"
+              alt="NFL Logo"
+              className="nfl-logo nfl-logo-on-light h-24 w-auto mb-8 mx-auto lg:mx-0"
+            />
             <h2 className="text-3xl font-display font-bold text-foreground">
               Espace Administration
             </h2>

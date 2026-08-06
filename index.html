@@ -21,10 +21,83 @@
     <meta name="twitter:title" content="NFL-GA — Billetterie & Formations au Gabon" />
     <meta name="twitter:description" content="Découvrez nos événements exclusifs et réservez votre place en un clic sur NFL-GA." />
     <meta name="twitter:image" content="https://nfl-ga.com/favicon.jpg" />
+
+    <style>
+      #nfl-splash {
+        position: fixed;
+        inset: 0;
+        background: #0c0d0f;
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 2rem;
+        transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
+      }
+      #nfl-splash.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      #nfl-splash .splash-logo-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #nfl-splash img {
+        height: clamp(8rem, 26vw, 14rem);
+        width: auto;
+        object-fit: contain;
+        user-select: none;
+        -webkit-user-drag: none;
+        animation: nfl-splash-fadein 0.8s ease-out, nfl-splash-float 3s ease-in-out infinite 0.8s;
+      }
+      #nfl-splash .splash-spinner {
+        width: 44px;
+        height: 44px;
+        border: 3px solid rgba(227, 189, 81, 0.2);
+        border-top-color: #e3bd51;
+        border-radius: 50%;
+        animation: nfl-splash-spin 0.9s linear infinite;
+      }
+      #nfl-splash .splash-text {
+        color: #e3bd51;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 0.75rem;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        opacity: 0.95;
+        animation: nfl-splash-fadein 1.2s ease-out;
+      }
+      @keyframes nfl-splash-spin { to { transform: rotate(360deg); } }
+      @keyframes nfl-splash-fadein { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes nfl-splash-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    </style>
   </head>
 
   <body>
+    <div id="nfl-splash">
+      <div class="splash-logo-wrap">
+        <img src="/assets/Logo_NFL_fond_marron__écrits_jaune_-removebg-preview.png" alt="NFL Courtier & Service" />
+      </div>
+      <div class="splash-spinner" aria-hidden="true"></div>
+      <span class="splash-text">Chargement...</span>
+    </div>
     <div id="root"></div>
+    <script>
+      (function () {
+        var splash = document.getElementById('nfl-splash');
+        var hideSplash = function () {
+          if (splash) splash.classList.add('hidden');
+          setTimeout(function () { if (splash && splash.parentNode) splash.parentNode.removeChild(splash); }, 700);
+        };
+        window.addEventListener('load', function () {
+          setTimeout(hideSplash, 800);
+        });
+        setTimeout(hideSplash, 4500);
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

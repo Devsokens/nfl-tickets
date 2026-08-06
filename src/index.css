@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=Inter:wght@300;400;500;600;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -174,4 +174,59 @@
   .animate-float {
     animation: float 5s ease-in-out infinite;
   }
+
+  @keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+  }
+  .animate-marquee {
+    display: flex;
+    width: max-content;
+    animation: marquee 35s linear infinite;
+  }
+  .animate-marquee:hover {
+    animation-play-state: paused;
+  }
+
+  /* === NFL Logo Utilities === */
+  .nfl-logo {
+    object-fit: contain;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  /* Logo on DARK background — use Logo_NFL_fond_blanc-removebg-preview.png */
+  .nfl-logo-on-dark {
+    filter:
+      drop-shadow(0 2px 6px rgba(227, 189, 81, 0.22))
+      drop-shadow(0 0 18px rgba(227, 189, 81, 0.12));
+    transition: filter 0.25s ease, transform 0.25s ease;
+  }
+  .nfl-logo-on-dark:hover {
+    filter:
+      drop-shadow(0 3px 10px rgba(227, 189, 81, 0.32))
+      drop-shadow(0 0 28px rgba(227, 189, 81, 0.2));
+    transform: translateY(-1px);
+  }
+
+  /* Logo on LIGHT background — use Logo_NFL_fond_marron__écrits_jaune_-removebg-preview.png */
+  .nfl-logo-on-light {
+    filter:
+      drop-shadow(0 2px 6px rgba(50, 20, 12, 0.12))
+      drop-shadow(0 0 16px rgba(194, 156, 56, 0.12));
+    transition: filter 0.25s ease, transform 0.25s ease;
+  }
+  .nfl-logo-on-light:hover {
+    filter:
+      drop-shadow(0 3px 10px rgba(50, 20, 12, 0.18))
+      drop-shadow(0 0 22px rgba(194, 156, 56, 0.22));
+    transform: translateY(-1px);
+  }
+
+  /* Safe fallback overlay — use if you must show the white logo on an unknown/mixed bg */
+  .nfl-logo-safe-dark {
+    background: radial-gradient(ellipse at center, rgba(12, 13, 15, 0.75) 0%, rgba(12, 13, 15, 0) 72%);
+    padding: 0.5rem 1rem;
+  }
 }
+

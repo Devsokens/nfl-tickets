@@ -8,22 +8,30 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { HelmetProvider } from 'react-helmet-async';
 import { mockEvents } from "@/lib/mockData";
+import FloatingContact from "@/components/FloatingContact";
 
 // Lazy loading for optimized bundle size
 const Index = lazy(() => import("./pages/Index.tsx"));
 const Catalog = lazy(() => import("./pages/Catalog.tsx"));
 const EventDetail = lazy(() => import("./pages/EventDetail.tsx"));
 const CatalogueFormation = lazy(() => import("./pages/CatalogueFormation.tsx"));
+const FormationDetail = lazy(() => import("./pages/FormationDetail.tsx"));
+const Contact = lazy(() => import("./pages/Contact.tsx"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard.tsx"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 // Loading fallback component
 const PageLoader = () => (
-  <div className="min-h-screen bg-background flex items-center justify-center">
-    <div className="flex flex-col items-center gap-4">
-      <div className="w-12 h-12 rounded-full border-4 border-gold/20 border-t-gold animate-spin" />
-      <p className="text-gold font-medium animate-pulse">Chargement...</p>
+  <div className="min-h-screen bg-[#0c0d0f] flex items-center justify-center">
+    <div className="flex flex-col items-center gap-6">
+      <img
+        src="/assets/Logo_NFL_fond_marron__écrits_jaune_-removebg-preview.png"
+        alt="NFL Courtier & Service"
+        className="nfl-logo h-32 sm:h-40 md:h-48 w-auto animate-[pulse_2s_ease-in-out_infinite]"
+      />
+      <div className="w-12 h-12 rounded-full border-4 border-[#e3bd51]/20 border-t-[#e3bd51] animate-spin" />
+      <p className="text-[#e3bd51] font-medium animate-pulse tracking-wider uppercase text-xs">Chargement...</p>
     </div>
   </div>
 );
@@ -70,7 +78,6 @@ queryClient.getQueryCache().subscribe(() => {
   }
 });
 
-
 const AnalyticsTracker = () => {
   const location = useLocation();
 
@@ -92,12 +99,15 @@ const App = () => (
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <AnalyticsTracker />
+          <FloatingContactWrapper />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/events" element={<Catalog />} />
               <Route path="/event/:id" element={<EventDetail />} />
               <Route path="/catalogue-formations" element={<CatalogueFormation />} />
+              <Route path="/formation/:id" element={<FormationDetail />} />
+              <Route path="/contact" element={<Contact />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="*" element={<NotFound />} />
@@ -108,5 +118,12 @@ const App = () => (
     </QueryClientProvider>
   </HelmetProvider>
 );
+
+const FloatingContactWrapper = () => {
+  const location = useLocation();
+  // Hide on admin pages
+  if (location.pathname.startsWith('/admin')) return null;
+  return <FloatingContact />;
+};
 
 export default App;

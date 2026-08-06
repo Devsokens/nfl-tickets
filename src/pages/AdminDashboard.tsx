@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, EventsAPI, TicketsAPI, NewsletterAPI, ContactAPI, AnalyticsAPI, CertificatesAPI, type Event, type Ticket } from "@/lib/api";
+import { api, EventsAPI, TicketsAPI, NewsletterAPI, ContactAPI, AnalyticsAPI, CertificatesAPI, type Event, type Ticket, type EventSpeaker, type EventProgramStep } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -34,14 +34,22 @@ import {
   ImageIcon,
   Loader2,
   FileText,
-  Award
+  Award,
+  Bell,
+  GraduationCap,
+  Quote,
+  Settings,
+  LayoutTemplate,
+  ChevronDown,
+  CircleUserRound,
+  PartyPopper,
+  UserCog
 } from "lucide-react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, Legend,
   AreaChart, Area
 } from 'recharts';
-import nflLogo from "@/assets/Logo_NFL_fond_marron-removebg-preview.png";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { Link, useNavigate } from "react-router-dom";
@@ -54,6 +62,14 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -68,8 +84,22 @@ import { Switch } from "@/components/ui/switch";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import SiteSettingsTab from "@/components/admin/SiteSettingsTab";
+import TestimonialsTab from "@/components/admin/TestimonialsTab";
+import FormationsTab from "@/components/admin/FormationsTab";
+import VisualEditorTab from "@/components/admin/VisualEditorTab";
+import UsersTab from "@/components/admin/UsersTab";
+import ProfileSheet from "@/components/admin/ProfileSheet";
 
-type Tab = "dashboard" | "events" | "tickets" | "demandes" | "newsletter" | "scanner";
+type Tab = "dashboard" | "events" | "formations" | "tickets" | "demandes" | "newsletter" | "testimonials" | "site-settings" | "visual-editor" | "users" | "scanner";
 
 const DemandesList = () => {
   const [selectedDemande, setSelectedDemande] = useState<any>(null);
@@ -246,6 +276,17 @@ const CertificateModal = ({ event, isOpen, onClose }: { event: any, isOpen: bool
   );
 };
 
+// Bloc visuel réutilisé pour chaque groupe de champs du panneau événement.
+const FormSection = ({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) => (
+  <div className="space-y-4">
+    <div className="flex items-center gap-2.5">
+      <span className="w-7 h-7 rounded-lg bg-gold/10 text-gold flex items-center justify-center shrink-0">{icon}</span>
+      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{title}</h4>
+    </div>
+    <div className="space-y-4 pl-1">{children}</div>
+  </div>
+);
+
 const AdminDashboard = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
@@ -273,6 +314,15 @@ const AdminDashboard = () => {
     queryKey: ["subscribers"],
     queryFn: NewsletterAPI.getAll,
   });
+
+  // Chargée en continu (pas seulement sur l'onglet Demandes) pour alimenter la cloche de notifications
+  const { data: contactRequests = [] } = useQuery<any[]>({
+    queryKey: ["contacts"],
+    queryFn: ContactAPI.getAll,
+  });
+
+  // Recherche globale de la navbar admin : contextuelle selon l'onglet actif
+  const [headerSearch, setHeaderSearch] = useState("");
 
   const { data: analyticsData } = useQuery({
     queryKey: ["analyticsStats"],
@@ -337,6 +387,53 @@ const AdminDashboard = () => {
       return matchesSearch && matchesEvent && matchesStatus;
     }).reverse() : [];
   }, [tickets, searchTicket, filterEvent, filterStatus]);
+
+  // Événements filtrés par la recherche globale de la navbar (onglet "Événements")
+  const filteredEventsHeader = useMemo(() => {
+    if (!headerSearch) return events;
+    const q = headerSearch.toLowerCase();
+    return events.filter(e =>
+      e.title.toLowerCase().includes(q) || e.location.toLowerCase().includes(q)
+    );
+  }, [events, headerSearch]);
+
+  // Notifications : réservations à valider + nouvelles demandes de contact
+  const pendingTicketsCount = useMemo(
+    () => tickets.filter(t => t.status === "soumis").length,
+    [tickets]
+  );
+  const pendingContactsCount = useMemo(
+    () => (Array.isArray(contactRequests) ? contactRequests.filter(
+      c => !c.status || c.status.toLowerCase() === "en attente"
+    ).length : 0),
+    [contactRequests]
+  );
+  const notificationsCount = pendingTicketsCount + pendingContactsCount;
+
+  // Recherche navbar contextuelle : reflète l'état de recherche propre à l'onglet actif
+  useEffect(() => {
+    if (activeTab === "tickets") setHeaderSearch(searchTicket);
+    else if (activeTab === "newsletter") setHeaderSearch(newsSearch);
+    else setHeaderSearch("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  const handleHeaderSearchChange = (value: string) => {
+    setHeaderSearch(value);
+    if (activeTab === "tickets") { setSearchTicket(value); setTicketPage(1); }
+    else if (activeTab === "newsletter") { setNewsSearch(value); setNewsPage(1); }
+  };
+
+  const headerSearchPlaceholder = (() => {
+    switch (activeTab) {
+      case "tickets": return "Rechercher un billet (nom, référence)...";
+      case "events": return "Rechercher un événement...";
+      case "newsletter": return "Rechercher un abonné...";
+      default: return "Recherche indisponible sur cet onglet";
+    }
+  })();
+
+  const isHeaderSearchDisabled = !["tickets", "events", "newsletter"].includes(activeTab);
 
   const totalTicketPages = Math.ceil(filteredTickets.length / itemsPerPage);
   const paginatedTickets = useMemo(() => {
@@ -516,6 +613,36 @@ const AdminDashboard = () => {
     }
   };
 
+  // --- Gestion des intervenants (speakers) de l'événement ---
+  const [uploadingSpeakerIdx, setUploadingSpeakerIdx] = useState<number | null>(null);
+
+  const addSpeaker = () => setEventForm(p => ({ ...p, speakers: [...(p.speakers || []), { name: "", role: "", company: "", photo_url: "" }] }));
+  const updateSpeaker = (idx: number, patch: Partial<EventSpeaker>) =>
+    setEventForm(p => ({ ...p, speakers: (p.speakers || []).map((s, i) => i === idx ? { ...s, ...patch } : s) }));
+  const removeSpeaker = (idx: number) =>
+    setEventForm(p => ({ ...p, speakers: (p.speakers || []).filter((_, i) => i !== idx) }));
+
+  const handleSpeakerPhotoUpload = async (idx: number, file: File) => {
+    setUploadingSpeakerIdx(idx);
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await EventsAPI.uploadImage(formData);
+      updateSpeaker(idx, { photo_url: res.imageUrl });
+    } catch {
+      toast.error("Échec de l'upload de la photo.");
+    } finally {
+      setUploadingSpeakerIdx(null);
+    }
+  };
+
+  // --- Gestion du programme (agenda) de l'événement ---
+  const addProgramStep = () => setEventForm(p => ({ ...p, program: [...(p.program || []), { time: "", title: "", description: "" }] }));
+  const updateProgramStep = (idx: number, patch: Partial<EventProgramStep>) =>
+    setEventForm(p => ({ ...p, program: (p.program || []).map((s, i) => i === idx ? { ...s, ...patch } : s) }));
+  const removeProgramStep = (idx: number) =>
+    setEventForm(p => ({ ...p, program: (p.program || []).filter((_, i) => i !== idx) }));
+
   // Logic for Auto-save
   useEffect(() => {
     if (!eventDialogOpen) return;
@@ -535,6 +662,8 @@ const AdminDashboard = () => {
         capacity: eventForm.capacity || 100,
         whatsapp_number: eventForm.whatsapp_number || "24177617776",
         status: eventForm.status || "brouillon",
+        speakers: eventForm.speakers || [],
+        program: eventForm.program || [],
         sendNewsletter: false,
       };
 
@@ -562,7 +691,7 @@ const AdminDashboard = () => {
     return () => {
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     };
-  }, [eventForm.title, eventForm.description, eventForm.date, eventForm.time, eventForm.location, eventForm.price, eventForm.category, eventForm.capacity, eventForm.whatsapp_number, eventForm.status]);
+  }, [eventForm.title, eventForm.description, eventForm.date, eventForm.time, eventForm.location, eventForm.price, eventForm.category, eventForm.capacity, eventForm.whatsapp_number, eventForm.status, eventForm.speakers, eventForm.program]);
 
   const handleSaveEvent = async () => {
     setIsSavingEvent(true);
@@ -580,6 +709,8 @@ const AdminDashboard = () => {
         capacity: eventForm.capacity || 100,
         whatsapp_number: eventForm.whatsapp_number || "24177617776",
         status: "publié", // Manual save means Publish
+        speakers: eventForm.speakers || [],
+        program: eventForm.program || [],
         sendNewsletter: eventForm.send_newsletter === undefined ? true : eventForm.send_newsletter,
       };
 
@@ -751,49 +882,211 @@ const AdminDashboard = () => {
 
 
   const tabs: { key: Tab; icon: React.ReactNode; label: string }[] = [
-    { key: "dashboard", icon: <BarChart3 className="h-5 w-5" />, label: "Dashboard" },
+    { key: "dashboard", icon: <BarChart3 className="h-5 w-5" />, label: "Tableau de bord" },
+    { key: "formations", icon: <GraduationCap className="h-5 w-5" />, label: "Formation" },
     { key: "events", icon: <Calendar className="h-5 w-5" />, label: "Événements" },
     { key: "tickets", icon: <TicketIcon className="h-5 w-5" />, label: "Réservations" },
+    { key: "scanner", icon: <QrCode className="h-5 w-5" />, label: "Scan QR" },
     { key: "demandes", icon: <MailIcon className="h-5 w-5" />, label: "Demandes" },
     { key: "newsletter", icon: <Sparkles className="h-5 w-5" />, label: "Newsletter" },
-    { key: "scanner", icon: <QrCode className="h-5 w-5" />, label: "Scanner QR" },
+    { key: "testimonials", icon: <Quote className="h-5 w-5" />, label: "Témoignages" },
+    { key: "visual-editor", icon: <LayoutTemplate className="h-5 w-5" />, label: "Gestion de contenu" },
+    { key: "users", icon: <UserCog className="h-5 w-5" />, label: "Utilisateurs" },
+    { key: "site-settings", icon: <Settings className="h-5 w-5" />, label: "Paramètres" },
   ];
+
+  // Structure de la sidebar : entrées simples + un groupe repliable
+  // ("Événementiel") qui régroupe Événements / Réservations / Scan QR.
+  const sidebarNav: Array<
+    { type: "item"; key: Tab } | { type: "group"; label: string; icon: React.ReactNode; items: Tab[] }
+  > = [
+    { type: "item", key: "dashboard" },
+    { type: "item", key: "formations" },
+    { type: "group", label: "Événementiel", icon: <PartyPopper className="h-5 w-5" />, items: ["events", "tickets", "scanner"] },
+    { type: "item", key: "demandes" },
+    { type: "item", key: "newsletter" },
+    { type: "item", key: "testimonials" },
+    { type: "item", key: "visual-editor" },
+    { type: "item", key: "users" },
+    { type: "item", key: "site-settings" },
+  ];
+  const eventGroupKeys: Tab[] = ["events", "tickets", "scanner"];
+  const [isEventGroupOpen, setIsEventGroupOpen] = useState(eventGroupKeys.includes(activeTab));
+  const [isProfileSheetOpen, setIsProfileSheetOpen] = useState(false);
+  useEffect(() => {
+    if (eventGroupKeys.includes(activeTab)) setIsEventGroupOpen(true);
+  }, [activeTab]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("nfl_token");
+    navigate("/admin/login");
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col md:flex-row overflow-hidden text-foreground">
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#32140c] border-r border-sidebar-border flex flex-col transition-transform md:translate-x-0 md:static md:h-screen ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="h-28 flex items-center justify-between px-6 border-b border-sidebar-border bg-[#32140c]">
-          <Link to="/"><img src={nflLogo} alt="NFL" className="h-20 w-auto" /></Link>
+        <div className="h-20 flex items-center justify-between px-6 bg-[#32140c] shrink-0 overflow-hidden border-b border-white/10">
+          <Link to="/" className="shrink-0 w-32 overflow-hidden block">
+            <img
+              src="/assets/Logo_NFL_fond_marron__écrits_jaune_-removebg-preview.png"
+              alt="NFL Courtier & Service"
+              className="h-24 w-auto max-w-none mt-4"
+            />
+          </Link>
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMobileMenuOpen(false)}><X className="h-6 w-6" /></Button>
         </div>
-        <nav className="flex-1 px-4 py-8 flex flex-col gap-2">
-          {tabs.map((tab) => (
-            <button 
-              key={tab.key} 
-              onClick={() => { setActiveTab(tab.key); setIsMobileMenuOpen(false); }} 
-              className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all ${
-                activeTab === tab.key 
-                  ? "bg-gold text-[#32140c] shadow-lg shadow-gold/20" 
-                  : "text-white/60 hover:bg-white/10 hover:text-white"
-              }`}
-            >
-              {tab.icon} <span>{tab.label}</span>
-            </button>
-          ))}
+        <nav className="flex-1 px-4 pt-5 pb-6 flex flex-col gap-1.5 overflow-y-auto scrollbar-hide">
+          {sidebarNav.map((entry) => {
+            if (entry.type === "item") {
+              const tab = tabs.find((t) => t.key === entry.key)!;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => { setActiveTab(tab.key); setIsMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-sm font-semibold transition-all ${
+                    activeTab === tab.key
+                      ? "bg-gold text-[#32140c] shadow-lg shadow-gold/20"
+                      : "text-white/60 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  {tab.icon} <span>{tab.label}</span>
+                </button>
+              );
+            }
+
+            const isGroupActive = entry.items.includes(activeTab);
+            return (
+              <div key={entry.label}>
+                <button
+                  onClick={() => setIsEventGroupOpen((o) => !o)}
+                  className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-sm font-semibold transition-all ${
+                    isGroupActive && !isEventGroupOpen
+                      ? "bg-gold text-[#32140c] shadow-lg shadow-gold/20"
+                      : "text-white/60 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  {entry.icon} <span className="flex-1 text-left">{entry.label}</span>
+                  <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${isEventGroupOpen ? "rotate-180" : ""}`} />
+                </button>
+                {isEventGroupOpen && (
+                  <div className="mt-1 ml-4 pl-4 border-l border-white/10 flex flex-col gap-1">
+                    {entry.items.map((key) => {
+                      const tab = tabs.find((t) => t.key === key)!;
+                      return (
+                        <button
+                          key={tab.key}
+                          onClick={() => { setActiveTab(tab.key); setIsMobileMenuOpen(false); }}
+                          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all ${
+                            activeTab === tab.key
+                              ? "bg-gold text-[#32140c] shadow-md shadow-gold/20"
+                              : "text-white/50 hover:bg-white/10 hover:text-white"
+                          }`}
+                        >
+                          {tab.icon} <span>{tab.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
-        <div className="p-6 border-t border-sidebar-border"><Button variant="outline" className="w-full justify-start text-destructive" onClick={() => navigate("/admin/login")}><LogOut className="h-5 w-5 mr-3"/> Déconnexion</Button></div>
+
+        {/* Profil admin */}
+        <div className="p-3 border-t border-sidebar-border shrink-0">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-white/10 transition-colors text-left">
+                <div className="w-9 h-9 rounded-full bg-gold/15 text-gold flex items-center justify-center shrink-0">
+                  <CircleUserRound className="h-5 w-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-white truncate">Administrateur</p>
+                  <p className="text-[11px] text-white/45 truncate">Compte NFL Admin</p>
+                </div>
+                <ChevronDown className="h-4 w-4 text-white/40 shrink-0" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="right" sideOffset={12} className="w-64">
+              <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setIsProfileSheetOpen(true)} className="cursor-pointer">
+                <CircleUserRound className="h-4 w-4 mr-2" /> Profil
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive cursor-pointer">
+                <LogOut className="h-4 w-4 mr-2" /> Déconnexion
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </aside>
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        <header className="h-20 border-b border-border bg-card/80 backdrop-blur-md flex items-center justify-between px-6 md:px-10 shrink-0 text-foreground">
-          <div className="flex items-center gap-4">
+        <header className="h-20 border-b border-border bg-card/80 backdrop-blur-md flex items-center justify-between gap-4 px-6 md:px-10 shrink-0 text-foreground">
+          <div className="flex items-center gap-4 shrink-0">
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMobileMenuOpen(true)}><Menu className="h-6 w-6" /></Button>
-            <h1 className="font-display text-2xl font-bold flex items-center gap-3">
+            <h1 className="font-display text-2xl font-bold hidden lg:flex items-center gap-3 whitespace-nowrap">
               <span className="text-gold">{tabs.find(t => t.key === activeTab)?.icon}</span>
               {tabs.find(t => t.key === activeTab)?.label}
             </h1>
           </div>
-          <Badge variant="outline" className="text-gold border-gold/20">En ligne</Badge>
+
+          {/* Recherche globale, contextuelle à l'onglet actif */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={headerSearch}
+              onChange={(e) => handleHeaderSearchChange(e.target.value)}
+              disabled={isHeaderSearchDisabled}
+              placeholder={headerSearchPlaceholder}
+              className="pl-11 h-11 bg-background/60 border-border/50 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className="h-5 w-5" />
+                  {notificationsCount > 0 && (
+                    <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                      {notificationsCount > 99 ? "99+" : notificationsCount}
+                    </span>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80">
+                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {notificationsCount === 0 ? (
+                  <div className="px-2 py-4 text-sm text-muted-foreground text-center">Aucune nouvelle notification.</div>
+                ) : (
+                  <>
+                    {pendingTicketsCount > 0 && (
+                      <DropdownMenuItem
+                        className="flex flex-col items-start gap-0.5 cursor-pointer py-3"
+                        onClick={() => { setActiveTab("tickets"); setFilterStatus("soumis"); }}
+                      >
+                        <span className="font-semibold">{pendingTicketsCount} réservation(s) à valider</span>
+                        <span className="text-xs text-muted-foreground">Cliquez pour voir les billets en attente</span>
+                      </DropdownMenuItem>
+                    )}
+                    {pendingContactsCount > 0 && (
+                      <DropdownMenuItem
+                        className="flex flex-col items-start gap-0.5 cursor-pointer py-3"
+                        onClick={() => setActiveTab("demandes")}
+                      >
+                        <span className="font-semibold">{pendingContactsCount} nouvelle(s) demande(s) de contact</span>
+                        <span className="text-xs text-muted-foreground">Cliquez pour voir les demandes</span>
+                      </DropdownMenuItem>
+                    )}
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Badge variant="outline" className="text-gold border-gold/20 hidden sm:flex">En ligne</Badge>
+          </div>
         </header>
 
         <div className="flex-1 overflow-y-auto p-4 md:p-10 scrollbar-hide text-foreground">
@@ -929,8 +1222,11 @@ const AdminDashboard = () => {
                   Créer
                 </Button>
               </div>
+              {headerSearch && (
+                <p className="text-sm text-muted-foreground">{filteredEventsHeader.length} résultat(s) pour "{headerSearch}"</p>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {events.map((event) => (
+                {filteredEventsHeader.map((event) => (
                   <div key={event.id} className="glass-card rounded-3xl overflow-hidden border border-border/50 flex flex-col h-full hover:border-gold/30 transition-all">
                     <div className="h-32 bg-muted/20 relative">
                       {event.image_url ? <img src={event.image_url} alt="" className="h-full w-full object-cover" /> : <div className="h-full flex items-center justify-center opacity-20"><Calendar className="h-10 w-10 text-gold" /></div>}
@@ -973,6 +1269,8 @@ const AdminDashboard = () => {
               </div>
             </div>
           )}
+
+          {activeTab === "formations" && <FormationsTab />}
 
           {activeTab === "tickets" && (
             <div className="space-y-8 animate-fade-in max-w-7xl mx-auto pb-20">
@@ -1236,6 +1534,14 @@ const AdminDashboard = () => {
             </div>
           )}
 
+          {activeTab === "testimonials" && <TestimonialsTab />}
+
+          {activeTab === "visual-editor" && <VisualEditorTab />}
+
+          {activeTab === "users" && <UsersTab />}
+
+          {activeTab === "site-settings" && <SiteSettingsTab />}
+
           {activeTab === "scanner" && (
             <div className="max-w-2xl mx-auto space-y-8 animate-fade-in py-10">
               <div className="text-center"><h2 className="text-4xl font-bold mb-4">Scanner</h2><p className="text-muted-foreground">Vérification en temps réel.</p></div>
@@ -1249,164 +1555,224 @@ const AdminDashboard = () => {
         </div>
       </main>
 
-      <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}><DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px] rounded-[30px] p-8 border-gold/10">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-foreground flex items-center justify-between">
-            <span>Événement</span>
-            <div className="flex items-center gap-2">
-              {autoSaveStatus === "saving" && <Badge variant="outline" className="animate-pulse text-xs py-0 h-5 border-gold/30 text-gold">Enregistrement...</Badge>}
-              {autoSaveStatus === "saved" && <Badge variant="outline" className="text-xs py-0 h-5 border-green-500/30 text-green-500">Brouillon enregistré</Badge>}
-              {autoSaveStatus === "error" && <Badge variant="outline" className="text-xs py-0 h-5 border-destructive/30 text-destructive text-[10px]">Erreur de sauvegarde</Badge>}
-            </div>
-          </DialogTitle>
-          <DialogDescription>
-            {editingEventId ? `ID: ${editingEventId.split('-')[0].toUpperCase()}` : "Créez ou modifiez un événement."}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-6 pt-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2"><Label>Statut</Label>
-              <Select value={eventForm.status || "brouillon"} onValueChange={(v: any) => setEventForm(p => ({ ...p, status: v }))}>
-                <SelectTrigger className={eventForm.status === 'publié' ? 'border-green-500/50 text-green-500' : 'border-orange-500/50 text-orange-500'}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="brouillon" className="text-orange-500">Brouillon</SelectItem>
-                  <SelectItem value="publié" className="text-green-500">Publié / En ligne</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2"><Label>Catégorie</Label>
-              <Select value={eventForm.category || "soirée"} onValueChange={(v) => setEventForm(p => ({ ...p, category: v }))}>
-                <SelectTrigger><SelectValue placeholder="Catégorie" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="soirée">Soirée</SelectItem>
-                  <SelectItem value="conférence">Conférence</SelectItem>
-                  <SelectItem value="atelier">Atelier</SelectItem>
-                  <SelectItem value="concert">Concert</SelectItem>
-                  <SelectItem value="seminaire">Séminaire</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+      <Sheet open={eventDialogOpen} onOpenChange={setEventDialogOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-2xl lg:max-w-3xl p-0 flex flex-col gap-0 border-gold/10">
+          <SheetHeader className="px-6 sm:px-8 py-6 border-b border-border/50 shrink-0 space-y-2">
+            <SheetTitle className="text-2xl font-bold text-foreground flex items-center justify-between pr-8">
+              <span>{editingEventId ? "Modifier l'événement" : "Nouvel événement"}</span>
+              <div className="flex items-center gap-2">
+                {autoSaveStatus === "saving" && <Badge variant="outline" className="animate-pulse text-xs py-0 h-5 border-gold/30 text-gold">Enregistrement...</Badge>}
+                {autoSaveStatus === "saved" && <Badge variant="outline" className="text-xs py-0 h-5 border-green-500/30 text-green-500">Brouillon enregistré</Badge>}
+                {autoSaveStatus === "error" && <Badge variant="outline" className="text-xs py-0 h-5 border-destructive/30 text-destructive text-[10px]">Erreur de sauvegarde</Badge>}
+              </div>
+            </SheetTitle>
+            <SheetDescription>
+              {editingEventId ? `ID: ${editingEventId.split('-')[0].toUpperCase()}` : "Le brouillon est enregistré automatiquement au fil de la saisie."}
+            </SheetDescription>
+          </SheetHeader>
 
-          <div className="space-y-2"><Label>Titre</Label><Input placeholder="Titre de l'événement" value={eventForm.title || ""} onChange={(e) => setEventForm(p => ({ ...p, title: e.target.value }))} /></div>
-          <div className="space-y-2"><Label>Description</Label><Textarea placeholder="Détails de l'événement..." value={eventForm.description || ""} onChange={(e) => setEventForm(p => ({ ...p, description: e.target.value }))} className="min-h-[100px]" /></div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2"><Label>Date</Label><Input type="date" value={eventForm.date || ""} onChange={(e) => setEventForm(p => ({ ...p, date: e.target.value }))} /></div>
-            <div className="space-y-2"><Label>Heure du début</Label>
-              <Select value={eventForm.time || "20:00"} onValueChange={(v) => setEventForm(p => ({ ...p, time: v }))}>
-                <SelectTrigger><SelectValue placeholder="Choisir l'heure" /></SelectTrigger>
-                <SelectContent className="max-h-[200px]">
-                  {Array.from({ length: 32 }, (_, i) => {
-                    const hour = Math.floor(i / 2) + 8;
-                    const min = i % 2 === 0 ? "00" : "30";
-                    const time = `${hour.toString().padStart(2, '0')}:${min}`;
-                    return <SelectItem key={time} value={time}>{time}</SelectItem>;
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2"><Label>Lieu</Label><Input placeholder="Ex: Radisson Blu" value={eventForm.location || ""} onChange={(e) => setEventForm(p => ({ ...p, location: e.target.value }))} /></div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2"><Label>Prix (XAF)</Label><Input type="number" value={eventForm.price || 0} onChange={(e) => setEventForm(p => ({ ...p, price: Number(e.target.value) }))} /></div>
-            <div className="space-y-2"><Label>Capacité (Places)</Label><Input type="number" value={eventForm.capacity || 100} onChange={(e) => setEventForm(p => ({ ...p, capacity: Number(e.target.value) }))} /></div>
-          </div>
-
-            <div className="space-y-2"><Label>WhatsApp Contact</Label><Input placeholder="+241077617776" value={eventForm.whatsapp_number || ""} onChange={(e) => setEventForm(p => ({ ...p, whatsapp_number: e.target.value }))} /></div>
-
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Affiche / Image de l'événement</Label>
-            <div 
-              className={`relative border-2 border-dashed rounded-2xl p-8 transition-all flex flex-col items-center justify-center gap-3 cursor-pointer group
-                ${isUploading ? "bg-muted/50 border-gold/20" : "bg-gold/5 border-gold/20 hover:border-gold hover:bg-gold/10"}`}
-              onClick={() => document.getElementById("event-image")?.click()}
-            >
-              <input 
-                id="event-image" 
-                type="file" 
-                className="hidden" 
-                onChange={handleImageUpload} 
-                accept="image/*"
-              />
-              {isUploading ? (
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gold"></div>
-              ) : (
-                <div className="flex flex-col items-center justify-center gap-3 w-full h-full min-h-[160px]">
-                  {eventForm.image_url ? (
-                    <div className="relative w-full h-full flex flex-col items-center gap-2">
-                      <img 
-                        src={eventForm.image_url} 
-                        alt="Aperçu" 
-                        className="w-full max-h-[200px] object-contain rounded-xl shadow-lg border border-gold/20"
-                      />
-                      <p className="text-gold font-bold text-sm bg-[#32140c] px-3 py-1 rounded-full border border-gold/30">Cliquer pour changer l'affiche</p>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <ImageIcon className="w-8 h-8 text-gold" />
-                      </div>
-                      <div className="text-center">
-                        <p className="font-bold text-lg">Cliquez ou glissez l'affiche ici</p>
-                        <p className="text-xs text-muted-foreground mt-1">PNG, JPG ou JPEG (Max. 5Mo)</p>
-                      </div>
-                    </>
-                  )}
+          <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-8">
+            <FormSection icon={<FileText className="h-3.5 w-3.5" />} title="Informations générales">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2"><Label>Statut</Label>
+                  <Select value={eventForm.status || "brouillon"} onValueChange={(v: any) => setEventForm(p => ({ ...p, status: v }))}>
+                    <SelectTrigger className={eventForm.status === 'publié' ? 'border-green-500/50 text-green-500' : 'border-orange-500/50 text-orange-500'}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="brouillon" className="text-orange-500">Brouillon</SelectItem>
+                      <SelectItem value="publié" className="text-green-500">Publié / En ligne</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              )}
-              {eventForm.image_url && !isUploading && (
-                <div className="absolute top-2 right-2 bg-gold text-[#32140c] text-[10px] font-bold px-2 py-1 rounded-full uppercase">Prêt</div>
-              )}
-            </div>
-          </div>
-          
-          <div className="bg-gold/5 border border-gold/10 rounded-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Label className="text-base font-bold flex items-center gap-2">
-                  <MailIcon className="h-4 w-4 text-gold" /> Envoyer aux abonnés Newsletter
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  {eventForm.status === 'brouillon' 
-                    ? "Publiez l'événement pour pouvoir envoyer la newsletter." 
-                    : "Les invitations seront envoyées dès la publication."}
-                </p>
+                <div className="space-y-2"><Label>Catégorie</Label>
+                  <Select value={eventForm.category || "soirée"} onValueChange={(v) => setEventForm(p => ({ ...p, category: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Catégorie" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="soirée">Soirée</SelectItem>
+                      <SelectItem value="conférence">Conférence</SelectItem>
+                      <SelectItem value="atelier">Atelier</SelectItem>
+                      <SelectItem value="concert">Concert</SelectItem>
+                      <SelectItem value="seminaire">Séminaire</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                {eventForm.newsletter_status === 'sent' && (
-                  <Badge className="bg-green-500/20 text-green-500 border-green-500/30 font-bold uppercase text-[10px]">Déjà envoyé</Badge>
-                )}
-                <Switch 
-                  disabled={eventForm.newsletter_status === 'sent' || eventForm.status === 'brouillon'}
-                  checked={eventForm.newsletter_status === 'sent' || (eventForm.send_newsletter === undefined ? true : eventForm.send_newsletter)}
-                  onCheckedChange={(checked) => setEventForm(p => ({ ...p, send_newsletter: checked }))}
+              <div className="space-y-2"><Label>Titre</Label><Input placeholder="Titre de l'événement" value={eventForm.title || ""} onChange={(e) => setEventForm(p => ({ ...p, title: e.target.value }))} /></div>
+              <div className="space-y-2"><Label>Description</Label><Textarea placeholder="Détails de l'événement..." value={eventForm.description || ""} onChange={(e) => setEventForm(p => ({ ...p, description: e.target.value }))} className="min-h-[100px]" /></div>
+            </FormSection>
+
+            <FormSection icon={<Calendar className="h-3.5 w-3.5" />} title="Date, heure & lieu">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2"><Label>Date</Label><Input type="date" value={eventForm.date || ""} onChange={(e) => setEventForm(p => ({ ...p, date: e.target.value }))} /></div>
+                <div className="space-y-2"><Label>Heure du début</Label>
+                  <Select value={eventForm.time || "20:00"} onValueChange={(v) => setEventForm(p => ({ ...p, time: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Choisir l'heure" /></SelectTrigger>
+                    <SelectContent className="max-h-[200px]">
+                      {Array.from({ length: 32 }, (_, i) => {
+                        const hour = Math.floor(i / 2) + 8;
+                        const min = i % 2 === 0 ? "00" : "30";
+                        const time = `${hour.toString().padStart(2, '0')}:${min}`;
+                        return <SelectItem key={time} value={time}>{time}</SelectItem>;
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2"><Label>Lieu</Label><Input placeholder="Ex: Radisson Blu" value={eventForm.location || ""} onChange={(e) => setEventForm(p => ({ ...p, location: e.target.value }))} /></div>
+            </FormSection>
+
+            <FormSection icon={<DollarSign className="h-3.5 w-3.5" />} title="Tarification & capacité">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2"><Label>Prix (XAF)</Label><Input type="number" value={eventForm.price || 0} onChange={(e) => setEventForm(p => ({ ...p, price: Number(e.target.value) }))} /></div>
+                <div className="space-y-2"><Label>Capacité (Places)</Label><Input type="number" value={eventForm.capacity || 100} onChange={(e) => setEventForm(p => ({ ...p, capacity: Number(e.target.value) }))} /></div>
+              </div>
+              <div className="space-y-2"><Label>WhatsApp Contact</Label><Input placeholder="+241077617776" value={eventForm.whatsapp_number || ""} onChange={(e) => setEventForm(p => ({ ...p, whatsapp_number: e.target.value }))} /></div>
+            </FormSection>
+
+            <FormSection icon={<ImageIcon className="h-3.5 w-3.5" />} title="Affiche">
+              <div
+                className={`relative border-2 border-dashed rounded-2xl p-8 transition-all flex flex-col items-center justify-center gap-3 cursor-pointer group
+                  ${isUploading ? "bg-muted/50 border-gold/20" : "bg-gold/5 border-gold/20 hover:border-gold hover:bg-gold/10"}`}
+                onClick={() => document.getElementById("event-image")?.click()}
+              >
+                <input
+                  id="event-image"
+                  type="file"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                  accept="image/*"
                 />
+                {isUploading ? (
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gold"></div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center gap-3 w-full h-full min-h-[160px]">
+                    {eventForm.image_url ? (
+                      <div className="relative w-full h-full flex flex-col items-center gap-2">
+                        <img
+                          src={eventForm.image_url}
+                          alt="Aperçu"
+                          className="w-full max-h-[200px] object-contain rounded-xl shadow-lg border border-gold/20"
+                        />
+                        <p className="text-gold font-bold text-sm bg-[#32140c] px-3 py-1 rounded-full border border-gold/30">Cliquer pour changer l'affiche</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <ImageIcon className="w-8 h-8 text-gold" />
+                        </div>
+                        <div className="text-center">
+                          <p className="font-bold text-lg">Cliquez ou glissez l'affiche ici</p>
+                          <p className="text-xs text-muted-foreground mt-1">PNG, JPG ou JPEG (Max. 5Mo)</p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+                {eventForm.image_url && !isUploading && (
+                  <div className="absolute top-2 right-2 bg-gold text-[#32140c] text-[10px] font-bold px-2 py-1 rounded-full uppercase">Prêt</div>
+                )}
               </div>
-            </div>
+            </FormSection>
+
+            <FormSection icon={<Users className="h-3.5 w-3.5" />} title="Intervenants">
+              {(eventForm.speakers || []).map((speaker, idx) => (
+                <div key={idx} className="border border-border/50 rounded-xl p-4 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div
+                      className="w-16 h-16 rounded-lg bg-muted/30 border border-dashed border-gold/30 flex items-center justify-center shrink-0 cursor-pointer overflow-hidden"
+                      onClick={() => document.getElementById(`speaker-photo-${idx}`)?.click()}
+                    >
+                      {uploadingSpeakerIdx === idx ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-gold" />
+                      ) : speaker.photo_url ? (
+                        <img src={speaker.photo_url} className="w-full h-full object-cover" alt="" />
+                      ) : (
+                        <ImagePlus className="h-5 w-5 text-gold" />
+                      )}
+                      <input
+                        id={`speaker-photo-${idx}`}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleSpeakerPhotoUpload(idx, f); }}
+                      />
+                    </div>
+                    <div className="flex-1 grid grid-cols-2 gap-2">
+                      <Input placeholder="Nom" value={speaker.name || ""} onChange={(e) => updateSpeaker(idx, { name: e.target.value })} />
+                      <Input placeholder="Rôle" value={speaker.role || ""} onChange={(e) => updateSpeaker(idx, { role: e.target.value })} />
+                      <Input className="col-span-2" placeholder="Société" value={speaker.company || ""} onChange={(e) => updateSpeaker(idx, { company: e.target.value })} />
+                    </div>
+                    <Button variant="ghost" size="icon" className="text-destructive shrink-0" onClick={() => removeSpeaker(idx)}><X className="h-4 w-4" /></Button>
+                  </div>
+                </div>
+              ))}
+              <Button variant="outline" size="sm" className="rounded-xl" onClick={addSpeaker}>
+                <Plus className="h-4 w-4 mr-2" /> Ajouter un intervenant
+              </Button>
+            </FormSection>
+
+            <FormSection icon={<Clock className="h-3.5 w-3.5" />} title="Programme">
+              {(eventForm.program || []).map((step, idx) => (
+                <div key={idx} className="flex items-start gap-2 border border-border/50 rounded-xl p-4">
+                  <Input className="w-24 shrink-0" placeholder="19:30" value={step.time || ""} onChange={(e) => updateProgramStep(idx, { time: e.target.value })} />
+                  <div className="flex-1 space-y-2">
+                    <Input placeholder="Titre de l'étape" value={step.title || ""} onChange={(e) => updateProgramStep(idx, { title: e.target.value })} />
+                    <Input placeholder="Description (optionnel)" value={step.description || ""} onChange={(e) => updateProgramStep(idx, { description: e.target.value })} />
+                  </div>
+                  <Button variant="ghost" size="icon" className="text-destructive shrink-0" onClick={() => removeProgramStep(idx)}><X className="h-4 w-4" /></Button>
+                </div>
+              ))}
+              <Button variant="outline" size="sm" className="rounded-xl" onClick={addProgramStep}>
+                <Plus className="h-4 w-4 mr-2" /> Ajouter une étape
+              </Button>
+            </FormSection>
+
+            <FormSection icon={<MailIcon className="h-3.5 w-3.5" />} title="Diffusion">
+              <div className="bg-gold/5 border border-gold/10 rounded-2xl p-6 space-y-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <Label className="text-sm font-bold">Envoyer aux abonnés Newsletter</Label>
+                    <p className="text-xs text-muted-foreground">
+                      {eventForm.status === 'brouillon'
+                        ? "Publiez l'événement pour pouvoir envoyer la newsletter."
+                        : "Les invitations seront envoyées dès la publication."}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    {eventForm.newsletter_status === 'sent' && (
+                      <Badge className="bg-green-500/20 text-green-500 border-green-500/30 font-bold uppercase text-[10px]">Déjà envoyé</Badge>
+                    )}
+                    <Switch
+                      disabled={eventForm.newsletter_status === 'sent' || eventForm.status === 'brouillon'}
+                      checked={eventForm.newsletter_status === 'sent' || (eventForm.send_newsletter === undefined ? true : eventForm.send_newsletter)}
+                      onCheckedChange={(checked) => setEventForm(p => ({ ...p, send_newsletter: checked }))}
+                    />
+                  </div>
+                </div>
+              </div>
+            </FormSection>
           </div>
-          
-          <Button 
-            variant={eventForm.status === 'publié' ? "outline" : "gold"}
-            className={`w-full h-16 mt-4 text-xl font-bold shadow-2xl rounded-2xl group relative overflow-hidden ${eventForm.status === 'publié' ? 'border-green-500 text-green-500 hover:bg-green-50' : 'shadow-gold/30'}`} 
-            onClick={handleSaveEvent} 
-            disabled={isUploading || isSavingEvent}
-          >
-            {isSavingEvent ? (
-              <Loader2 className="h-6 w-6 animate-spin mx-auto relative z-10" />
-            ) : (
-              <span className="relative z-10">
-                {eventForm.status === 'publié' ? "Mettre à jour la publication" : "Publier maintenant"}
-              </span>
-            )}
-            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-          </Button>
-        </div>
-      </DialogContent></Dialog>
+
+          <SheetFooter className="px-6 sm:px-8 py-5 border-t border-border/50 shrink-0 bg-card/50 backdrop-blur-sm sm:justify-stretch">
+            <Button
+              variant={eventForm.status === 'publié' ? "outline" : "gold"}
+              className={`w-full h-10 text-sm font-bold shadow-lg rounded-xl group relative overflow-hidden ${eventForm.status === 'publié' ? 'border-green-500 text-green-500 hover:bg-green-50' : 'shadow-gold/20'}`}
+              onClick={handleSaveEvent}
+              disabled={isUploading || isSavingEvent}
+            >
+              {isSavingEvent ? (
+                <Loader2 className="h-4 w-4 animate-spin mx-auto relative z-10" />
+              ) : (
+                <span className="relative z-10">
+                  {eventForm.status === 'publié' ? "Mettre à jour la publication" : "Publier maintenant"}
+                </span>
+              )}
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       <Dialog open={ticketDialogOpen} onOpenChange={setTicketDialogOpen}><DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
@@ -1632,11 +1998,12 @@ const AdminDashboard = () => {
           </div>
         </DialogContent>
       </Dialog>
-      <CertificateModal 
-        event={selectedEventForCert} 
-        isOpen={!!selectedEventForCert} 
-        onClose={() => setSelectedEventForCert(null)} 
+      <CertificateModal
+        event={selectedEventForCert}
+        isOpen={!!selectedEventForCert}
+        onClose={() => setSelectedEventForCert(null)}
       />
+      <ProfileSheet open={isProfileSheetOpen} onOpenChange={setIsProfileSheetOpen} />
     </div>
   );
 };
