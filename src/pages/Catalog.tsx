@@ -129,7 +129,6 @@ const Catalog = () => {
         if (!dateFilter) return true;
         const eDate = new Date(e.date);
         return (
-          eDate.getDate() === dateFilter.getDate() &&
           eDate.getMonth() === dateFilter.getMonth() &&
           eDate.getFullYear() === dateFilter.getFullYear()
         );
@@ -329,7 +328,7 @@ const Catalog = () => {
               <Popover>
                 <PopoverTrigger asChild>
                   <button className={`bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider px-3 sm:px-6 py-2.5 sm:py-3 rounded-none flex items-center gap-1 sm:gap-2 transition-colors shrink-0 justify-center whitespace-nowrap ${dateFilter ? "ring-2 ring-black" : ""}`}>
-                    {dateFilter ? format(dateFilter, "dd MMM yyyy", { locale: fr }).toUpperCase() : "TRIER PAR DATE"} <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    {dateFilter ? format(dateFilter, "MMMM yyyy", { locale: fr }).toUpperCase() : "TRIER PAR MOIS"} <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="end">
