@@ -161,23 +161,23 @@ const FormationDetail = () => {
           <div className="mb-8">
             <Link
               to="/catalogue-formations"
-              className="inline-flex items-center gap-2 text-white/60 hover:text-[#e3bd51] font-bold text-xs uppercase tracking-widest transition-all"
+              className="inline-flex items-center gap-2 text-white/60 hover:text-[#e3bd51] font-bold text-lvl-footer uppercase tracking-widest transition-all"
             >
               <ArrowLeft className="w-4 h-4 text-[#e3bd51]" /> RETOUR AU CATALOGUE FORMATION
             </Link>
           </div>
 
-          <div className="max-w-3xl space-y-8">
+          <div className="max-w-3xl space-y-6">
             {/* Top Eyebrow Badge */}
-            <div className="flex items-center gap-3 text-[#e3bd51] text-xs font-bold uppercase tracking-[0.25em]">
+            <div className="flex items-center gap-3 text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-[0.25em]">
               <span className="w-8 h-[1px] bg-[#e3bd51] inline-block" />
               <span>{formation.badge || "EXCELLENCE ACADÉMIQUE"}</span>
             </div>
 
             {/* Main Title */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.15] tracking-tight">
-              <span className="block text-white font-sans">{titleMain}</span>
-              <span className="inline-block font-display italic text-[#e3bd51] relative pb-2 mt-1">
+            <h1 className="text-lvl-hero leading-[1.15]">
+              <span className="block text-white">{titleMain}</span>
+              <span className="inline-block italic text-[#e3bd51] relative pb-2 mt-1">
                 {titleAccent}
                 <span className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#e3bd51] via-[#c29c38] to-transparent" />
               </span>
@@ -186,16 +186,16 @@ const FormationDetail = () => {
             {/* Metadata Cards Row (Niveau, Durée, Certification) */}
             <div className="grid grid-cols-3 gap-3 sm:gap-6 pt-2 max-w-xl">
               <div className="bg-white/[0.03] border border-white/15 p-3.5 sm:p-5 rounded-none">
-                <span className="text-white/40 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest block mb-1">NIVEAU</span>
-                <span className="text-white font-bold text-base sm:text-xl font-display">{formation.level || "Expert"}</span>
+                <span className="text-white/40 text-lvl-footer font-bold uppercase tracking-widest block mb-1">NIVEAU</span>
+                <span className="text-white font-bold text-lvl-subtitle">{formation.level || "Expert"}</span>
               </div>
               <div className="bg-white/[0.03] border border-white/15 p-3.5 sm:p-5 rounded-none">
-                <span className="text-white/40 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest block mb-1">DURÉE</span>
-                <span className="text-white font-bold text-base sm:text-xl font-display">{formation.duration || "3 Jours"}</span>
+                <span className="text-white/40 text-lvl-footer font-bold uppercase tracking-widest block mb-1">DURÉE</span>
+                <span className="text-white font-bold text-lvl-subtitle">{formation.duration || "3 Jours"}</span>
               </div>
               <div className="bg-white/[0.03] border border-white/15 p-3.5 sm:p-5 rounded-none">
-                <span className="text-white/40 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest block mb-1">CERTIFICATION</span>
-                <span className="text-[#e3bd51] font-bold text-base sm:text-xl font-display">{formation.certification || "NFL Élite"}</span>
+                <span className="text-white/40 text-lvl-footer font-bold uppercase tracking-widest block mb-1">CERTIFICATION</span>
+                <span className="text-[#e3bd51] font-bold text-lvl-subtitle">{formation.certification || "NFL Élite"}</span>
               </div>
             </div>
 
@@ -203,12 +203,12 @@ const FormationDetail = () => {
             <div className="pt-2 flex items-center gap-4">
               <button
                 onClick={() => document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth" })}
-                className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-xs uppercase tracking-widest py-4 px-9 rounded-none transition-all flex items-center gap-3 shadow-xl hover:shadow-[#e3bd51]/20 active:scale-95"
+                className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-widest py-4 px-9 rounded-none transition-all flex items-center gap-3 shadow-xl hover:shadow-[#e3bd51]/20 active:scale-95"
               >
                 S'INSCRIRE <ArrowRight className="w-4 h-4" />
               </button>
               {priceLabel && (
-                <span className="text-white/60 text-sm font-semibold">{priceLabel}</span>
+                <span className="text-white/60 text-lvl-body font-semibold">{priceLabel}</span>
               )}
             </div>
           </div>
@@ -216,15 +216,15 @@ const FormationDetail = () => {
       </section>
 
       {/* 2. SECTION HIGHLIGHT / STANDARDS */}
-      <section className="py-16 md:py-24 bg-[#0a0b0d] border-b border-white/5">
+      <section className="section-y bg-[#0a0b0d] border-b border-white/5">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid lg:grid-cols-12 gap-10 items-start">
             {/* Left Title */}
             <div className="lg:col-span-5">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-snug">
-                <span className="block text-white font-sans">Redéfinir les</span>
-                <span className="block text-white font-sans">standards de la</span>
-                <span className="inline-block font-display italic text-[#e3bd51] relative pb-1 mt-1">
+              <h2 className="text-lvl-title leading-snug">
+                <span className="block text-white">Redéfinir les</span>
+                <span className="block text-white">standards de la</span>
+                <span className="inline-block italic text-[#e3bd51] relative pb-1 mt-1">
                   haute finance.
                   <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#e3bd51]" />
                 </span>
@@ -232,25 +232,25 @@ const FormationDetail = () => {
             </div>
 
             {/* Right Paragraph & Key Badges */}
-            <div className="lg:col-span-7 space-y-6">
-              <p className="text-white/80 text-base sm:text-lg leading-relaxed font-light">
+            <div className="lg:col-span-7 space-y-5">
+              <p className="text-white/80 text-lvl-body font-light">
                 {formation.description ||
                   "Cette Masterclass immersive est conçue pour l'élite financière. Elle transcende la théorie conventionnelle pour explorer les mécanismes complexes des marchés mondiaux et les stratégies de structuration de capital les plus sophistiquées."}
               </p>
 
-              <p className="text-white/60 text-sm sm:text-base leading-relaxed font-light">
+              <p className="text-white/60 text-lvl-body font-light">
                 Notre objectif est de forger des leaders capables de naviguer dans l'incertitude avec une précision chirurgicale, en maîtrisant les outils de l'ingénierie moderne au service de la performance durable.
               </p>
 
               {/* Highlights List */}
               <div className="flex flex-wrap gap-8 pt-4 border-t border-white/10">
-                <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-wider text-white">
+                <div className="flex items-center gap-3 text-lvl-footer font-bold uppercase tracking-wider text-white">
                   <div className="w-7 h-7 rounded-full bg-[#e3bd51]/10 border border-[#e3bd51]/40 flex items-center justify-center text-[#e3bd51]">
                     <Sparkles className="w-3.5 h-3.5" />
                   </div>
                   <span>PRATIQUE INTENSIVE</span>
                 </div>
-                <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-wider text-white">
+                <div className="flex items-center gap-3 text-lvl-footer font-bold uppercase tracking-wider text-white">
                   <div className="w-7 h-7 rounded-full bg-[#e3bd51]/10 border border-[#e3bd51]/40 flex items-center justify-center text-[#e3bd51]">
                     <ShieldCheck className="w-3.5 h-3.5" />
                   </div>
@@ -263,16 +263,16 @@ const FormationDetail = () => {
       </section>
 
       {/* 3. ARCHITECTURE PÉDAGOGIQUE (4 Piliers Fondamentaux) */}
-      <section className="py-20 md:py-28 bg-[#07080a] border-b border-white/5">
+      <section className="section-y bg-[#07080a] border-b border-white/5">
         <div className="container mx-auto px-4 max-w-6xl">
           {/* Centered Header */}
-          <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-            <span className="text-[#e3bd51] text-xs font-bold uppercase tracking-[0.25em] block">
+          <div className="text-center max-w-2xl mx-auto mb-10 md:mb-14 space-y-3">
+            <span className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-[0.25em] block">
               ARCHITECTURE PÉDAGOGIQUE
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-white leading-tight font-sans">
+            <h2 className="text-lvl-title text-white leading-tight">
               Un Programme Structuré en 4 <br />
-              <span className="font-display italic text-white/90">Piliers Fondamentaux</span>
+              <span className="italic text-white/90">Piliers Fondamentaux</span>
             </h2>
           </div>
 
@@ -283,10 +283,10 @@ const FormationDetail = () => {
               return (
                 <div
                   key={idx}
-                  className="bg-[#121418] border border-white/10 p-7 rounded-none flex flex-col justify-between space-y-6 hover:border-[#e3bd51]/50 transition-all duration-300 group"
+                  className="bg-[#121418] border border-white/10 p-7 rounded-none flex flex-col justify-between space-y-5 hover:border-[#e3bd51]/50 transition-all duration-300 group"
                 >
-                  <div className="space-y-5">
-                    <span className="text-white/35 text-[10px] font-bold tracking-[0.2em] uppercase block font-sans">
+                  <div className="space-y-4">
+                    <span className="text-white/35 text-lvl-footer font-bold tracking-[0.2em] uppercase block">
                       {pillar.code}
                     </span>
 
@@ -294,11 +294,11 @@ const FormationDetail = () => {
                       <IconComp className="w-5 h-5" />
                     </div>
 
-                    <h3 className="text-xl font-bold text-white font-display group-hover:text-[#e3bd51] transition-colors">
+                    <h3 className="text-lvl-subtitle text-white group-hover:text-[#e3bd51] transition-colors">
                       {pillar.title}
                     </h3>
 
-                    <p className="text-white/60 text-xs leading-relaxed font-sans font-light">
+                    <p className="text-white/60 text-lvl-footer font-light">
                       {pillar.description}
                     </p>
                   </div>
@@ -310,24 +310,24 @@ const FormationDetail = () => {
       </section>
 
       {/* 4. QUOTE & EXPERTISE SECTION */}
-      <section className="py-20 md:py-28 bg-[#0a0b0d] border-b border-white/5">
+      <section className="section-y bg-[#0a0b0d] border-b border-white/5">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid lg:grid-cols-12 gap-12 items-center">
             {/* Left Quote */}
-            <div className="lg:col-span-7 space-y-6">
-              <div className="w-12 h-12 bg-white/5 border border-white/10 flex items-center justify-center text-[#e3bd51] text-2xl font-display">
+            <div className="lg:col-span-7 space-y-5">
+              <div className="w-12 h-12 bg-white/5 border border-white/10 flex items-center justify-center text-[#e3bd51] text-lvl-title">
                 "
               </div>
 
-              <blockquote className="font-display italic text-2xl sm:text-3xl lg:text-4xl text-white/95 leading-snug">
+              <blockquote className="italic text-lvl-title text-white/95 leading-snug">
                 "L'excellence n'est pas un acte, c'est une habitude. En finance, c'est la différence entre le hasard et la maîtrise."
               </blockquote>
 
               <div className="pt-2">
-                <span className="text-[#e3bd51] text-xs font-bold uppercase tracking-wider block">
+                <span className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-wider block">
                   DIRECTRICE DU PROGRAMME
                 </span>
-                <span className="text-white/50 text-xs block mt-0.5">
+                <span className="text-white/50 text-lvl-footer block mt-0.5">
                   Senior Investment Strategist, NFL Courtier
                 </span>
               </div>
@@ -336,26 +336,26 @@ const FormationDetail = () => {
             {/* Right Expertise Card */}
             <div className="lg:col-span-5">
               <div className="bg-[#14161b] border border-white/10 p-8 sm:p-10 rounded-none space-y-6 shadow-2xl">
-                <h3 className="text-[#e3bd51] text-xs font-bold tracking-[0.2em] uppercase border-b border-white/10 pb-4">
+                <h3 className="text-[#e3bd51] text-lvl-footer font-bold tracking-[0.2em] uppercase border-b border-white/10 pb-4">
                   EXPERTISE & PARCOURS
                 </h3>
 
                 <div className="space-y-6">
                   <div className="flex gap-4 items-start">
-                    <span className="text-[#e3bd51] font-bold text-sm shrink-0 font-display">01</span>
-                    <p className="text-white/80 text-xs sm:text-sm leading-relaxed font-light">
+                    <span className="text-[#e3bd51] font-bold text-lvl-body shrink-0">01</span>
+                    <p className="text-white/80 text-lvl-footer font-light">
                       Plus de 15 ans d'expérience dans les banques d'affaires internationales à Londres et Singapour.
                     </p>
                   </div>
                   <div className="flex gap-4 items-start">
-                    <span className="text-[#e3bd51] font-bold text-sm shrink-0 font-display">02</span>
-                    <p className="text-white/80 text-xs sm:text-sm leading-relaxed font-light">
+                    <span className="text-[#e3bd51] font-bold text-lvl-body shrink-0">02</span>
+                    <p className="text-white/80 text-lvl-footer font-light">
                       Architecte de la structuration de dettes complexes pour des projets d'infrastructure majeurs.
                     </p>
                   </div>
                   <div className="flex gap-4 items-start">
-                    <span className="text-[#e3bd51] font-bold text-sm shrink-0 font-display">03</span>
-                    <p className="text-white/80 text-xs sm:text-sm leading-relaxed font-light">
+                    <span className="text-[#e3bd51] font-bold text-lvl-body shrink-0">03</span>
+                    <p className="text-white/80 text-lvl-footer font-light">
                       Membre du Cercle d'Excellence Financière et conseillère stratégique auprès de fonds souverains.
                     </p>
                   </div>
@@ -367,27 +367,27 @@ const FormationDetail = () => {
       </section>
 
       {/* 5. UNE IMMERSION SIGNATURE */}
-      <section className="py-20 md:py-28 bg-[#07080a] border-b border-white/5">
+      <section className="section-y bg-[#07080a] border-b border-white/5">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid lg:grid-cols-12 gap-12 items-start">
             {/* Left Block */}
-            <div className="lg:col-span-5 space-y-6">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
-                <span className="block text-white font-sans">Une Immersion</span>
-                <span className="inline-block font-display italic text-[#e3bd51] relative pb-1 mt-1">
+            <div className="lg:col-span-5 space-y-4">
+              <h2 className="text-lvl-title leading-tight">
+                <span className="block text-white">Une Immersion</span>
+                <span className="inline-block italic text-[#e3bd51] relative pb-1 mt-1">
                   Signature
                   <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#e3bd51]" />
                 </span>
               </h2>
 
-              <p className="text-white/70 text-base leading-relaxed font-light">
+              <p className="text-white/70 text-lvl-body font-light">
                 Chaque détail est orchestré pour favoriser une concentration absolue et un confort sans compromis.
               </p>
 
-              <div className="pt-4">
+              <div className="pt-3">
                 <button
                   onClick={() => document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth" })}
-                  className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-xs uppercase tracking-widest py-4 px-8 rounded-none transition-colors inline-flex items-center gap-3 shadow-xl"
+                  className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-widest py-4 px-8 rounded-none transition-colors inline-flex items-center gap-3 shadow-xl"
                 >
                   TÉLÉCHARGER LA FICHE PDF <Download className="w-4 h-4" />
                 </button>
@@ -401,9 +401,9 @@ const FormationDetail = () => {
                 <div className="bg-[#121418] border border-white/10 p-6 rounded-none space-y-3">
                   <div className="flex items-center gap-2.5 text-[#e3bd51]">
                     <Building2 className="w-4 h-4" />
-                    <span className="font-bold text-xs uppercase tracking-wider text-white">LIEU DE PRESTIGE</span>
+                    <span className="font-bold text-lvl-footer uppercase tracking-wider text-white">LIEU DE PRESTIGE</span>
                   </div>
-                  <p className="text-white/60 text-xs leading-relaxed font-light">
+                  <p className="text-white/60 text-lvl-footer font-light">
                     Un cadre feutré dans l'un des établissements les plus iconiques de la capitale, propice au networking de haut vol.
                   </p>
                 </div>
@@ -412,9 +412,9 @@ const FormationDetail = () => {
                 <div className="bg-[#121418] border border-white/10 p-6 rounded-none space-y-3">
                   <div className="flex items-center gap-2.5 text-[#e3bd51]">
                     <Utensils className="w-4 h-4" />
-                    <span className="font-bold text-xs uppercase tracking-wider text-white">EXPÉRIENCE GASTRONOMIQUE</span>
+                    <span className="font-bold text-lvl-footer uppercase tracking-wider text-white">EXPÉRIENCE GASTRONOMIQUE</span>
                   </div>
-                  <p className="text-white/60 text-xs leading-relaxed font-light">
+                  <p className="text-white/60 text-lvl-footer font-light">
                     Déjeuners signature inclus, préparés par nos chefs pour des moments de convivialité et d'échange raffinés.
                   </p>
                 </div>
@@ -423,9 +423,9 @@ const FormationDetail = () => {
                 <div className="bg-[#121418] border border-white/10 p-6 rounded-none space-y-3">
                   <div className="flex items-center gap-2.5 text-[#e3bd51]">
                     <Smartphone className="w-4 h-4" />
-                    <span className="font-bold text-xs uppercase tracking-wider text-white">OUTILS DE POINTE</span>
+                    <span className="font-bold text-lvl-footer uppercase tracking-wider text-white">OUTILS DE POINTE</span>
                   </div>
-                  <p className="text-white/60 text-xs leading-relaxed font-light">
+                  <p className="text-white/60 text-lvl-footer font-light">
                     Accès illimité aux ressources digitales NFL et la fourniture de supports interactifs premium pour la session.
                   </p>
                 </div>
@@ -434,9 +434,9 @@ const FormationDetail = () => {
                 <div className="bg-[#121418] border border-white/10 p-6 rounded-none space-y-3">
                   <div className="flex items-center gap-2.5 text-[#e3bd51]">
                     <Globe className="w-4 h-4" />
-                    <span className="font-bold text-xs uppercase tracking-wider text-white">CERCLE ALUMNI</span>
+                    <span className="font-bold text-lvl-footer uppercase tracking-wider text-white">CERCLE ALUMNI</span>
                   </div>
-                  <p className="text-white/60 text-xs leading-relaxed font-light">
+                  <p className="text-white/60 text-lvl-footer font-light">
                     Intégration immédiate au Cercle NFL Courtier et suivi stratégique personnalisé durant les 6 mois post-formation.
                   </p>
                 </div>
@@ -447,15 +447,15 @@ const FormationDetail = () => {
       </section>
 
       {/* 6. BOOKING FORM SECTION */}
-      <section id="booking-form" className="py-20 md:py-28 bg-[#e8e6e2] text-[#1c1c1c]">
+      <section id="booking-form" className="section-y bg-[#e8e6e2] text-[#1c1c1c]">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid lg:grid-cols-12 gap-12 items-start">
             <div className="lg:col-span-5 space-y-6">
               <div>
-                <h2 className="text-3xl sm:text-4xl font-bold text-[#1c1c1c] leading-tight mb-4">
+                <h2 className="text-lvl-title text-[#1c1c1c] leading-tight mb-4">
                   Inscrivez-vous
                 </h2>
-                <p className="text-[#555] text-sm sm:text-base font-light">
+                <p className="text-[#555] text-lvl-body font-light">
                   Les places sont limitées pour garantir un accompagnement de qualité supérieure à chaque participant.
                 </p>
               </div>
@@ -465,10 +465,10 @@ const FormationDetail = () => {
                   <UserCheck className="w-5 h-5 text-[#655410]" />
                 </div>
                 <div>
-                  <span className="text-[#666] text-xs font-bold uppercase tracking-wider block">
+                  <span className="text-[#666] text-lvl-footer font-bold uppercase tracking-wider block">
                     Tarif de la formation
                   </span>
-                  <span className="text-lg font-bold text-[#655410]">
+                  <span className="text-lvl-subtitle font-bold text-[#655410]">
                     {priceLabel || "Sur devis / Inscription sur-mesure"}
                   </span>
                 </div>
@@ -479,10 +479,10 @@ const FormationDetail = () => {
                   <Users2 className="w-5 h-5 text-[#655410]" />
                 </div>
                 <div>
-                  <span className="text-[#666] text-xs font-bold uppercase tracking-wider block">
+                  <span className="text-[#666] text-lvl-footer font-bold uppercase tracking-wider block">
                     Accompagnement
                   </span>
-                  <span className="text-sm font-semibold text-[#1c1c1c]">
+                  <span className="text-lvl-body font-semibold text-[#1c1c1c]">
                     Individuel & groupes en entreprise
                   </span>
                 </div>
@@ -493,7 +493,7 @@ const FormationDetail = () => {
               <form onSubmit={handleBooking} className="bg-white border border-black/10 p-8 sm:p-10 rounded-none space-y-5 shadow-2xl">
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-black/70">
+                    <label className="text-lvl-footer font-bold uppercase tracking-wider text-black/70">
                       NOM COMPLET
                     </label>
                     <input
@@ -502,12 +502,12 @@ const FormationDetail = () => {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="Ex : MOUSSAVOU ALEX"
-                      className="w-full bg-[#f4f2ee] border border-black/10 text-xs text-black px-4 py-3.5 rounded-none placeholder:text-black/30 focus:outline-none focus:border-[#655410]"
+                      className="w-full bg-[#f4f2ee] border border-black/10 text-lvl-footer text-black px-4 py-3.5 rounded-none placeholder:text-black/30 focus:outline-none focus:border-[#655410]"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-black/70">
+                    <label className="text-lvl-footer font-bold uppercase tracking-wider text-black/70">
                       ADRESSE EMAIL
                     </label>
                     <input
@@ -516,20 +516,20 @@ const FormationDetail = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="moussavou@gmail.com"
-                      className="w-full bg-[#f4f2ee] border border-black/10 text-xs text-black px-4 py-3.5 rounded-none placeholder:text-black/30 focus:outline-none focus:border-[#655410]"
+                      className="w-full bg-[#f4f2ee] border border-black/10 text-lvl-footer text-black px-4 py-3.5 rounded-none placeholder:text-black/30 focus:outline-none focus:border-[#655410]"
                     />
                   </div>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-black/70">
+                    <label className="text-lvl-footer font-bold uppercase tracking-wider text-black/70">
                       NOMBRE DE PLACES
                     </label>
                     <select
                       value={nbPlaces}
                       onChange={(e) => setNbPlaces(e.target.value)}
-                      className="w-full bg-[#f4f2ee] border border-black/10 text-xs text-black px-4 py-3.5 rounded-none focus:outline-none focus:border-[#655410]"
+                      className="w-full bg-[#f4f2ee] border border-black/10 text-lvl-footer text-black px-4 py-3.5 rounded-none focus:outline-none focus:border-[#655410]"
                     >
                       <option value="1 Place">1 Place</option>
                       <option value="2 Places">2 Places</option>
@@ -540,7 +540,7 @@ const FormationDetail = () => {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-black/70">
+                    <label className="text-lvl-footer font-bold uppercase tracking-wider text-black/70">
                       TÉLÉPHONE (WHATSAPP)
                     </label>
                     <input
@@ -549,7 +549,7 @@ const FormationDetail = () => {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="+241 00 00 00 00"
-                      className="w-full bg-[#f4f2ee] border border-black/10 text-xs text-black px-4 py-3.5 rounded-none placeholder:text-black/30 focus:outline-none focus:border-[#655410]"
+                      className="w-full bg-[#f4f2ee] border border-black/10 text-lvl-footer text-black px-4 py-3.5 rounded-none placeholder:text-black/30 focus:outline-none focus:border-[#655410]"
                     />
                   </div>
                 </div>
@@ -558,11 +558,11 @@ const FormationDetail = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-[#655410] hover:bg-[#52440b] text-white font-bold text-xs uppercase tracking-widest py-4 px-6 rounded-none transition-colors flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full bg-[#655410] hover:bg-[#52440b] text-white font-bold text-lvl-footer uppercase tracking-widest py-4 px-6 rounded-none transition-colors flex items-center justify-center gap-2 shadow-lg"
                   >
                     {isSubmitting ? "TRAITEMENT..." : "CONFIRMER L'INSCRIPTION"} <ArrowRight className="w-4 h-4" />
                   </button>
-                  <p className="text-xs text-black/40 text-center italic mt-3">
+                  <p className="text-lvl-footer text-black/40 text-center italic mt-3">
                     Notre équipe conciergerie vous contactera sous 24h.
                   </p>
                 </div>
