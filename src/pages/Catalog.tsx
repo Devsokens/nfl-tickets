@@ -92,13 +92,13 @@ const Catalog = () => {
     const updated = await HomeContentAPI.update({ eventsPage: next });
     queryClient.setQueryData(["homeContent"], (prev: HomeContent | undefined) => ({ ...(prev || {}), ...updated }));
   };
-  const makeHeroFieldSaver = (fieldKey: string) => async (value: any) => {
+  const makeHeroFieldSaver = (fieldKey: keyof EventsPageContent["hero"]) => async (value: string) => {
     await saveEventsPageSection({ hero: { ...content.hero, [fieldKey]: value } });
   };
-  const makeAgendaFieldSaver = (fieldKey: string) => async (value: any) => {
+  const makeAgendaFieldSaver = (fieldKey: keyof EventsPageContent["agenda"]) => async (value: string) => {
     await saveEventsPageSection({ agenda: { ...content.agenda, [fieldKey]: value } });
   };
-  const makeNewsletterFieldSaver = (fieldKey: string) => async (value: any) => {
+  const makeNewsletterFieldSaver = (fieldKey: keyof EventsPageContent["newsletterBox"]) => async (value: string) => {
     await saveEventsPageSection({ newsletterBox: { ...content.newsletterBox, [fieldKey]: value } });
   };
   const updateStat = (idx: number, patch: Partial<{ number: string; label: string }>) => {
@@ -149,36 +149,36 @@ const Catalog = () => {
         <img
           src={nextEvent?.image_url || nextEvent?.image || nflImg1}
           alt="Événements NFL"
-          className="absolute inset-0 w-full h-full object-cover filter brightness-[0.35] contrast-[1.1]"
+          className="absolute inset-0 w-full h-full object-cover filter brightness-[0.22] contrast-[1.15]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0c0d0f] via-transparent to-[#0c0d0f]/70" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0c0d0f] via-black/40 to-[#0c0d0f]/80" />
 
         <div className="relative z-10 container mx-auto px-4 max-w-6xl">
           <div className="grid lg:grid-cols-12 gap-10 items-center">
             {/* Left Content */}
             <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 border border-[#c29c38]/40 bg-[#141517]/80 text-[#c29c38] text-[10px] font-bold uppercase tracking-[0.2em] px-3.5 py-1.5 rounded-full shadow-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#c29c38] inline-block animate-pulse"></span>
-                <span><EditableText value={content.hero.badge} onSave={makeHeroFieldSaver("badge")} label="Badge" /></span>
+              <div className="inline-flex items-center gap-2 border border-[#e3bd51]/40 bg-[#141517]/85 text-[#e3bd51] text-[10px] font-bold uppercase tracking-[0.2em] px-3.5 py-1.5 rounded-full shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#e3bd51] inline-block animate-pulse"></span>
+                <span><EditableText value={content.hero.badge || ""} onSave={makeHeroFieldSaver("badge")} label="Badge" /></span>
               </div>
 
               <h1 className="leading-tight">
                 <span className="block font-sans font-bold text-4xl sm:text-5xl uppercase tracking-tight text-white">
-                  <EditableText value={content.hero.titleLine1} onSave={makeHeroFieldSaver("titleLine1")} label="Titre — ligne 1" />
+                  <EditableText value={content.hero.titleLine1 || ""} onSave={makeHeroFieldSaver("titleLine1")} label="Titre — ligne 1" />
                 </span>
-                <span className="block font-serif italic text-white text-3xl sm:text-4xl mt-3 font-normal leading-snug">
-                  <EditableText value={content.hero.titleLine2} onSave={makeHeroFieldSaver("titleLine2")} label="Titre — ligne 2" multiline />
+                <span className="block font-display italic text-white text-3xl sm:text-4xl mt-3 font-normal leading-snug">
+                  <EditableText value={content.hero.titleLine2 || ""} onSave={makeHeroFieldSaver("titleLine2")} label="Titre — ligne 2" multiline />
                 </span>
               </h1>
 
               {nextEvent && (
-                <div className="flex flex-wrap items-center gap-6 text-xs text-white/90 font-medium pt-2">
+                <div className="flex flex-wrap items-center gap-6 text-xs text-white/95 font-medium pt-2">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-[#c29c38]" />
+                    <Calendar className="w-4 h-4 text-[#e3bd51]" />
                     <span>{formatEventDate(nextEvent.date)}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-[#c29c38]" />
+                    <MapPin className="w-4 h-4 text-[#e3bd51]" />
                     <span>{nextEvent.location}</span>
                   </div>
                 </div>
@@ -187,15 +187,15 @@ const Catalog = () => {
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <button
                   onClick={() => document.getElementById("events-grid")?.scrollIntoView({ behavior: "smooth" })}
-                  className="bg-[#c29c38] hover:bg-[#b08b2e] text-black font-bold text-[11px] uppercase tracking-wider py-3.5 px-7 rounded-none transition-colors shadow-sm"
+                  className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-xs sm:text-sm uppercase tracking-wider py-3.5 px-7 rounded-none transition-colors shadow-sm"
                 >
-                  <EditableText value={content.hero.ctaPrimaryText} onSave={makeHeroFieldSaver("ctaPrimaryText")} label="Bouton principal" />
+                  <EditableText value={content.hero.ctaPrimaryText || ""} onSave={makeHeroFieldSaver("ctaPrimaryText")} label="Bouton principal" />
                 </button>
                 <button
                   onClick={() => document.getElementById("events-grid")?.scrollIntoView({ behavior: "smooth" })}
-                  className="border border-white/20 bg-[#121315]/80 hover:bg-white/10 text-white font-bold text-[11px] uppercase tracking-wider py-3.5 px-7 rounded-none transition-colors"
+                  className="border border-white/20 bg-[#1c1d21]/90 hover:bg-white/10 text-white font-bold text-xs sm:text-sm uppercase tracking-wider py-3.5 px-7 rounded-none transition-colors"
                 >
-                  <EditableText value={content.hero.ctaSecondaryText} onSave={makeHeroFieldSaver("ctaSecondaryText")} label="Bouton secondaire" />
+                  <EditableText value={content.hero.ctaSecondaryText || ""} onSave={makeHeroFieldSaver("ctaSecondaryText")} label="Bouton secondaire" />
                 </button>
               </div>
             </div>
@@ -215,7 +215,7 @@ const Catalog = () => {
                   <p className="text-white/85 text-sm sm:text-base font-sans">Revenez bientôt pour découvrir nos prochains rendez-vous.</p>
                 )}
                 <p className="text-xs sm:text-sm text-white/70 font-semibold tracking-wide uppercase pt-2 font-display">
-                  <EditableText value={content.hero.footnote} onSave={makeHeroFieldSaver("footnote")} label="Petite phrase" />
+                  <EditableText value={content.hero.footnote || ""} onSave={makeHeroFieldSaver("footnote")} label="Petite phrase" />
                 </p>
               </div>
             </div>
@@ -278,16 +278,16 @@ const Catalog = () => {
             <div className="max-w-3xl">
               <div className="flex items-center gap-2 text-[#c29c38] text-[10px] font-bold uppercase tracking-[0.25em] mb-3">
                 <span className="w-6 h-[1px] bg-[#c29c38] inline-block"></span>
-                <span><EditableText value={content.agenda.eyebrow} onSave={makeAgendaFieldSaver("eyebrow")} label="Eyebrow" /></span>
+                <span><EditableText value={content.agenda.eyebrow || ""} onSave={makeAgendaFieldSaver("eyebrow")} label="Eyebrow" /></span>
               </div>
               <h2 className="font-sans text-4xl sm:text-5xl font-bold text-white mb-3">
-                <EditableText value={content.agenda.title} onSave={makeAgendaFieldSaver("title")} label="Titre" />
+                <EditableText value={content.agenda.title || ""} onSave={makeAgendaFieldSaver("title")} label="Titre" />
               </h2>
               <p className="font-display italic text-white/95 text-3xl sm:text-4xl mb-4 font-normal leading-snug">
-                <EditableText value={content.agenda.subtitle} onSave={makeAgendaFieldSaver("subtitle")} label="Sous-titre" multiline />
+                <EditableText value={content.agenda.subtitle || ""} onSave={makeAgendaFieldSaver("subtitle")} label="Sous-titre" multiline />
               </p>
-              <p className="text-white/70 text-sm sm:text-base leading-relaxed font-sans max-w-2xl">
-                <EditableText value={content.agenda.description} onSave={makeAgendaFieldSaver("description")} label="Description" multiline as="div" />
+              <p className="text-white/90 text-sm sm:text-base leading-relaxed font-sans max-w-2xl">
+                <EditableText value={content.agenda.description || ""} onSave={makeAgendaFieldSaver("description")} label="Description" multiline as="div" />
               </p>
             </div>
           </div>
@@ -380,11 +380,11 @@ const Catalog = () => {
                 {/* Gold Newsletter Box */}
                 <div className="col-span-2 md:col-span-1 bg-[#d4af37] text-black p-5 sm:p-10 rounded-none flex flex-col justify-between shadow-xl pointer-events-auto">
                   <div>
-                    <h3 className="font-serif text-xl sm:text-3xl font-bold text-black mb-2 sm:mb-4 leading-tight">
-                      <EditableText value={content.newsletterBox.title} onSave={makeNewsletterFieldSaver("title")} label="Titre" multiline />
+                    <h3 className="font-display text-xl sm:text-3xl font-bold text-black mb-2 sm:mb-4 leading-tight">
+                      <EditableText value={content.newsletterBox.title || ""} onSave={makeNewsletterFieldSaver("title")} label="Titre" multiline />
                     </h3>
-                    <p className="text-black/80 text-[10px] sm:text-xs leading-relaxed mb-4 sm:mb-6 font-sans">
-                      <EditableText value={content.newsletterBox.description} onSave={makeNewsletterFieldSaver("description")} label="Description" multiline as="div" />
+                    <p className="text-black/90 text-sm sm:text-base leading-relaxed mb-4 sm:mb-6 font-sans">
+                      <EditableText value={content.newsletterBox.description || ""} onSave={makeNewsletterFieldSaver("description")} label="Description" multiline as="div" />
                     </p>
                   </div>
 
