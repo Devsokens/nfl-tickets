@@ -12,6 +12,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Helmet } from "react-helmet-async";
+import { cn } from "@/lib/utils";
 
 import heroImage1 from "@/assets/nfl img 4.jpeg";
 import nflImg1 from "@/assets/nfl img1.jpeg";
@@ -51,6 +52,13 @@ const DEFAULT_HOME_CONTENT: HomeContent = {
     { icon: "ShieldCheck", title: "Masterclass", subtitle: "Solutions sur mesure" },
     { icon: "Star", title: "Coaching", subtitle: "Prestige Libreville" },
     { icon: "Landmark", title: "Formations sur mesure", subtitle: "Gestion de patrimoine" },
+  ],
+  partners: [
+    { name: "BGFIBank", logo_url: "" },
+    { name: "Airtel", logo_url: "" },
+    { name: "Moov Africa", logo_url: "" },
+    { name: "TotalEnergies", logo_url: "" },
+    { name: "Gabon Telecom", logo_url: "" },
   ],
   pillars: [
     { icon: "Building2", title: "Séminaires", description: "Accompagnement stratégique et organisation de séminaires sur mesure avec rigueur.", ctaText: "En savoir plus", link: "#evenements" },
@@ -93,6 +101,7 @@ function mergeHomeContent(fetched?: HomeContent): Required<HomeContent> {
     hero: { ...DEFAULT_HOME_CONTENT.hero, ...f.hero },
     featureStrip: f.featureStrip?.length ? f.featureStrip : DEFAULT_HOME_CONTENT.featureStrip!,
     pillars: f.pillars?.length ? f.pillars : DEFAULT_HOME_CONTENT.pillars!,
+    partners: f.partners?.length ? f.partners : DEFAULT_HOME_CONTENT.partners!,
     eventsSection: { ...DEFAULT_HOME_CONTENT.eventsSection, ...f.eventsSection },
     spotlight: { ...DEFAULT_HOME_CONTENT.spotlight, ...f.spotlight },
     about: { ...DEFAULT_HOME_CONTENT.about, ...f.about },
@@ -149,16 +158,16 @@ const Index = () => {
     };
 
   // Champ d'un item dans une liste d'objets, ex. pillars[2].title
-  const makeArrayItemFieldSaver = (sectionKey: "pillars" | "featureStrip", index: number, fieldKey: string) =>
+  const makeArrayItemFieldSaver = (sectionKey: "pillars" | "featureStrip" | "partners", index: number, fieldKey: string) =>
     async (value: any) => {
       const list = [...(content[sectionKey] as any[])];
       list[index] = { ...list[index], [fieldKey]: value };
       await saveHomeSection({ [sectionKey]: list } as any);
     };
 
-  const addListItem = (sectionKey: "pillars" | "featureStrip", newItem: any) =>
+  const addListItem = (sectionKey: "pillars" | "featureStrip" | "partners", newItem: any) =>
     saveHomeSection({ [sectionKey]: [...(content[sectionKey] as any[]), newItem] } as any);
-  const removeListItem = (sectionKey: "pillars" | "featureStrip", index: number) =>
+  const removeListItem = (sectionKey: "pillars" | "featureStrip" | "partners", index: number) =>
     saveHomeSection({ [sectionKey]: (content[sectionKey] as any[]).filter((_, i) => i !== index) } as any);
 
   // Liste de chaînes simples imbriquée dans une section, ex. spotlight.bullets[1] / about.values[0]
@@ -781,24 +790,72 @@ const Index = () => {
       </section>
       */}
 
-      {/* PARTNERS LOGO MARQUEE */}
+      {/* PARTENAIRES & SPONSORS — logos gérés depuis l'éditeur visuel */}
       <section className="py-10 bg-[#0a0b0d] border-y border-white/5 overflow-hidden relative">
-        <div className="w-full relative">
-          <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
-          <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
-          
-          <div className="flex gap-20 w-max py-1 animate-marquee items-center">
-            {Array.from({ length: 3 }).map((_, outerIdx) => (
-              <div key={outerIdx} className="flex gap-20 items-center">
-                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">BGFIBank</span>
-                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">Airtel</span>
-                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">Moov Africa</span>
-                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">TotalEnergies</span>
-                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">Gabon Telecom</span>
-              </div>
-            ))}
+        {isEditMode ? (
+          <div className="container mx-auto px-4">
+            <div className="flex items-center gap-2 text-white/50 text-lvl-footer mb-5 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 w-fit">
+              <Info className="w-3.5 h-3.5 text-[#e3bd51] shrink-0" />
+              Logos partenaires &amp; sponsors, affichés en boucle sur l'accueil et le catalogue formations.
+            </div>
+            <div className="flex flex-wrap gap-4">
+              {content.partners.map((p, idx) => (
+                <div key={idx} className="group relative w-40 h-24 bg-white/5 border border-white/10 rounded-lg flex flex-col items-center justify-center gap-2 p-3">
+                  {content.partners.length > 1 && (
+                    <RemoveItemButton onClick={() => removeListItem("partners", idx)} label="Retirer ce partenaire" />
+                  )}
+                  <EditableImage
+                    src={p.logo_url || ""}
+                    alt={p.name || "Logo partenaire"}
+                    className="max-w-full max-h-12 object-contain"
+                    wrapperClassName={cn(
+                      "w-full h-12 flex items-center justify-center",
+                      !p.logo_url && "border border-dashed border-white/20 rounded"
+                    )}
+                    onSave={(url) => makeArrayItemFieldSaver("partners", idx, "logo_url")(url)}
+                  />
+                  <span className="text-white/60 text-lvl-footer font-semibold text-center w-full truncate">
+                    <EditableText value={p.name || ""} onSave={makeArrayItemFieldSaver("partners", idx, "name")} label="Nom du partenaire" />
+                  </span>
+                </div>
+              ))}
+              <AddCardButton
+                onClick={() => addListItem("partners", { name: "Nouveau partenaire", logo_url: "" })}
+                label="Ajouter"
+                className="w-40 h-24 min-h-0"
+              />
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="w-full relative">
+            <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
+            <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
+
+            <div className="flex gap-16 w-max py-1 animate-marquee items-center">
+              {Array.from({ length: 3 }).map((_, outerIdx) => (
+                <div key={outerIdx} className="flex gap-16 items-center shrink-0">
+                  {content.partners.map((p, idx) =>
+                    p.logo_url ? (
+                      <img
+                        key={idx}
+                        src={p.logo_url}
+                        alt={p.name || "Partenaire NFL Courtier & Service"}
+                        className="h-9 w-auto max-w-[140px] object-contain grayscale opacity-40 hover:grayscale-0 hover:opacity-90 transition-all shrink-0"
+                      />
+                    ) : (
+                      <span
+                        key={idx}
+                        className="text-white/20 hover:text-white/50 transition-colors text-lvl-subtitle tracking-[0.2em] uppercase font-bold shrink-0 whitespace-nowrap"
+                      >
+                        {p.name}
+                      </span>
+                    )
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       <Footer />

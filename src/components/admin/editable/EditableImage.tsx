@@ -27,7 +27,7 @@ export const EditableImage = ({ src, alt, onSave, className, wrapperClassName }:
   const inputId = `editable-image-${Math.random().toString(36).slice(2)}`;
 
   if (!isEditMode) {
-    return <img src={src} alt={alt} className={className} />;
+    return src ? <img src={src} alt={alt} className={className} /> : null;
   }
 
   const handleUpload = async (file: File) => {
@@ -47,17 +47,24 @@ export const EditableImage = ({ src, alt, onSave, className, wrapperClassName }:
 
   return (
     <div className={cn("relative group", wrapperClassName)}>
-      <img src={src} alt={alt} className={className} />
+      {src && <img src={src} alt={alt} className={className} />}
       <label
         htmlFor={inputId}
-        className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/0 group-hover:bg-black/60 opacity-0 group-hover:opacity-100 transition-all cursor-pointer text-white z-10"
+        className={cn(
+          "absolute inset-0 flex flex-col items-center justify-center gap-2 cursor-pointer text-white z-10 transition-all",
+          src
+            ? "bg-black/0 group-hover:bg-black/60 opacity-0 group-hover:opacity-100"
+            : "bg-transparent opacity-60 hover:opacity-100 text-white/70"
+        )}
       >
         {isUploading ? (
-          <Loader2 className="w-6 h-6 animate-spin" />
+          <Loader2 className={cn("animate-spin", src ? "w-6 h-6" : "w-4 h-4")} />
         ) : (
           <>
-            <ImagePlus className="w-6 h-6" />
-            <span className="text-lvl-footer font-bold uppercase tracking-wider">Changer l'image</span>
+            <ImagePlus className={src ? "w-6 h-6" : "w-4 h-4"} />
+            <span className="text-lvl-footer font-bold uppercase tracking-wider text-center px-1">
+              {src ? "Changer l'image" : "Ajouter"}
+            </span>
           </>
         )}
         <input

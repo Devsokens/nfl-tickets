@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Link, useNavigate } from "react-router-dom";
@@ -68,6 +68,19 @@ const CatalogueFormation = () => {
   const [override, setOverride] = useState<FormationsPageContent | null>(null);
   useEffect(() => setOverride(null), [homeContentRaw]);
   const content = override || merged;
+
+  // Logos partenaires & sponsors : gérés une seule fois depuis l'éditeur
+  // visuel (onglet Accueil), partagés ici en lecture seule.
+  const partnersList = homeContentRaw?.partners?.length
+    ? homeContentRaw.partners
+    : [
+        { name: "SMAG", logo_url: "" },
+        { name: "ODILLON", logo_url: "" },
+        { name: "OGOUUE LABS", logo_url: "" },
+        { name: "GMT", logo_url: "" },
+        { name: "CANAL BOX", logo_url: "" },
+        { name: "TRANSFO...", logo_url: "" },
+      ];
 
   const saveFormationsPageSection = async (patch: Partial<FormationsPageContent>) => {
     const next = { ...content, ...patch };
@@ -220,18 +233,26 @@ const CatalogueFormation = () => {
         </div>
       </section>
 
-      {/* 3. PARTNERS LOGO TICKER */}
+      {/* 3. PARTNERS LOGO TICKER — logos gérés depuis l'éditeur visuel (onglet Accueil) */}
       <section className="py-8 bg-[#dedcd7] text-black/70 border-t border-b border-black/10 overflow-hidden">
-        <div className="flex gap-16 items-center animate-marquee font-bold text-lvl-body tracking-widest text-black/60 uppercase">
+        <div className="flex gap-16 items-center animate-marquee">
           {[...Array(2)].map((_, i) => (
-            <React.Fragment key={i}>
-              <span className="shrink-0">SMAG</span>
-              <span className="shrink-0">ODILLON</span>
-              <span className="shrink-0">OGOUUE LABS</span>
-              <span className="shrink-0">GMT</span>
-              <span className="shrink-0">CANAL BOX</span>
-              <span className="shrink-0">TRANSFO...</span>
-            </React.Fragment>
+            <div key={i} className="flex gap-16 items-center shrink-0">
+              {partnersList.map((p, idx) =>
+                p.logo_url ? (
+                  <img
+                    key={idx}
+                    src={p.logo_url}
+                    alt={p.name || "Partenaire NFL Courtier & Service"}
+                    className="h-8 w-auto max-w-[130px] object-contain grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all shrink-0"
+                  />
+                ) : (
+                  <span key={idx} className="font-bold text-lvl-body tracking-widest text-black/60 uppercase shrink-0 whitespace-nowrap">
+                    {p.name}
+                  </span>
+                )
+              )}
+            </div>
           ))}
         </div>
       </section>

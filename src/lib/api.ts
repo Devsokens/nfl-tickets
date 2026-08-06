@@ -79,6 +79,8 @@ export interface HomeContent {
     images?: string[];
   };
   featureStrip?: { icon?: string; title?: string; subtitle?: string }[];
+  /** Logos partenaires & sponsors — marquee partagé (accueil, catalogue formations). */
+  partners?: { name?: string; logo_url?: string }[];
   pillars?: { icon?: string; title?: string; description?: string; ctaText?: string; link?: string }[];
   eventsSection?: { eyebrow?: string; title?: string; ctaText?: string; ctaLink?: string };
   spotlight?: {
