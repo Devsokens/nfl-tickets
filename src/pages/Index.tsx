@@ -390,37 +390,30 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Feature strip (Scrolling Marquee to optimize space) */}
-          <div className="border-t border-white/10 mt-10 lg:mt-14 pt-8 overflow-hidden relative w-full pointer-events-auto">
-            {/* Subtle edge fade overlays for smooth scrolling transition */}
-            <div className="absolute top-0 bottom-0 left-0 w-12 bg-gradient-to-r from-[#0c0d0f] to-transparent z-10 pointer-events-none" />
-            <div className="absolute top-0 bottom-0 right-0 w-12 bg-gradient-to-l from-[#0c0d0f] to-transparent z-10 pointer-events-none" />
-
-            <div className={`flex gap-12 w-max py-2 ${isEditMode ? "" : "animate-marquee"}`}>
-              {(isEditMode ? content.featureStrip : Array.from({ length: 4 }, () => content.featureStrip).flat()).map(({ icon, title, subtitle }, idx) => {
-                const realIdx = idx % content.featureStrip.length;
-                return (
-                  <div key={idx} className="group relative flex items-center gap-4 shrink-0 pr-4">
-                    {isEditMode && content.featureStrip.length > 1 && (
-                      <RemoveItemButton onClick={() => removeListItem("featureStrip", realIdx)} label="Retirer cet item" />
-                    )}
-                    <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
-                      <EditableIcon value={icon} onSave={makeArrayItemFieldSaver("featureStrip", realIdx, "icon")} className="w-4.5 h-4.5 text-gold" />
-                    </div>
-                    <div>
-                      <p className="text-white font-bold text-lvl-footer whitespace-nowrap">
-                        <EditableText value={title || ""} onSave={makeArrayItemFieldSaver("featureStrip", realIdx, "title")} label="Titre" />
-                      </p>
-                      <p className="text-white/50 text-lvl-footer whitespace-nowrap">
-                        <EditableText value={subtitle || ""} onSave={makeArrayItemFieldSaver("featureStrip", realIdx, "subtitle")} label="Sous-titre" />
-                      </p>
-                    </div>
+          {/* Feature strip (Static centered on Desktop) */}
+          <div className="border-t border-white/10 mt-10 lg:mt-14 pt-8 w-full pointer-events-auto">
+            <div className="flex flex-wrap justify-center lg:justify-between gap-8 lg:gap-12 py-2">
+              {content.featureStrip.map(({ icon, title, subtitle }, idx) => (
+                <div key={idx} className="group relative flex items-center gap-4 shrink-0">
+                  {isEditMode && content.featureStrip.length > 1 && (
+                    <RemoveItemButton onClick={() => removeListItem("featureStrip", idx)} label="Retirer cet item" />
+                  )}
+                  <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
+                    <EditableIcon value={icon} onSave={makeArrayItemFieldSaver("featureStrip", idx, "icon")} className="w-4.5 h-4.5 text-gold" />
                   </div>
-                );
-              })}
+                  <div>
+                    <p className="text-white font-bold text-lvl-footer whitespace-nowrap">
+                      <EditableText value={title || ""} onSave={makeArrayItemFieldSaver("featureStrip", idx, "title")} label="Titre" />
+                    </p>
+                    <p className="text-white/50 text-lvl-footer whitespace-nowrap">
+                      <EditableText value={subtitle || ""} onSave={makeArrayItemFieldSaver("featureStrip", idx, "subtitle")} label="Sous-titre" />
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
             {isEditMode && (
-              <div className="flex items-center pt-4 justify-center">
+              <div className="flex items-center pt-8 justify-center w-full">
                 <button
                   onClick={() => addListItem("featureStrip", { icon: "Star", title: "Nouvel item", subtitle: "Sous-titre" })}
                   className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-wider hover:text-[#d4af37] transition-colors"
@@ -840,12 +833,12 @@ const Index = () => {
                         key={idx}
                         src={p.logo_url}
                         alt={p.name || "Partenaire NFL Courtier & Service"}
-                        className="h-9 w-auto max-w-[140px] object-contain grayscale opacity-40 hover:grayscale-0 hover:opacity-90 transition-all shrink-0"
+                        className="h-16 sm:h-20 w-auto max-w-[180px] sm:max-w-[240px] object-contain opacity-90 hover:opacity-100 transition-all shrink-0"
                       />
                     ) : (
                       <span
                         key={idx}
-                        className="text-white/20 hover:text-white/50 transition-colors text-lvl-subtitle tracking-[0.2em] uppercase font-bold shrink-0 whitespace-nowrap"
+                        className="text-white/40 hover:text-white/70 transition-colors text-lvl-subtitle tracking-[0.2em] uppercase font-bold shrink-0 whitespace-nowrap"
                       >
                         {p.name}
                       </span>
