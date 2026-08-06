@@ -346,7 +346,7 @@ const Catalog = () => {
                         <span className="text-[#c29c38] text-[11px] sm:text-xs font-bold uppercase tracking-wider block">
                           {formatEventDate(ev.date)}
                         </span>
-                        <h3 className="font-sans text-sm sm:text-xl font-bold text-[#1c1c1c] leading-snug line-clamp-2">
+                        <h3 className="font-display text-xl sm:text-2xl font-bold text-[#1c1c1c] leading-tight line-clamp-2 group-hover:text-[#c29c38] transition-colors">
                           {ev.title}
                         </h3>
                         <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-black/60 font-medium pt-0.5 sm:pt-1">
