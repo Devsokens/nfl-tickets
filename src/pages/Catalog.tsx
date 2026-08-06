@@ -379,15 +379,19 @@ const Catalog = () => {
                     className="bg-white text-black rounded-none overflow-hidden border border-black/10 flex flex-col justify-between shadow-sm group"
                   >
                     <div>
-                      <div className="relative h-36 sm:h-56 overflow-hidden bg-black/5">
+                      <Link
+                        to={`/event/${ev.slug || ev.id}`}
+                        onClick={isEditMode ? (e) => e.preventDefault() : undefined}
+                        className="relative h-36 sm:h-56 overflow-hidden bg-black/5 block group/img"
+                      >
                         {(ev.image_url || ev.image) && (
                           <img
                             src={ev.image_url || ev.image}
                             alt={ev.title}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105 group-hover:scale-105"
                           />
                         )}
-                      </div>
+                      </Link>
 
                       <div className="p-3 sm:p-6 space-y-1.5 sm:space-y-2">
                         <span className="text-[#c29c38] text-lvl-footer font-bold uppercase tracking-wider block">
