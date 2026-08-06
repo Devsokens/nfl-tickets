@@ -10,8 +10,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useIsEditMode } from "@/lib/EditModeContext";
 import { EditableText } from "@/components/admin/editable/EditableText";
 import { AddInlineButton } from "@/components/admin/editable/EditableListControls";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -54,7 +59,7 @@ function formatEventDate(dateStr: string) {
 
 const Catalog = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [dateFilter, setDateFilter] = useState<Date | undefined>();
+  const [monthFilter, setMonthFilter] = useState<string>("all");
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [isSubscribing, setIsSubscribing] = useState(false);
   const navigate = useNavigate();
@@ -119,6 +124,17 @@ const Catalog = () => {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   const nextEvent = upcomingEvents[0];
 
+  const availableMonths = useMemo(() => {
+    const months = new Set<string>();
+    allEvents.forEach((e) => {
+      const d = new Date(e.date);
+      if (!isNaN(d.getTime())) {
+        months.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+      }
+    });
+    return Array.from(months).sort();
+  }, [allEvents]);
+
   const filteredEvents = useMemo(() => {
     return allEvents
       .filter((e) =>
@@ -126,15 +142,13 @@ const Catalog = () => {
         e.location.toLowerCase().includes(searchQuery.toLowerCase())
       )
       .filter((e) => {
-        if (!dateFilter) return true;
+        if (!monthFilter || monthFilter === "all") return true;
         const eDate = new Date(e.date);
-        return (
-          eDate.getMonth() === dateFilter.getMonth() &&
-          eDate.getFullYear() === dateFilter.getFullYear()
-        );
+        const eStr = `${eDate.getFullYear()}-${String(eDate.getMonth() + 1).padStart(2, '0')}`;
+        return eStr === monthFilter;
       })
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [allEvents, searchQuery, dateFilter]);
+  }, [allEvents, searchQuery, monthFilter]);
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -325,27 +339,26 @@ const Catalog = () => {
                 />
               </div>
 
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button className={`bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider px-3 sm:px-6 py-2.5 sm:py-3 rounded-none flex items-center gap-1 sm:gap-2 transition-colors shrink-0 justify-center whitespace-nowrap ${dateFilter ? "ring-2 ring-black" : ""}`}>
-                    {dateFilter ? format(dateFilter, "MMMM yyyy", { locale: fr }).toUpperCase() : "TRIER PAR MOIS"} <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <CalendarComponent
-                    mode="single"
-                    selected={dateFilter}
-                    onSelect={setDateFilter}
-                    initialFocus
-                    locale={fr}
-                  />
-                  {dateFilter && (
-                    <button onClick={() => setDateFilter(undefined)} className="w-full p-2 text-xs text-center border-t text-muted-foreground hover:text-foreground transition-colors uppercase font-bold">
-                      Réinitialiser la date
-                    </button>
-                  )}
-                </PopoverContent>
-              </Popover>
+              <Select value={monthFilter} onValueChange={setMonthFilter}>
+                <SelectTrigger className="w-auto min-w-[180px] bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider px-3 sm:px-4 py-2.5 sm:py-3 rounded-none flex items-center justify-between gap-1 sm:gap-2 transition-colors shrink-0 border-none ring-0 focus:ring-0 focus:ring-offset-0">
+                  <SelectValue placeholder="TRIER PAR MOIS" />
+                </SelectTrigger>
+                <SelectContent className="bg-white text-black border-black/10 rounded-none shadow-xl">
+                  <SelectItem value="all" className="uppercase text-xs font-bold focus:bg-black/5 cursor-pointer rounded-none">
+                    TOUS LES MOIS
+                  </SelectItem>
+                  {availableMonths.map((m) => {
+                    const [y, mo] = m.split("-");
+                    const dateObj = new Date(parseInt(y), parseInt(mo) - 1, 1);
+                    const label = format(dateObj, "MMMM yyyy", { locale: fr }).toUpperCase();
+                    return (
+                      <SelectItem key={m} value={m} className="uppercase text-xs font-bold focus:bg-black/5 cursor-pointer rounded-none">
+                        {label}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
             </div>
 
             {isEditMode && (
