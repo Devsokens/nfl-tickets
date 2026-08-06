@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Variables d'environnement (jamais commitées, même si la valeur actuelle
+# n'est que la clé publique Supabase — bonne hygiène pour la suite).
+.env
+.env.local
+.env.*.local
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -150,8 +150,19 @@ const FormationDetail = () => {
       
       <Navbar />
 
-      {/* 1. HERO SECTION (Dark luxury theme with rhombus wireframe) */}
+      {/* 1. HERO SECTION (image de la formation en arrière-plan + dégradé noir) */}
       <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 bg-[#0a0b0d] overflow-hidden border-b border-white/10">
+        {formation.image_url && (
+          <>
+            <img
+              src={formation.image_url}
+              alt={formation.title}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0b0d] via-[#0a0b0d]/85 to-[#0a0b0d]/50" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0a0b0d]/70 via-transparent to-transparent" />
+          </>
+        )}
         {/* Diamond Geometric Wireframe Overlay */}
         <div className="absolute top-16 right-8 md:right-24 w-64 h-64 md:w-96 md:h-96 border border-white/10 rotate-45 pointer-events-none hidden sm:block opacity-40" />
         <div className="absolute top-24 right-16 md:right-32 w-48 h-48 md:w-72 md:h-72 border border-[#e3bd51]/20 rotate-45 pointer-events-none hidden sm:block opacity-30" />

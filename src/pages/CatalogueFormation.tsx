@@ -5,10 +5,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Download, CheckCircle2, Loader2, GraduationCap } from "lucide-react";
-import { FormationsAPI, HomeContentAPI, type Formation, type HomeContent } from "@/lib/api";
+import { FormationsAPI, HomeContentAPI, SiteSettingsAPI, type Formation, type HomeContent } from "@/lib/api";
 import { useIsEditMode } from "@/lib/EditModeContext";
 import { EditableText } from "@/components/admin/editable/EditableText";
 import { EditableImage } from "@/components/admin/editable/EditableImage";
+import { generateFormationsCatalogPdf } from "@/lib/formationsPdf";
+import { useToast } from "@/hooks/use-toast";
 
 import nflImg5 from "@/assets/nfl img 5.jpeg";
 
@@ -27,11 +29,34 @@ const CatalogueFormation = () => {
   const navigate = useNavigate();
   const isEditMode = useIsEditMode();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const { data: formations = [], isLoading } = useQuery<Formation[]>({
     queryKey: ["formations"],
     queryFn: () => FormationsAPI.getAll(false),
   });
+
+  const { data: siteSettings } = useQuery({
+    queryKey: ["siteSettings"],
+    queryFn: SiteSettingsAPI.get,
+  });
+
+  const handleDownloadCatalog = async () => {
+    if (isGeneratingPdf || formations.length === 0) return;
+    setIsGeneratingPdf(true);
+    try {
+      await generateFormationsCatalogPdf(formations, siteSettings);
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de générer le catalogue PDF pour le moment.",
+      });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
   const { data: homeContentRaw } = useQuery<HomeContent>({
     queryKey: ["homeContent"],
@@ -110,10 +135,19 @@ const CatalogueFormation = () => {
               </p>
             </div>
             <button
-              onClick={() => alert("Téléchargement du catalogue PDF en cours...")}
-              className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider px-6 py-3.5 rounded-none flex items-center justify-center gap-2 transition-colors shadow-md shrink-0 w-fit"
+              onClick={handleDownloadCatalog}
+              disabled={isGeneratingPdf || formations.length === 0}
+              className="bg-[#e3bd51] hover:bg-[#d4af37] disabled:opacity-60 disabled:cursor-not-allowed text-black font-bold text-lvl-footer uppercase tracking-wider px-6 py-3.5 rounded-none flex items-center justify-center gap-2 transition-colors shadow-md shrink-0 w-fit"
             >
-              <Download className="w-4 h-4" /> TÉLÉCHARGER PDF
+              {isGeneratingPdf ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> GÉNÉRATION...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" /> TÉLÉCHARGER PDF
+                </>
+              )}
             </button>
           </div>
 
