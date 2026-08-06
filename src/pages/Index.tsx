@@ -423,6 +423,26 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* PARTNERS LOGO MARQUEE */}
+      <section className="py-10 bg-[#0a0b0d] border-y border-white/5 overflow-hidden relative">
+        <div className="w-full relative">
+          <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
+          <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
+          
+          <div className="flex gap-20 w-max py-1 animate-marquee items-center">
+            {Array.from({ length: 3 }).map((_, outerIdx) => (
+              <div key={outerIdx} className="flex gap-20 items-center">
+                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">BGFIBank</span>
+                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">Airtel</span>
+                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">Moov Africa</span>
+                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">TotalEnergies</span>
+                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">Gabon Telecom</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
  
       {/* 2. NOS PILIERS D'ACCOMPAGNEMENT */}
       <section className="section-y bg-[#E5E2E1]">

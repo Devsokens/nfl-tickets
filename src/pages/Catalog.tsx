@@ -115,10 +115,12 @@ const Catalog = () => {
   const nextEvent = upcomingEvents[0];
 
   const filteredEvents = useMemo(() => {
-    return allEvents.filter((e) =>
-      e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      e.location.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    return allEvents
+      .filter((e) =>
+        e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        e.location.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [allEvents, searchQuery]);
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
@@ -129,8 +131,9 @@ const Catalog = () => {
       const res = await NewsletterAPI.subscribe(newsletterEmail);
       toast({ title: "Inscription réussie", description: res.message || "Vous êtes bien inscrit à la newsletter." });
       setNewsletterEmail("");
-    } catch (err: any) {
-      toast({ variant: "destructive", title: "Erreur", description: err.response?.data?.message || "Une erreur est survenue." });
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Une erreur est survenue.";
+      toast({ variant: "destructive", title: "Erreur", description: (err as { response?: { data?: { message?: string } } }).response?.data?.message || errorMsg });
     } finally {
       setIsSubscribing(false);
     }
