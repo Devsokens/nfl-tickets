@@ -503,7 +503,26 @@ const EventDetail = () => {
         </div>
       </section>
 
-      {/* 7. RÉSERVEZ VOTRE PLACE (BOOKING SECTION) */}
+      {/* 7. SPONSORS (bandeau défilant, valeurs de la marque) */}
+      <section className="py-8 bg-black text-center border-y border-white/10 overflow-hidden">
+        <span className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-[0.3em] block mb-4">
+          Sponsors
+        </span>
+        <div className="relative w-full overflow-hidden">
+          <div className="absolute top-0 bottom-0 left-0 w-16 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
+          <div className="absolute top-0 bottom-0 right-0 w-16 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
+          <div className="flex animate-marquee gap-10 items-center w-max">
+            {Array.from({ length: 3 }, () => ["L'EXCELLENCE", "LA RIGUEUR", "LE PRESTIGE", "LA STRATÉGIE", "LA CONFIANCE"]).flat().map((word, idx) => (
+              <span key={idx} className="flex items-center gap-10 shrink-0">
+                <span className="text-white/50 text-lvl-body font-bold uppercase tracking-wider whitespace-nowrap">{word}</span>
+                <span className="text-[#e3bd51]">✦</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 8. RÉSERVEZ VOTRE PLACE (BOOKING SECTION) */}
       <section id="booking-form" className="section-y bg-[#0c0d0f] text-white">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid lg:grid-cols-12 gap-12 items-start">
