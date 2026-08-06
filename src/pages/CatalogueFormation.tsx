@@ -187,16 +187,18 @@ const CatalogueFormation = () => {
       </section>
 
       {/* 3. PARTNERS LOGO TICKER */}
-      <section className="py-8 bg-[#dedcd7] text-black/70 border-t border-b border-black/10">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="flex flex-wrap items-center justify-between gap-8 text-center font-bold text-lvl-body tracking-widest text-black/60 uppercase">
-            <span>SMAG</span>
-            <span>ODILLON</span>
-            <span>OGOUUE LABS</span>
-            <span>GMT</span>
-            <span>CANAL BOX</span>
-            <span>TRANSFO...</span>
-          </div>
+      <section className="py-8 bg-[#dedcd7] text-black/70 border-t border-b border-black/10 overflow-hidden">
+        <div className="flex gap-16 items-center animate-marquee font-bold text-lvl-body tracking-widest text-black/60 uppercase">
+          {[...Array(2)].map((_, i) => (
+            <React.Fragment key={i}>
+              <span className="shrink-0">SMAG</span>
+              <span className="shrink-0">ODILLON</span>
+              <span className="shrink-0">OGOUUE LABS</span>
+              <span className="shrink-0">GMT</span>
+              <span className="shrink-0">CANAL BOX</span>
+              <span className="shrink-0">TRANSFO...</span>
+            </React.Fragment>
+          ))}
         </div>
       </section>
 
