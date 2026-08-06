@@ -12,6 +12,7 @@ const PAGE_W = 210; // A4 mm
 const PAGE_H = 297;
 const MARGIN = 18;
 
+// Pour les logos/petits éléments : dataURL brute, résolution source intacte.
 async function urlToImageData(url: string): Promise<{ dataUrl: string; format: "PNG" | "JPEG" } | null> {
   try {
     const res = await fetch(url, { mode: "cors" });
@@ -27,6 +28,61 @@ async function urlToImageData(url: string): Promise<{ dataUrl: string; format: "
     return { dataUrl, format };
   } catch {
     return null;
+  }
+}
+
+function loadHtmlImage(dataUrl: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+
+// Photo de formation : recadrage "cover" (comme object-fit: cover en CSS) sur
+// un canvas haute résolution, pour remplir la bande sans déformer l'image ni
+// perdre en netteté — au lieu d'étirer la source brute dans jsPDF.
+async function loadCoverCroppedImage(
+  url: string,
+  targetAspect: number
+): Promise<{ dataUrl: string; format: "JPEG" | "PNG" } | null> {
+  const raw = await urlToImageData(url);
+  if (!raw) return null;
+  try {
+    const img = await loadHtmlImage(raw.dataUrl);
+    const srcAspect = img.naturalWidth / img.naturalHeight;
+
+    let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
+    if (srcAspect > targetAspect) {
+      // Source plus large que la cible : on rogne les côtés.
+      sw = img.naturalHeight * targetAspect;
+      sx = (img.naturalWidth - sw) / 2;
+    } else {
+      // Source plus haute que la cible : on rogne haut/bas.
+      sh = img.naturalWidth / targetAspect;
+      sy = (img.naturalHeight - sh) / 2;
+    }
+
+    // Résolution de sortie plafonnée pour rester net à l'impression (~300dpi
+    // sur la largeur A4) sans gonfler inutilement le poids du PDF.
+    const outW = Math.min(2400, Math.round(sw));
+    const outH = Math.round(outW / targetAspect);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = outW;
+    canvas.height = outH;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return raw;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, outW, outH);
+
+    return { dataUrl: canvas.toDataURL("image/jpeg", 0.93), format: "JPEG" };
+  } catch {
+    // Recadrage impossible (image corrompue, CORS canvas taint...) : on
+    // retombe sur la donnée brute plutôt que de perdre l'image entièrement.
+    return raw;
   }
 }
 
@@ -52,9 +108,13 @@ export async function generateFormationsCatalogPdf(
   siteSettings?: SiteSettings
 ): Promise<void> {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const IMG_BAND_H = 68; // mm — hauteur de la bande photo en haut de chaque fiche
+  const bandAspect = PAGE_W / IMG_BAND_H;
 
   const [images, logo] = await Promise.all([
-    Promise.all(formations.map((f) => (f.image_url ? urlToImageData(f.image_url) : Promise.resolve(null)))),
+    Promise.all(
+      formations.map((f) => (f.image_url ? loadCoverCroppedImage(f.image_url, bandAspect) : Promise.resolve(null)))
+    ),
     urlToImageData("/assets/Logo_NFL_fond_marron__écrits_jaune_-removebg-preview.png"),
   ]);
 
@@ -106,11 +166,12 @@ export async function generateFormationsCatalogPdf(
     let cursorY: number;
 
     if (img) {
-      const imgH = 68;
-      doc.addImage(img.dataUrl, img.format, 0, 0, PAGE_W, imgH, undefined, "FAST");
+      // Image déjà recadrée en amont ("cover") au bon ratio : rendu net,
+      // sans déformation, quel que soit le format source.
+      doc.addImage(img.dataUrl, img.format, 0, 0, PAGE_W, IMG_BAND_H, undefined, "NONE");
       doc.setFillColor(...GOLD);
-      doc.rect(0, imgH, PAGE_W, 1.2, "F");
-      cursorY = imgH + 16;
+      doc.rect(0, IMG_BAND_H, PAGE_W, 1.2, "F");
+      cursorY = IMG_BAND_H + 16;
     } else {
       doc.setFillColor(...INK);
       doc.rect(0, 0, PAGE_W, 26, "F");
