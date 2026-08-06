@@ -49,7 +49,7 @@ const Navbar = () => {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: (err as any).response?.data?.message || errorMsg,
+        description: (err as { response?: { data?: { message?: string } } }).response?.data?.message || errorMsg,
       });
     } finally {
       setIsLoading(false);
