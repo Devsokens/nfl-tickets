@@ -57,7 +57,7 @@ const Navbar = () => {
   };
 
   const navLinkClass = (active: boolean) =>
-    `text-xs font-bold uppercase tracking-wider transition-all duration-200 pb-1 border-b-2 ${
+    `text-lvl-footer font-bold uppercase tracking-wider transition-all duration-200 pb-1 border-b-2 ${
       active
         ? "text-[#e3bd51] border-[#e3bd51]"
         : "text-white/80 border-transparent hover:text-[#e3bd51]"
@@ -135,7 +135,7 @@ const Navbar = () => {
               <Button
                 variant="gold"
                 size="sm"
-                className={`px-6 text-xs font-bold uppercase tracking-widest bg-[#e3bd51] hover:bg-[#d4af37] text-black transition-all ${
+                className={`px-6 text-lvl-footer font-bold uppercase tracking-widest bg-[#e3bd51] hover:bg-[#d4af37] text-black transition-all ${
                   isScrolled ? "rounded-full py-2" : "rounded-none py-2.5"
                 }`}
                 asChild
@@ -156,18 +156,18 @@ const Navbar = () => {
                     <SheetDescription className="sr-only text-left">Menu de navigation mobile pour NFL Courtier & Service</SheetDescription>
                   </SheetHeader>
 
-                  <Link to="/" onClick={guardNav(() => window.scrollTo({ top: 0, behavior: "smooth" }))} className="text-lg font-bold uppercase tracking-wide text-white hover:text-[#e3bd51] transition-colors">Accueil</Link>
-                  <Link to="/events" onClick={guardNav()} className="text-lg font-bold uppercase tracking-wide text-white hover:text-[#e3bd51] transition-colors">Événements</Link>
-                  <Link to="/catalogue-formations" onClick={guardNav()} className="text-lg font-bold uppercase tracking-wide text-white hover:text-[#e3bd51] transition-colors">Catalogue Formation</Link>
-                  <Link to="/contact" onClick={guardNav()} className="text-lg font-bold uppercase tracking-wide text-white hover:text-[#e3bd51] transition-colors">Contact</Link>
+                  <Link to="/" onClick={guardNav(() => window.scrollTo({ top: 0, behavior: "smooth" }))} className="text-lvl-subtitle font-bold uppercase tracking-wide text-white hover:text-[#e3bd51] transition-colors">Accueil</Link>
+                  <Link to="/events" onClick={guardNav()} className="text-lvl-subtitle font-bold uppercase tracking-wide text-white hover:text-[#e3bd51] transition-colors">Événements</Link>
+                  <Link to="/catalogue-formations" onClick={guardNav()} className="text-lvl-subtitle font-bold uppercase tracking-wide text-white hover:text-[#e3bd51] transition-colors">Catalogue Formation</Link>
+                  <Link to="/contact" onClick={guardNav()} className="text-lvl-subtitle font-bold uppercase tracking-wide text-white hover:text-[#e3bd51] transition-colors">Contact</Link>
 
                   <Button variant="gold" className="w-full mt-2 bg-[#e3bd51] text-black rounded-none" asChild>
                     <Link to="/events" onClick={guardNav()}>RÉSERVER</Link>
                   </Button>
 
                   <div className="mt-8 pt-8 border-t border-white/10 space-y-4">
-                    <h4 className="text-sm font-semibold uppercase tracking-wider text-[#e3bd51]">Restez informés</h4>
-                    <p className="text-sm text-white/70">Recevez nos invitations directement par email.</p>
+                    <h4 className="text-lvl-footer font-semibold uppercase tracking-wider text-[#e3bd51]">Restez informés</h4>
+                    <p className="text-lvl-footer text-white/70">Recevez nos invitations directement par email.</p>
                     <form className="flex flex-col gap-2" onSubmit={handleNewsletter}>
                       <input
                         type="email"
@@ -175,7 +175,7 @@ const Navbar = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="bg-white/10 text-white placeholder:text-white/50 border border-white/20 rounded-none px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#e3bd51]/50"
+                        className="bg-white/10 text-white placeholder:text-white/50 border border-white/20 rounded-none px-4 py-3 text-lvl-footer focus:outline-none focus:ring-2 focus:ring-[#e3bd51]/50"
                       />
                       <Button variant="gold" className="w-full bg-[#e3bd51] text-black rounded-none" disabled={isLoading}>
                         {isLoading ? "En cours..." : "S'abonner"}

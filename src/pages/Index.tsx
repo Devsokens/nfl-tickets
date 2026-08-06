@@ -272,21 +272,21 @@ const Index = () => {
       <Navbar />
 
       {/* 1. HERO SECTION */}
-      <section className="relative overflow-hidden bg-[#0c0705] pt-32 pb-16 lg:pt-40 lg:pb-20">
+      <section className="relative overflow-hidden bg-[#0c0705] pt-24 pb-14 lg:pt-32 lg:pb-16">
         {/* Rich gold lighting gradients */}
         <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gold/10 rounded-full blur-[120px] pointer-events-none -translate-x-1/2 -translate-y-1/2" />
         <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-[#32140c]/40 rounded-full blur-[150px] pointer-events-none translate-x-1/3 translate-y-1/3" />
 
         <div className="relative z-10 container mx-auto px-4">
-          <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
 
             {/* Column Left: Headline & CTAs */}
-            <div className="lg:col-span-6 space-y-6 text-left">
-              <div className="inline-flex px-4 py-1.5 border border-gold/40 rounded-full text-[11px] font-bold uppercase tracking-[0.2em] text-gold">
+            <div className="lg:col-span-6 space-y-5 text-left">
+              <div className="inline-flex px-4 py-1.5 border border-gold/40 rounded-full text-lvl-footer font-bold uppercase tracking-[0.2em] text-gold">
                 <EditableText value={content.hero.badge || ""} onSave={makeFieldSaver("hero", "badge")} label="Badge du hero" />
               </div>
 
-              <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold leading-[1.15] tracking-tight text-balance">
+              <h1 className="text-lvl-hero text-balance">
                 <span className="block text-white">
                   <EditableText value={content.hero.titleLine1 || ""} onSave={makeFieldSaver("hero", "titleLine1")} label="Titre — ligne 1" multiline />
                 </span>
@@ -295,12 +295,12 @@ const Index = () => {
                 </span>
               </h1>
 
-              <p className="text-white/70 text-base md:text-lg max-w-xl font-light leading-relaxed">
+              <p className="text-white/70 text-lvl-body max-w-xl font-light">
                 <EditableText value={content.hero.subtitle || ""} onSave={makeFieldSaver("hero", "subtitle")} label="Sous-titre" multiline as="div" />
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                <Button variant="gold" size="lg" className="uppercase text-xs font-bold tracking-widest px-8" asChild={!isEditMode}>
+              <div className="flex flex-col sm:flex-row gap-4 pt-1">
+                <Button variant="gold" size="lg" className="uppercase text-lvl-footer font-bold tracking-widest px-8" asChild={!isEditMode}>
                   {isEditMode ? (
                     <EditableText value={content.hero.ctaPrimaryText || ""} onSave={makeFieldSaver("hero", "ctaPrimaryText")} label="Texte du bouton principal" />
                   ) : (
@@ -310,7 +310,7 @@ const Index = () => {
                 <Button
                   variant="gold-outline"
                   size="lg"
-                  className="uppercase text-xs font-bold tracking-widest px-8"
+                  className="uppercase text-lvl-footer font-bold tracking-widest px-8"
                   onClick={isEditMode ? undefined : () => {
                     const link = content.hero.ctaSecondaryLink || "#evenements";
                     if (isAnchor(link)) document.getElementById(link.slice(1))?.scrollIntoView({ behavior: "smooth" });
@@ -370,10 +370,10 @@ const Index = () => {
                   <ShieldCheck className="w-5 h-5 text-gold" />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-widest text-white/50 font-bold">
+                  <p className="text-lvl-footer uppercase tracking-widest text-white/50 font-bold">
                     <EditableText value={content.hero.badgeCardTitle || ""} onSave={makeFieldSaver("hero", "badgeCardTitle")} label="Encart — titre" />
                   </p>
-                  <p className="text-white font-semibold text-sm">
+                  <p className="text-white font-semibold text-lvl-body">
                     <EditableText value={content.hero.badgeCardSubtitle || ""} onSave={makeFieldSaver("hero", "badgeCardSubtitle")} label="Encart — sous-titre" />
                   </p>
                 </div>
@@ -382,7 +382,7 @@ const Index = () => {
           </div>
 
           {/* Feature strip (Scrolling Marquee to optimize space) */}
-          <div className="border-t border-white/10 mt-16 lg:mt-20 pt-10 overflow-hidden relative w-full pointer-events-auto">
+          <div className="border-t border-white/10 mt-10 lg:mt-14 pt-8 overflow-hidden relative w-full pointer-events-auto">
             {/* Subtle edge fade overlays for smooth scrolling transition */}
             <div className="absolute top-0 bottom-0 left-0 w-12 bg-gradient-to-r from-[#0c0d0f] to-transparent z-10 pointer-events-none" />
             <div className="absolute top-0 bottom-0 right-0 w-12 bg-gradient-to-l from-[#0c0d0f] to-transparent z-10 pointer-events-none" />
@@ -399,10 +399,10 @@ const Index = () => {
                       <EditableIcon value={icon} onSave={makeArrayItemFieldSaver("featureStrip", realIdx, "icon")} className="w-4.5 h-4.5 text-gold" />
                     </div>
                     <div>
-                      <p className="text-white font-bold text-xs sm:text-sm whitespace-nowrap">
+                      <p className="text-white font-bold text-lvl-footer whitespace-nowrap">
                         <EditableText value={title || ""} onSave={makeArrayItemFieldSaver("featureStrip", realIdx, "title")} label="Titre" />
                       </p>
-                      <p className="text-white/50 text-[10px] sm:text-xs whitespace-nowrap">
+                      <p className="text-white/50 text-lvl-footer whitespace-nowrap">
                         <EditableText value={subtitle || ""} onSave={makeArrayItemFieldSaver("featureStrip", realIdx, "subtitle")} label="Sous-titre" />
                       </p>
                     </div>
@@ -414,7 +414,7 @@ const Index = () => {
               <div className="flex items-center pt-4 justify-center">
                 <button
                   onClick={() => addListItem("featureStrip", { icon: "Star", title: "Nouvel item", subtitle: "Sous-titre" })}
-                  className="text-[#e3bd51] text-xs font-bold uppercase tracking-wider hover:text-[#d4af37] transition-colors"
+                  className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-wider hover:text-[#d4af37] transition-colors"
                 >
                   + Ajouter un item
                 </button>
@@ -425,16 +425,16 @@ const Index = () => {
       </section>
  
       {/* 2. NOS PILIERS D'ACCOMPAGNEMENT */}
-      <section className="py-20 md:py-28 bg-[#E5E2E1]">
+      <section className="section-y bg-[#E5E2E1]">
         <div className="container mx-auto px-4">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-gold-dark text-xs font-bold uppercase tracking-[0.2em]">Expertise</span>
-            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mt-3">
+          <div className="text-center max-w-2xl mx-auto mb-10 md:mb-14">
+            <span className="text-gold-dark text-lvl-footer font-bold uppercase tracking-[0.2em]">Expertise</span>
+            <h2 className="text-lvl-title text-foreground mt-3">
               Nos Piliers d'Accompagnement
             </h2>
             <div className="w-16 h-[3px] gradient-gold mx-auto mt-5 rounded-full" />
           </div>
- 
+
           {/* Stacked on Mobile & Grid on Desktop */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {content.pillars.map((pillar, idx) => {
@@ -449,30 +449,30 @@ const Index = () => {
                   )}
                   <div>
                     <EditableIcon value={pillar.icon} onSave={makeArrayItemFieldSaver("pillars", idx, "icon")} className="w-4 h-4 sm:w-8 sm:h-8 text-gold-dark mb-1 sm:mb-5 shrink-0" />
-                    <h3 className="font-display text-lg sm:text-2xl font-bold text-[#1c1c1c] mb-1 sm:mb-3 leading-tight">
+                    <h3 className="text-lvl-subtitle text-[#1c1c1c] mb-1 sm:mb-3">
                       <EditableText value={pillar.title || ""} onSave={makeArrayItemFieldSaver("pillars", idx, "title")} label="Titre" />
                     </h3>
-                    <p className="text-[#555] text-sm sm:text-[15px] leading-relaxed mb-2 sm:mb-6 font-sans font-normal">
+                    <p className="text-[#555] text-lvl-body mb-2 sm:mb-6 font-normal">
                       <EditableText value={pillar.description || ""} onSave={makeArrayItemFieldSaver("pillars", idx, "description")} label="Description" multiline as="div" />
                     </p>
                   </div>
                   {isEditMode ? (
-                    <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-gold-dark inline-flex items-center gap-2 mt-auto pt-1">
+                    <span className="text-lvl-footer font-bold uppercase tracking-wider text-gold-dark inline-flex items-center gap-2 mt-auto pt-1">
                       <EditableText value={pillar.ctaText || ""} onSave={makeArrayItemFieldSaver("pillars", idx, "ctaText")} label="Texte du bouton" /> <ArrowRight className="w-3.5 h-3.5 shrink-0" />
                     </span>
                   ) : !isAnchor(link) ? (
                     <Link
                       to={link}
-                      className="text-[8px] sm:text-xs font-bold uppercase tracking-tighter sm:tracking-wider text-gold-dark hover:text-gold inline-flex items-center gap-0.5 sm:gap-2 transition-colors mt-auto pt-1"
+                      className="text-lvl-footer font-bold uppercase tracking-wider text-gold-dark hover:text-gold inline-flex items-center gap-2 transition-colors mt-auto pt-1"
                     >
-                      <span>{pillar.ctaText}</span> <ArrowRight className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 shrink-0" />
+                      <span>{pillar.ctaText}</span> <ArrowRight className="w-3.5 h-3.5 shrink-0" />
                     </Link>
                   ) : (
                     <button
                       onClick={() => document.getElementById(link.slice(1))?.scrollIntoView({ behavior: "smooth" })}
-                      className="text-[8px] sm:text-xs font-bold uppercase tracking-tighter sm:tracking-wider text-gold-dark hover:text-gold inline-flex items-center gap-0.5 sm:gap-2 transition-colors w-fit text-left mt-auto pt-1"
+                      className="text-lvl-footer font-bold uppercase tracking-wider text-gold-dark hover:text-gold inline-flex items-center gap-2 transition-colors w-fit text-left mt-auto pt-1"
                     >
-                      <span>{pillar.ctaText}</span> <ArrowRight className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 shrink-0" />
+                      <span>{pillar.ctaText}</span> <ArrowRight className="w-3.5 h-3.5 shrink-0" />
                     </button>
                   )}
                 </div>
@@ -489,20 +489,20 @@ const Index = () => {
       </section>
 
       {/* 3. EVENEMENTS D'EXCEPTION */}
-      <section id="evenements" className="py-20 md:py-24 bg-[#4c5462] relative overflow-hidden">
+      <section id="evenements" className="section-y bg-[#4c5462] relative overflow-hidden">
         <div className="container mx-auto px-4 max-w-6xl relative z-10">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
             <div>
-              <span className="text-[#c29c38] text-[11px] font-bold uppercase tracking-[0.2em]">
+              <span className="text-[#c29c38] text-lvl-footer font-bold uppercase tracking-[0.2em]">
                 <EditableText value={content.eventsSection.eyebrow || ""} onSave={makeFieldSaver("eventsSection", "eyebrow")} label="Eyebrow" />
               </span>
-              <h2 className="font-serif text-3xl sm:text-4xl font-semibold text-white mt-1">
+              <h2 className="text-lvl-title text-white mt-1">
                 <EditableText value={content.eventsSection.title || ""} onSave={makeFieldSaver("eventsSection", "title")} label="Titre de section" />
               </h2>
             </div>
             <Link
               to={content.eventsSection.ctaLink || "/events"}
-              className="inline-flex items-center gap-2 bg-white text-black text-[11px] font-bold uppercase tracking-wider px-5 py-2.5 rounded-none hover:bg-white/90 transition-colors w-fit shadow-sm"
+              className="inline-flex items-center gap-2 bg-white text-black text-lvl-footer font-bold uppercase tracking-wider px-5 py-2.5 rounded-none hover:bg-white/90 transition-colors w-fit shadow-sm"
               onClick={isEditMode ? (e) => e.preventDefault() : undefined}
             >
               {isEditMode ? (
@@ -513,7 +513,7 @@ const Index = () => {
 
           <div className="relative">
             {isEditMode && (
-              <div className="flex items-center gap-2 text-white/50 text-[11px] mb-4 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 w-fit">
+              <div className="flex items-center gap-2 text-white/50 text-lvl-footer mb-4 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 w-fit">
                 <Info className="w-3.5 h-3.5 text-[#e3bd51] shrink-0" />
                 Les événements affichés ici sont gérés depuis l'onglet <strong className="text-white/80">Événements</strong>.
               </div>
@@ -536,7 +536,7 @@ const Index = () => {
       </section>
 
       {/* 4. SPOTLIGHT - ACADÉMIE NFL */}
-      <section className="py-20 md:py-32 bg-[#e6e4e0] relative overflow-hidden">
+      <section className="section-y bg-[#e6e4e0] relative overflow-hidden">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="flex flex-col lg:flex-row items-center justify-center relative">
             {/* Left Composition (3 Layers: Wireframe, White Mat, Photo) */}
@@ -561,10 +561,10 @@ const Index = () => {
             {/* Right Floating Content Card (Side-by-side horizontally overlapping photo) */}
             <div className="relative z-10 -mt-16 lg:mt-0 lg:-ml-24 w-full max-w-[500px]">
               <div className="bg-white text-[#1c1c1c] p-8 sm:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.15)] rounded-none border border-black/5">
-                <span className="text-[#a28229] text-[10px] font-bold uppercase tracking-[0.25em] block text-right mb-3">
+                <span className="text-[#a28229] text-lvl-footer font-bold uppercase tracking-[0.25em] block text-right mb-3">
                   <EditableText value={content.spotlight.badge || ""} onSave={makeFieldSaver("spotlight", "badge")} label="Badge" />
                 </span>
-                <h2 className="font-serif text-2xl sm:text-3xl md:text-[34px] font-bold text-[#1c1c1c] mb-4 leading-[1.25]">
+                <h2 className="text-lvl-title text-[#1c1c1c] mb-4">
                   {isEditMode ? (
                     [0, 1, 2].map((i) => (
                       <span key={i} className="block">
@@ -585,12 +585,12 @@ const Index = () => {
                     ))
                   )}
                 </h2>
-                <p className="text-[#666666] text-xs sm:text-sm leading-relaxed mb-6 font-sans">
+                <p className="text-[#666666] text-lvl-body mb-6">
                   <EditableText value={content.spotlight.description || ""} onSave={makeFieldSaver("spotlight", "description")} label="Description" multiline as="div" />
                 </p>
                 <ul className="space-y-3 mb-8">
                   {(content.spotlight.bullets || []).map((item, idx) => (
-                    <li key={idx} className="group relative flex items-start gap-3 text-xs sm:text-sm text-[#333333] font-medium">
+                    <li key={idx} className="group relative flex items-start gap-3 text-lvl-body text-[#333333] font-medium">
                       <CheckCircle2 className="w-4.5 h-4.5 text-[#655410] shrink-0 mt-0.5" />
                       <span className="flex-1">
                         <EditableText value={item} onSave={makeStringListItemSaver("spotlight", "bullets", idx)} label="Point clé" as="div" />
@@ -608,7 +608,7 @@ const Index = () => {
                 )}
                 <Link
                   to={content.spotlight.ctaLink || "/catalogue-formations"}
-                  className="block text-center bg-[#655410] hover:bg-[#52440b] text-white font-bold text-[10px] sm:text-[11px] uppercase tracking-wider py-3.5 px-6 rounded-none transition-colors shadow-sm mt-4"
+                  className="block text-center bg-[#655410] hover:bg-[#52440b] text-white font-bold text-lvl-footer uppercase tracking-wider py-3.5 px-6 rounded-none transition-colors shadow-sm mt-4"
                   onClick={isEditMode ? (e) => e.preventDefault() : undefined}
                 >
                   {isEditMode ? (
@@ -622,10 +622,10 @@ const Index = () => {
       </section>
 
       {/* 5. TEMOIGNAGES - Linear Infinite Marquee */}
-      <section className="py-20 md:py-24 bg-[#0a0b0d] overflow-hidden relative">
-        <div className="container mx-auto px-4 mb-14 text-center">
-          <span className="text-[#e3bd51] text-xs font-bold uppercase tracking-[0.2em] block">NFL Impact</span>
-          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-white mt-3">
+      <section className="section-y bg-[#0a0b0d] overflow-hidden relative">
+        <div className="container mx-auto px-4 mb-10 md:mb-14 text-center">
+          <span className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-[0.2em] block">NFL Impact</span>
+          <h2 className="text-lvl-title text-white mt-3">
             Témoignages
           </h2>
           <div className="w-16 h-[3px] bg-gradient-to-r from-[#b89535] via-[#e3bd51] to-[#b89535] mx-auto mt-5 rounded-full" />
@@ -637,7 +637,7 @@ const Index = () => {
           <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
 
           {isEditMode && (
-            <div className="flex items-center gap-2 text-white/50 text-[11px] mb-4 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 w-fit relative z-20">
+            <div className="flex items-center gap-2 text-white/50 text-lvl-footer mb-4 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 w-fit relative z-20">
               <Info className="w-3.5 h-3.5 text-[#e3bd51] shrink-0" />
               Les témoignages affichés ici sont gérés depuis l'onglet <strong className="text-white/80">Témoignages</strong>.
             </div>
@@ -654,7 +654,7 @@ const Index = () => {
                     key={`${t.id}-${index}`}
                     className="w-[280px] sm:w-[320px] min-h-[300px] bg-[#282a2e] border border-white/5 p-6 sm:p-7 rounded-none flex flex-col justify-between shrink-0 shadow-2xl h-auto"
                   >
-                    <p className="font-serif italic text-white/90 text-xs sm:text-sm leading-relaxed tracking-wide">
+                    <p className="italic text-white/90 text-lvl-body tracking-wide">
                       "{t.quote}"
                     </p>
 
@@ -662,13 +662,13 @@ const Index = () => {
                       {t.avatar_url ? (
                         <img src={t.avatar_url} alt={t.author_name} className="w-10 h-10 rounded-none object-cover shrink-0" />
                       ) : (
-                        <div className="w-10 h-10 bg-[#e3bd51] text-black font-bold text-xs flex items-center justify-center rounded-none shrink-0">
+                        <div className="w-10 h-10 bg-[#e3bd51] text-black font-bold text-lvl-footer flex items-center justify-center rounded-none shrink-0">
                           {initials}
                         </div>
                       )}
                       <div>
-                        <p className="text-white font-bold text-sm leading-tight">{t.author_name}</p>
-                        <p className="text-[#e3bd51] text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider mt-0.5">
+                        <p className="text-white font-bold text-lvl-body leading-tight">{t.author_name}</p>
+                        <p className="text-[#e3bd51] text-lvl-footer font-semibold uppercase tracking-wider mt-0.5">
                           {[t.author_role, t.author_company].filter(Boolean).join(", ").toUpperCase()}
                         </p>
                       </div>
@@ -682,18 +682,18 @@ const Index = () => {
       </section>
 
       {/* 6. PRÊT À ÉLEVER VOS STANDARDS ? (CTA) */}
-      <section id="contact" className="py-20 md:py-24 bg-[#e2dfdb] text-center border-t border-black/10">
+      <section id="contact" className="section-y bg-[#e2dfdb] text-center border-t border-black/10">
         <div className="container mx-auto px-4 max-w-2xl">
-          <h2 className="font-serif text-3xl sm:text-4xl md:text-[40px] font-bold text-[#1c1c1c] mb-4">
+          <h2 className="text-lvl-title text-[#1c1c1c] mb-4">
             <EditableText value={content.ctaSection.title || ""} onSave={makeFieldSaver("ctaSection", "title")} label="Titre" />
           </h2>
-          <p className="text-[#555] text-xs sm:text-sm leading-relaxed mb-8 max-w-xl mx-auto font-sans font-normal">
+          <p className="text-[#555] text-lvl-body mb-8 max-w-xl mx-auto font-normal">
             <EditableText value={content.ctaSection.description || ""} onSave={makeFieldSaver("ctaSection", "description")} label="Description" multiline as="div" />
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={isEditMode ? undefined : () => document.getElementById("footer-contact")?.scrollIntoView({ behavior: "smooth" })}
-              className="bg-[#655410] hover:bg-[#52440b] text-white font-bold text-[10px] sm:text-[11px] uppercase tracking-wider py-3.5 px-8 rounded-none shadow-sm transition-colors"
+              className="bg-[#655410] hover:bg-[#52440b] text-white font-bold text-lvl-footer uppercase tracking-wider py-3.5 px-8 rounded-none shadow-sm transition-colors"
             >
               {isEditMode ? (
                 <EditableText value={content.ctaSection.primaryBtnText || ""} onSave={makeFieldSaver("ctaSection", "primaryBtnText")} label="Bouton principal" />
@@ -701,7 +701,7 @@ const Index = () => {
             </button>
             <button
               onClick={isEditMode ? undefined : () => document.getElementById("footer-contact")?.scrollIntoView({ behavior: "smooth" })}
-              className="border border-black/30 bg-transparent hover:bg-black/5 text-[#1c1c1c] font-bold text-[10px] sm:text-[11px] uppercase tracking-wider py-3.5 px-8 rounded-none transition-colors"
+              className="border border-black/30 bg-transparent hover:bg-black/5 text-[#1c1c1c] font-bold text-lvl-footer uppercase tracking-wider py-3.5 px-8 rounded-none transition-colors"
             >
               {isEditMode ? (
                 <EditableText value={content.ctaSection.secondaryBtnText || ""} onSave={makeFieldSaver("ctaSection", "secondaryBtnText")} label="Bouton secondaire" />
@@ -712,25 +712,25 @@ const Index = () => {
       </section>
 
       {/* 7. C'EST QUOI NFL ? */}
-      <section className="py-20 md:py-28 bg-[#e8e6e2] border-t-8 border-black text-center">
+      <section className="section-y bg-[#e8e6e2] border-t-8 border-black text-center">
         <div className="container mx-auto px-4 max-w-3xl">
-          <h2 className="font-serif text-3xl sm:text-4xl md:text-[42px] font-bold text-[#1c1c1c] mb-6">
+          <h2 className="text-lvl-title text-[#1c1c1c] mb-6">
             <EditableText value={content.about.title || ""} onSave={makeFieldSaver("about", "title")} label="Titre" />
           </h2>
-          <p className="text-[#444] text-base sm:text-lg font-normal mb-6 font-sans">
+          <p className="text-[#444] text-lvl-subtitle font-normal mb-6">
             <EditableText value={content.about.subtitle || ""} onSave={makeFieldSaver("about", "subtitle")} label="Sous-titre" />
           </p>
-          <p className="text-[#555] text-xs sm:text-sm leading-relaxed mb-8 max-w-2xl mx-auto font-sans font-normal">
+          <p className="text-[#555] text-lvl-body mb-8 max-w-2xl mx-auto font-normal">
             <EditableText value={content.about.paragraph || ""} onSave={makeFieldSaver("about", "paragraph")} label="Paragraphe" multiline as="div" />
           </p>
-          <p className="text-[#333] text-xs sm:text-sm font-medium mb-4">
+          <p className="text-[#333] text-lvl-body font-medium mb-4">
             <EditableText value={content.about.valuesIntro || ""} onSave={makeFieldSaver("about", "valuesIntro")} label="Intro des valeurs" />
           </p>
           <div className="flex flex-col items-start gap-3 max-w-xs mx-auto">
             {(content.about.values || []).map((item, idx) => (
               <div
                 key={idx}
-                className="group relative flex items-center gap-3 text-[#333] font-medium text-xs sm:text-sm w-full"
+                className="group relative flex items-center gap-3 text-[#333] font-medium text-lvl-body w-full"
               >
                 <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#655410]/10 border border-[#655410]/30 flex items-center justify-center shrink-0">
                   <CheckCircle2 className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-[#655410] shrink-0" />

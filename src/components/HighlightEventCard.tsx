@@ -27,15 +27,15 @@ const HighlightEventCard = ({ event }: HighlightEventCardProps) => {
     >
       {/* TOP BADGES */}
       <div className="absolute top-4 inset-x-4 flex items-center justify-between z-10">
-        <span className="text-[10px] font-bold tracking-wider text-black bg-[#b89535] px-2.5 py-1 uppercase rounded-none shadow-sm">
+        <span className="text-lvl-footer font-bold tracking-wider text-black bg-[#b89535] px-2.5 py-1 uppercase rounded-none shadow-sm">
           {formattedDate}
         </span>
         {isPast ? (
-          <span className="text-[10px] font-bold tracking-wider text-[#b89535] uppercase">
+          <span className="text-lvl-footer font-bold tracking-wider text-[#b89535] uppercase">
             Terminé
           </span>
         ) : (
-          <span className="text-[10px] font-bold tracking-wider text-black bg-[#b89535] px-2.5 py-1 uppercase rounded-none shadow-sm">
+          <span className="text-lvl-footer font-bold tracking-wider text-black bg-[#b89535] px-2.5 py-1 uppercase rounded-none shadow-sm">
             À venir
           </span>
         )}
@@ -50,10 +50,10 @@ const HighlightEventCard = ({ event }: HighlightEventCardProps) => {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10" />
           <div className="absolute bottom-0 inset-x-0 p-5">
-            <h3 className="font-serif text-lg sm:text-xl font-bold text-white leading-tight mb-1 group-hover:text-[#b89535] transition-colors">
+            <h3 className="text-lvl-subtitle text-white leading-tight mb-1 group-hover:text-[#b89535] transition-colors">
               {event.title}
             </h3>
-            <p className="text-white/70 text-[10px] font-semibold uppercase tracking-wider">
+            <p className="text-white/70 text-lvl-footer font-semibold uppercase tracking-wider">
               {event.location}
             </p>
           </div>
@@ -61,10 +61,10 @@ const HighlightEventCard = ({ event }: HighlightEventCardProps) => {
       ) : (
         <div className="absolute inset-0 bg-[#191a1d] flex flex-col items-center justify-center text-center px-6 gap-2">
           <CalendarCheck className="w-9 h-9 text-[#b89535]" strokeWidth={1.5} />
-          <h3 className="font-serif text-lg sm:text-xl font-bold text-white leading-tight group-hover:text-[#b89535] transition-colors mt-2">
+          <h3 className="text-lvl-subtitle text-white leading-tight group-hover:text-[#b89535] transition-colors mt-2">
             {event.title}
           </h3>
-          <p className="text-white/60 text-[10px] font-semibold uppercase tracking-wider">
+          <p className="text-white/60 text-lvl-footer font-semibold uppercase tracking-wider">
             {event.location}
           </p>
         </div>

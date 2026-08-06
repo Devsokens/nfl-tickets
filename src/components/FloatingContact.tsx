@@ -50,10 +50,10 @@ const FloatingContact = () => {
             >
               <Mail className="w-4 h-4 text-[#e3bd51] shrink-0" />
               <div className="flex-1 min-w-0 text-left">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-white/45 leading-none mb-1">
+                <p className="text-lvl-footer font-bold uppercase tracking-widest text-white/45 leading-none mb-1">
                   Email
                 </p>
-                <p className="text-xs text-white font-semibold truncate">contact@nfl-ga.com</p>
+                <p className="text-lvl-footer text-white font-semibold truncate">contact@nfl-ga.com</p>
               </div>
             </a>
 
@@ -64,10 +64,10 @@ const FloatingContact = () => {
             >
               <Phone className="w-4 h-4 text-[#e3bd51] shrink-0" />
               <div className="flex-1 min-w-0 text-left">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-white/45 leading-none mb-1">
+                <p className="text-lvl-footer font-bold uppercase tracking-widest text-white/45 leading-none mb-1">
                   Téléphone
                 </p>
-                <p className="text-xs text-white font-semibold truncate">+241 00 00 00 00</p>
+                <p className="text-lvl-footer text-white font-semibold truncate">+241 00 00 00 00</p>
               </div>
             </a>
 
@@ -77,10 +77,10 @@ const FloatingContact = () => {
             >
               <MessageSquarePlus className="w-4 h-4 text-[#e3bd51] shrink-0" />
               <div className="flex-1 min-w-0 text-left">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[#e3bd51]/80 leading-none mb-1">
+                <p className="text-lvl-footer font-bold uppercase tracking-widest text-[#e3bd51]/80 leading-none mb-1">
                   Formulaire
                 </p>
-                <p className="text-xs text-white font-semibold">Laisser un message</p>
+                <p className="text-lvl-footer text-white font-semibold">Laisser un message</p>
               </div>
             </button>
           </div>

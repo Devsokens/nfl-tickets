@@ -104,7 +104,7 @@ const Footer = () => {
                 />
               </Link>
             </div>
-            <p className="text-white/60 text-sm leading-relaxed max-w-xs font-sans">
+            <p className="text-white/60 text-lvl-footer leading-relaxed max-w-xs font-sans">
               <EditableText value={settings.tagline || ""} onSave={saveSettingsField("tagline")} label="Slogan" multiline as="div" />
             </p>
             {visibleSocialLinks.length > 0 && (
@@ -119,10 +119,10 @@ const Footer = () => {
 
           {/* Column 2: NOS SERVICES */}
           <div>
-            <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-[#c29c38] mb-4">
+            <h4 className="text-lvl-footer font-bold uppercase tracking-[0.2em] text-[#c29c38] mb-4">
               NOS SERVICES
             </h4>
-            <ul className="space-y-2.5 text-sm text-white/70">
+            <ul className="space-y-2.5 text-lvl-footer text-white/70">
               <li className="hover:text-white transition-colors cursor-pointer">Courtage Assurance</li>
               <li className="hover:text-white transition-colors cursor-pointer">Ingénierie Financière</li>
               <li className="hover:text-white transition-colors cursor-pointer">Prestige Events</li>
@@ -132,10 +132,10 @@ const Footer = () => {
 
           {/* Column 3: COMPAGNIE */}
           <div>
-            <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-[#c29c38] mb-4">
+            <h4 className="text-lvl-footer font-bold uppercase tracking-[0.2em] text-[#c29c38] mb-4">
               COMPAGNIE
             </h4>
-            <ul className="space-y-2.5 text-sm text-white/70">
+            <ul className="space-y-2.5 text-lvl-footer text-white/70">
               <li>
                 <Link to="/catalogue-formations" onClick={isEditMode ? (e) => e.preventDefault() : undefined} className="hover:text-white transition-colors">
                   Catalogue Formation
@@ -160,10 +160,10 @@ const Footer = () => {
 
           {/* Column 4: SIÈGE SOCIAL & NEWSLETTER */}
           <div className="space-y-4">
-            <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-[#c29c38] mb-4">
+            <h4 className="text-lvl-footer font-bold uppercase tracking-[0.2em] text-[#c29c38] mb-4">
               SIÈGE SOCIAL
             </h4>
-            <ul className="space-y-2.5 text-sm text-white/70">
+            <ul className="space-y-2.5 text-lvl-footer text-white/70">
               <li className="flex items-center gap-2.5">
                 <MapPin className="w-3.5 h-3.5 text-[#c29c38] shrink-0" />
                 <span><EditableText value={settings.address || ""} onSave={saveSettingsField("address")} label="Adresse" /></span>
@@ -185,7 +185,7 @@ const Footer = () => {
             </ul>
 
             <div className="pt-2">
-              <span className="text-sm font-bold uppercase tracking-wider text-white/40 block mb-2">
+              <span className="text-lvl-footer font-bold uppercase tracking-wider text-white/40 block mb-2">
                 INSCRIVEZ-VOUS À LA NEWSLETTER
               </span>
               <form onSubmit={handleNewsletterSubmit} className="relative flex items-center max-w-xs">
@@ -196,7 +196,7 @@ const Footer = () => {
                   placeholder="Votre email"
                   required
                   disabled={isSubscribing}
-                  className="w-full bg-[#16171a] border border-white/20 text-sm text-white px-3 py-2 pr-8 rounded-none focus:outline-none focus:border-[#c29c38] placeholder:text-white/30 disabled:opacity-50"
+                  className="w-full bg-[#16171a] border border-white/20 text-lvl-footer text-white px-3 py-2 pr-8 rounded-none focus:outline-none focus:border-[#c29c38] placeholder:text-white/30 disabled:opacity-50"
                 />
                 <button
                   type="submit"
@@ -211,7 +211,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Copyright Strip */}
-        <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-white/40 uppercase tracking-wider">
+        <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-lvl-footer text-white/40 uppercase tracking-wider">
           <p><EditableText value={settings.copyright_text || ""} onSave={saveSettingsField("copyright_text")} label="Copyright" /></p>
           <p><EditableText value={settings.footer_tagline || ""} onSave={saveSettingsField("footer_tagline")} label="Phrase du bas" /></p>
         </div>

@@ -144,6 +144,14 @@
     font-family: 'EB Garamond', serif;
   }
 
+  /* Niveau 0 : HERO — réservé au H1 principal de chaque page (un seul par page) */
+  .size-level-0, .text-lvl-hero {
+    font-size: clamp(2.25rem, 7vw, 3.25rem) !important;
+    line-height: 1.15 !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em !important;
+  }
+
   /* Utilitaires explicites à 4 niveaux pour surcharge directe */
   .size-level-1, .text-lvl-title {
     font-size: clamp(1.625rem, 4vw, 2rem) !important;
@@ -165,6 +173,13 @@
   .size-level-4, .text-lvl-footer {
     font-size: clamp(0.875rem, 1.5vw, 0.9375rem) !important;
     line-height: 1.5 !important;
+  }
+
+  /* Rythme vertical unique pour toutes les sections pleine largeur — remplace
+     la variation py-20/24/28/32 dispersée dans les pages, optimisé mobile. */
+  .section-y {
+    padding-top: clamp(2.5rem, 6vw, 5rem) !important;
+    padding-bottom: clamp(2.5rem, 6vw, 5rem) !important;
   }
 
   .gradient-gold {

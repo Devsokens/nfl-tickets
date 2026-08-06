@@ -145,7 +145,7 @@ const Catalog = () => {
       <Navbar />
 
       {/* 1. HERO SECTION */}
-      <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden border-b border-white/10">
+      <section className="relative pt-24 pb-14 md:pt-32 md:pb-16 overflow-hidden border-b border-white/10">
         <img
           src={nextEvent?.image_url || nextEvent?.image || nflImg1}
           alt="Événements NFL"
@@ -157,22 +157,22 @@ const Catalog = () => {
           <div className="grid lg:grid-cols-12 gap-10 items-center">
             {/* Left Content */}
             <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 border border-[#e3bd51]/40 bg-[#141517]/85 text-[#e3bd51] text-[10px] font-bold uppercase tracking-[0.2em] px-3.5 py-1.5 rounded-full shadow-sm">
+              <div className="inline-flex items-center gap-2 border border-[#e3bd51]/40 bg-[#141517]/85 text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-[0.2em] px-3.5 py-1.5 rounded-full shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#e3bd51] inline-block animate-pulse"></span>
                 <span><EditableText value={content.hero.badge || ""} onSave={makeHeroFieldSaver("badge")} label="Badge" /></span>
               </div>
 
-              <h1 className="leading-tight">
-                <span className="block font-sans font-bold text-4xl sm:text-5xl uppercase tracking-tight text-white">
+              <h1 className="text-lvl-hero leading-tight">
+                <span className="block font-bold uppercase tracking-tight text-white">
                   <EditableText value={content.hero.titleLine1 || ""} onSave={makeHeroFieldSaver("titleLine1")} label="Titre — ligne 1" />
                 </span>
-                <span className="block font-display italic text-white text-3xl sm:text-4xl mt-3 font-normal leading-snug">
+                <span className="block text-lvl-title italic text-white mt-2 font-normal">
                   <EditableText value={content.hero.titleLine2 || ""} onSave={makeHeroFieldSaver("titleLine2")} label="Titre — ligne 2" multiline />
                 </span>
               </h1>
 
               {nextEvent && (
-                <div className="flex flex-wrap items-center gap-6 text-xs text-white/95 font-medium pt-2">
+                <div className="flex flex-wrap items-center gap-6 text-lvl-footer text-white/95 font-medium pt-2">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-[#e3bd51]" />
                     <span>{formatEventDate(nextEvent.date)}</span>
@@ -187,13 +187,13 @@ const Catalog = () => {
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <button
                   onClick={() => document.getElementById("events-grid")?.scrollIntoView({ behavior: "smooth" })}
-                  className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-xs sm:text-sm uppercase tracking-wider py-3.5 px-7 rounded-none transition-colors shadow-sm"
+                  className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider py-3.5 px-7 rounded-none transition-colors shadow-sm"
                 >
                   <EditableText value={content.hero.ctaPrimaryText || ""} onSave={makeHeroFieldSaver("ctaPrimaryText")} label="Bouton principal" />
                 </button>
                 <button
                   onClick={() => document.getElementById("events-grid")?.scrollIntoView({ behavior: "smooth" })}
-                  className="border border-white/20 bg-[#1c1d21]/90 hover:bg-white/10 text-white font-bold text-xs sm:text-sm uppercase tracking-wider py-3.5 px-7 rounded-none transition-colors"
+                  className="border border-white/20 bg-[#1c1d21]/90 hover:bg-white/10 text-white font-bold text-lvl-footer uppercase tracking-wider py-3.5 px-7 rounded-none transition-colors"
                 >
                   <EditableText value={content.hero.ctaSecondaryText || ""} onSave={makeHeroFieldSaver("ctaSecondaryText")} label="Bouton secondaire" />
                 </button>
@@ -203,18 +203,18 @@ const Catalog = () => {
             {/* Right: Next Event Highlight */}
             <div className="lg:col-span-5">
               <div className="bg-[#121315]/80 backdrop-blur-md border border-white/10 p-6 sm:p-8 rounded-none text-center space-y-4 max-w-md mx-auto shadow-2xl">
-                <span className="text-[#e3bd51] text-xs sm:text-sm font-bold uppercase tracking-[0.2em] block font-sans">
+                <span className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-[0.2em] block">
                   {nextEvent ? "PROCHAIN ÉVÉNEMENT" : "AUCUN ÉVÉNEMENT PROGRAMMÉ"}
                 </span>
                 {nextEvent ? (
                   <>
-                    <p className="font-display text-2xl sm:text-3xl font-bold text-white leading-snug">{nextEvent.title}</p>
-                    <p className="text-white/90 text-sm">{formatEventDate(nextEvent.date)} — {nextEvent.location}</p>
+                    <p className="text-lvl-subtitle text-white leading-snug">{nextEvent.title}</p>
+                    <p className="text-white/90 text-lvl-body">{formatEventDate(nextEvent.date)} — {nextEvent.location}</p>
                   </>
                 ) : (
-                  <p className="text-white/85 text-sm sm:text-base font-sans">Revenez bientôt pour découvrir nos prochains rendez-vous.</p>
+                  <p className="text-white/85 text-lvl-body">Revenez bientôt pour découvrir nos prochains rendez-vous.</p>
                 )}
-                <p className="text-xs sm:text-sm text-white/70 font-semibold tracking-wide uppercase pt-2 font-display">
+                <p className="text-lvl-footer text-white/70 font-semibold tracking-wide uppercase pt-2">
                   <EditableText value={content.hero.footnote || ""} onSave={makeHeroFieldSaver("footnote")} label="Petite phrase" />
                 </p>
               </div>
@@ -224,9 +224,9 @@ const Catalog = () => {
       </section>
 
       {/* 2. NFL EN QUELQUES CHIFFRES - INFINITE MARQUEE SCROLL */}
-      <section className="py-12 sm:py-16 bg-[#090a0c] border-b border-white/10 overflow-hidden">
+      <section className="py-10 sm:py-14 bg-[#090a0c] border-b border-white/10 overflow-hidden">
         <div className="container mx-auto px-4 max-w-6xl text-center mb-8">
-          <h2 className="text-[#c29c38] text-2xl sm:text-3xl font-bold uppercase tracking-[0.2em] font-sans">
+          <h2 className="text-[#c29c38] text-lvl-title uppercase tracking-[0.1em]">
             NFL EN QUELQUES CHIFFRES
           </h2>
         </div>
@@ -238,12 +238,12 @@ const Catalog = () => {
                 <input
                   value={stat.number || ""}
                   onChange={(e) => updateStat(idx, { number: e.target.value })}
-                  className="w-20 bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-center text-sm text-[#e3bd51] font-bold"
+                  className="w-20 bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-center text-lvl-body text-[#e3bd51] font-bold"
                 />
                 <input
                   value={stat.label || ""}
                   onChange={(e) => updateStat(idx, { label: e.target.value })}
-                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white"
+                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-lvl-body text-white"
                 />
                 {content.stats.length > 1 && (
                   <button onClick={() => removeStat(idx)} className="text-destructive shrink-0"><X className="w-4 h-4" /></button>
@@ -257,10 +257,10 @@ const Catalog = () => {
             <div className="flex animate-marquee gap-16 sm:gap-24 items-center w-max py-2">
               {[...content.stats, ...content.stats, ...content.stats].map((stat, idx) => (
                 <div key={idx} className="flex flex-col items-center text-center shrink-0">
-                  <span className="font-serif font-bold text-4xl sm:text-5xl md:text-6xl text-[#e3bd51] leading-none">
+                  <span className="text-lvl-hero text-[#e3bd51] leading-none">
                     {stat.number}
                   </span>
-                  <span className="text-white/80 text-xs sm:text-sm font-medium uppercase tracking-widest font-sans mt-2.5 whitespace-nowrap">
+                  <span className="text-white/80 text-lvl-footer font-medium uppercase tracking-widest mt-2.5 whitespace-nowrap">
                     {stat.label}
                   </span>
                 </div>
@@ -273,20 +273,20 @@ const Catalog = () => {
       {/* 3. NOS ÉVÉNEMENTS D'ÉLITE */}
       <section id="events-grid">
         {/* Top Dark Header */}
-        <div className="bg-[#0c0d0f] pt-20 pb-12">
+        <div className="bg-[#0c0d0f] pt-14 pb-10">
           <div className="container mx-auto px-4 max-w-6xl">
             <div className="max-w-3xl">
-              <div className="flex items-center gap-2 text-[#c29c38] text-[10px] font-bold uppercase tracking-[0.25em] mb-3">
+              <div className="flex items-center gap-2 text-[#c29c38] text-lvl-footer font-bold uppercase tracking-[0.25em] mb-3">
                 <span className="w-6 h-[1px] bg-[#c29c38] inline-block"></span>
                 <span><EditableText value={content.agenda.eyebrow || ""} onSave={makeAgendaFieldSaver("eyebrow")} label="Eyebrow" /></span>
               </div>
-              <h2 className="font-sans text-4xl sm:text-5xl font-bold text-white mb-3">
+              <h2 className="text-lvl-title text-white mb-3">
                 <EditableText value={content.agenda.title || ""} onSave={makeAgendaFieldSaver("title")} label="Titre" />
               </h2>
-              <p className="font-display italic text-white/95 text-3xl sm:text-4xl mb-4 font-normal leading-snug">
+              <p className="italic text-white/95 text-lvl-subtitle mb-4 font-normal">
                 <EditableText value={content.agenda.subtitle || ""} onSave={makeAgendaFieldSaver("subtitle")} label="Sous-titre" multiline />
               </p>
-              <p className="text-white/90 text-sm sm:text-base leading-relaxed font-sans max-w-2xl">
+              <p className="text-white/90 text-lvl-body max-w-2xl">
                 <EditableText value={content.agenda.description || ""} onSave={makeAgendaFieldSaver("description")} label="Description" multiline as="div" />
               </p>
             </div>
@@ -294,7 +294,7 @@ const Catalog = () => {
         </div>
 
         {/* Bottom Light Grey Background Section for Search Toolbar and Cards Grid */}
-        <div className="bg-[#f4f2ee] py-12 md:py-16 text-black">
+        <div className="bg-[#f4f2ee] py-10 md:py-14 text-black">
           <div className="container mx-auto px-4 max-w-6xl">
             {/* Search & Filter Toolbar */}
             <div className="mb-6 sm:mb-10 flex flex-row items-center justify-between gap-2 sm:gap-4 w-full">
@@ -305,17 +305,17 @@ const Catalog = () => {
                   placeholder="Rechercher..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white border border-black/15 text-[11px] sm:text-xs text-black pl-8 sm:pl-10 pr-2 sm:pr-4 py-2.5 sm:py-3 rounded-none focus:outline-none placeholder:text-black/40"
+                  className="w-full bg-white border border-black/15 text-lvl-footer text-black pl-8 sm:pl-10 pr-2 sm:pr-4 py-2.5 sm:py-3 rounded-none focus:outline-none placeholder:text-black/40"
                 />
               </div>
 
-              <button className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-[9px] sm:text-[11px] uppercase tracking-wider px-3 sm:px-6 py-2.5 sm:py-3 rounded-none flex items-center gap-1 sm:gap-2 transition-colors shrink-0 justify-center whitespace-nowrap">
+              <button className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider px-3 sm:px-6 py-2.5 sm:py-3 rounded-none flex items-center gap-1 sm:gap-2 transition-colors shrink-0 justify-center whitespace-nowrap">
                 TRIER PAR <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               </button>
             </div>
 
             {isEditMode && (
-              <div className="flex items-center gap-2 text-black/50 text-[11px] mb-4 bg-black/5 border border-black/10 rounded-lg px-4 py-2.5 w-fit">
+              <div className="flex items-center gap-2 text-black/50 text-lvl-footer mb-4 bg-black/5 border border-black/10 rounded-lg px-4 py-2.5 w-fit">
                 <Info className="w-3.5 h-3.5 text-[#c29c38] shrink-0" />
                 Les événements affichés ici sont gérés depuis l'onglet <strong className="text-black/80">Événements</strong>.
               </div>
@@ -343,17 +343,17 @@ const Catalog = () => {
                       </div>
 
                       <div className="p-3 sm:p-6 space-y-1.5 sm:space-y-2">
-                        <span className="text-[#c29c38] text-[11px] sm:text-xs font-bold uppercase tracking-wider block">
+                        <span className="text-[#c29c38] text-lvl-footer font-bold uppercase tracking-wider block">
                           {formatEventDate(ev.date)}
                         </span>
-                        <h3 className="font-display text-xl sm:text-2xl font-bold text-[#1c1c1c] leading-tight line-clamp-2 group-hover:text-[#c29c38] transition-colors">
+                        <h3 className="text-lvl-subtitle text-[#1c1c1c] leading-tight line-clamp-2 group-hover:text-[#c29c38] transition-colors">
                           {ev.title}
                         </h3>
-                        <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-black/60 font-medium pt-0.5 sm:pt-1">
+                        <div className="flex items-center gap-1 sm:gap-2 text-lvl-footer text-black/60 font-medium pt-0.5 sm:pt-1">
                           <MapPin className="w-3.5 h-3.5 text-[#c29c38] shrink-0" />
                           <span className="truncate">{ev.location}</span>
                         </div>
-                        <div className="text-xs sm:text-sm font-bold text-[#c29c38] pt-0.5 sm:pt-1">
+                        <div className="text-lvl-footer font-bold text-[#c29c38] pt-0.5 sm:pt-1">
                           🏷️ {ev.price ? `${ev.price.toLocaleString()} ${ev.currency || "FCFA"}` : "Sur invitation"}
                         </div>
                       </div>
@@ -363,7 +363,7 @@ const Catalog = () => {
                       <Link
                         to={`/event/${ev.slug || ev.id}`}
                         onClick={isEditMode ? (e) => e.preventDefault() : undefined}
-                        className="block text-center border border-[#c29c38] bg-white hover:bg-[#c29c38] hover:text-black text-black font-bold text-xs sm:text-sm uppercase tracking-wider py-2 sm:py-2.5 rounded-none transition-colors"
+                        className="block text-center border border-[#c29c38] bg-white hover:bg-[#c29c38] hover:text-black text-black font-bold text-lvl-footer uppercase tracking-wider py-2 sm:py-2.5 rounded-none transition-colors"
                       >
                         RÉSERVER
                       </Link>
@@ -372,7 +372,7 @@ const Catalog = () => {
                 ))}
 
                 {filteredEvents.length === 0 && (
-                  <div className="col-span-2 md:col-span-2 flex items-center justify-center text-black/40 text-sm py-10">
+                  <div className="col-span-2 md:col-span-2 flex items-center justify-center text-black/40 text-lvl-body py-10">
                     Aucun événement à afficher pour le moment.
                   </div>
                 )}
@@ -380,10 +380,10 @@ const Catalog = () => {
                 {/* Gold Newsletter Box */}
                 <div className="col-span-2 md:col-span-1 bg-[#d4af37] text-black p-5 sm:p-10 rounded-none flex flex-col justify-between shadow-xl pointer-events-auto">
                   <div>
-                    <h3 className="font-display text-xl sm:text-3xl font-bold text-black mb-2 sm:mb-4 leading-tight">
+                    <h3 className="text-lvl-subtitle text-black mb-2 sm:mb-4 leading-tight">
                       <EditableText value={content.newsletterBox.title || ""} onSave={makeNewsletterFieldSaver("title")} label="Titre" multiline />
                     </h3>
-                    <p className="text-black/90 text-sm sm:text-base leading-relaxed mb-4 sm:mb-6 font-sans">
+                    <p className="text-black/90 text-lvl-body mb-4 sm:mb-6">
                       <EditableText value={content.newsletterBox.description || ""} onSave={makeNewsletterFieldSaver("description")} label="Description" multiline as="div" />
                     </p>
                   </div>
@@ -396,12 +396,12 @@ const Catalog = () => {
                       placeholder="Votre email"
                       required
                       disabled={isSubscribing}
-                      className="w-full bg-[#c29c38]/40 border border-black/20 text-xs text-black px-3 sm:px-4 py-2.5 sm:py-3 rounded-none placeholder:text-black/60 focus:outline-none disabled:opacity-50"
+                      className="w-full bg-[#c29c38]/40 border border-black/20 text-lvl-footer text-black px-3 sm:px-4 py-2.5 sm:py-3 rounded-none placeholder:text-black/60 focus:outline-none disabled:opacity-50"
                     />
                     <button
                       type="submit"
                       disabled={isSubscribing}
-                      className="w-full bg-[#3b320d] hover:bg-[#282208] text-white font-bold text-[10px] sm:text-[11px] uppercase tracking-wider py-3 sm:py-3.5 rounded-none transition-colors shadow-sm"
+                      className="w-full bg-[#3b320d] hover:bg-[#282208] text-white font-bold text-lvl-footer uppercase tracking-wider py-3 sm:py-3.5 rounded-none transition-colors shadow-sm"
                     >
                       {isSubscribing ? "..." : "S'INSCRIRE"}
                     </button>
@@ -415,25 +415,25 @@ const Catalog = () => {
 
       {/* 4. CITATION TEMOIGNAGE (issue des témoignages publiés sur le site) */}
       {featuredTestimonial && (
-        <section className="py-20 bg-[#090a0c] text-center border-t border-white/10">
+        <section className="section-y bg-[#090a0c] text-center border-t border-white/10">
           <div className="container mx-auto px-4 max-w-3xl space-y-6">
             {isEditMode && (
-              <div className="flex items-center justify-center gap-2 text-white/50 text-[11px] mb-2">
+              <div className="flex items-center justify-center gap-2 text-white/50 text-lvl-footer mb-2">
                 <Info className="w-3.5 h-3.5 text-[#c29c38] shrink-0" />
                 Géré depuis l'onglet <strong className="text-white/80">Témoignages</strong>.
               </div>
             )}
-            <div className="text-3xl text-[#c29c38] font-serif">”</div>
-            <p className="font-serif italic text-white/90 text-lg sm:text-xl leading-relaxed">
+            <div className="text-lvl-title text-[#c29c38]">”</div>
+            <p className="italic text-white/90 text-lvl-subtitle">
               "{featuredTestimonial.quote}"
             </p>
             <div className="flex items-center justify-center gap-3 pt-2">
-              <div className="w-8 h-8 bg-[#c29c38] text-black font-bold text-xs flex items-center justify-center rounded-none">
+              <div className="w-8 h-8 bg-[#c29c38] text-black font-bold text-lvl-footer flex items-center justify-center rounded-none">
                 {featuredTestimonial.author_name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()}
               </div>
               <div className="text-left">
-                <p className="text-white font-bold text-xs">{featuredTestimonial.author_name}</p>
-                <p className="text-[#c29c38] text-[9px] font-semibold uppercase tracking-wider">
+                <p className="text-white font-bold text-lvl-footer">{featuredTestimonial.author_name}</p>
+                <p className="text-[#c29c38] text-lvl-footer font-semibold uppercase tracking-wider">
                   {[featuredTestimonial.author_role, featuredTestimonial.author_company].filter(Boolean).join(", ").toUpperCase()}
                 </p>
               </div>

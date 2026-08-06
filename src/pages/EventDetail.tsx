@@ -186,7 +186,7 @@ const EventDetail = () => {
       <Navbar />
 
       {/* 1. HERO SECTION WITH IMAGE BACKGROUND & BOUTON RETOUR */}
-      <section className="relative pt-28 pb-20 md:pt-36 md:pb-24 overflow-hidden border-b border-white/10 bg-[#0d0e11]">
+      <section className="relative pt-20 pb-14 md:pt-28 md:pb-18 overflow-hidden border-b border-white/10 bg-[#0d0e11]">
         <img
           src={eventImage}
           alt={eventTitle}
@@ -195,26 +195,26 @@ const EventDetail = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-[#0d0e11] via-[#0d0e11]/85 to-[#0d0e11]/90" />
 
         <div className="relative z-10 container mx-auto px-4 max-w-6xl">
-          <div className="mb-8">
+          <div className="mb-6">
             <Link
               to="/events"
-              className="inline-flex items-center gap-2 text-[#e3bd51] hover:text-[#d4af37] font-bold text-xs uppercase tracking-widest transition-all bg-white/5 border border-[#e3bd51]/30 hover:border-[#e3bd51] px-5 py-2.5 rounded-none backdrop-blur-md shadow-md"
+              className="inline-flex items-center gap-2 text-[#e3bd51] hover:text-[#d4af37] font-bold text-lvl-footer uppercase tracking-widest transition-all bg-white/5 border border-[#e3bd51]/30 hover:border-[#e3bd51] px-5 py-2.5 rounded-none backdrop-blur-md shadow-md"
             >
               <ArrowLeft className="w-4 h-4" /> RETOUR AUX ÉVÉNEMENTS
             </Link>
           </div>
 
           <div className="grid lg:grid-cols-12 gap-10 items-center">
-            <div className="lg:col-span-7 space-y-6">
-              <span className="text-[#e3bd51] text-[10px] font-bold uppercase tracking-[0.25em] block">
+            <div className="lg:col-span-7 space-y-5">
+              <span className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-[0.25em] block">
                 {event?.category ? `• ${event.category.toUpperCase()} •` : "• ÉVÉNEMENT EXCLUSIF •"}
               </span>
 
-              <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-tight drop-shadow-md">
+              <h1 className="text-lvl-hero text-white leading-tight drop-shadow-md">
                 {eventTitle}
               </h1>
 
-              <div className="flex flex-wrap items-center gap-6 text-xs text-white/90 font-medium">
+              <div className="flex flex-wrap items-center gap-6 text-lvl-footer text-white/90 font-medium">
                 {event?.date && (
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-[#e3bd51]" />
@@ -233,16 +233,16 @@ const EventDetail = () => {
                 )}
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row gap-4 pt-3">
                 <button
                   onClick={() => document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth" })}
-                  className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-xs uppercase tracking-wider py-4 px-8 rounded-none transition-colors shadow-lg"
+                  className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider py-4 px-8 rounded-none transition-colors shadow-lg"
                 >
                   Réserver ma place
                 </button>
                 <button
                   onClick={() => document.getElementById("programme-section")?.scrollIntoView({ behavior: "smooth" })}
-                  className="border border-white/30 bg-transparent hover:bg-white/10 text-white font-bold text-xs uppercase tracking-wider py-4 px-8 rounded-none transition-colors"
+                  className="border border-white/30 bg-transparent hover:bg-white/10 text-white font-bold text-lvl-footer uppercase tracking-wider py-4 px-8 rounded-none transition-colors"
                 >
                   Voir le programme
                 </button>
@@ -253,7 +253,7 @@ const EventDetail = () => {
               <div className="lg:col-span-5">
                 <div className="bg-[#14161a]/90 backdrop-blur-md border border-white/15 p-7 sm:p-8 rounded-none space-y-4 max-w-md ml-auto shadow-2xl">
                   {infoStats.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-3 text-xs text-white/90 font-medium">
+                    <div key={idx} className="flex items-center gap-3 text-lvl-footer text-white/90 font-medium">
                       <CheckCircle2 className="w-4.5 h-4.5 text-[#e3bd51] shrink-0" />
                       <span>{item}</span>
                     </div>
@@ -266,21 +266,21 @@ const EventDetail = () => {
       </section>
 
       {/* 2. DESCRIPTION & PROGRAMME TIMELINE */}
-      <section id="programme-section" className="py-20 bg-[#0d0e11] border-b border-white/10">
+      <section id="programme-section" className="section-y bg-[#0d0e11] border-b border-white/10">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-            <div className="lg:col-span-7 space-y-6">
-              <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white leading-tight">
+            <div className="lg:col-span-7 space-y-5">
+              <h2 className="text-lvl-subtitle text-white leading-tight">
                 À propos de cet événement
               </h2>
               {event?.description ? (
                 event.description.split("\n").filter(Boolean).map((para, idx) => (
-                  <p key={idx} className="text-white/70 text-xs sm:text-sm leading-relaxed font-sans font-light">
+                  <p key={idx} className="text-white/70 text-lvl-body font-light">
                     {para}
                   </p>
                 ))
               ) : (
-                <p className="text-white/50 text-xs sm:text-sm leading-relaxed font-sans font-light italic">
+                <p className="text-white/50 text-lvl-body font-light italic">
                   Description à venir.
                 </p>
               )}
@@ -288,7 +288,7 @@ const EventDetail = () => {
 
             <div className="lg:col-span-5 w-full">
               <div className="bg-[#14161a] border border-white/10 p-7 sm:p-8 rounded-none space-y-6 w-full shadow-2xl">
-                <h3 className="font-serif text-xl font-bold text-white border-b border-white/10 pb-3">
+                <h3 className="text-lvl-subtitle text-white border-b border-white/10 pb-3">
                   Programme
                 </h3>
 
@@ -296,16 +296,16 @@ const EventDetail = () => {
                   <div className="space-y-6">
                     {program.map((p, idx) => (
                       <div key={idx} className="flex gap-4 items-start border-b border-white/5 pb-4 last:border-0 last:pb-0">
-                        {p.time && <span className="text-[#e3bd51] font-bold text-xs shrink-0 pt-0.5 font-sans">{p.time}</span>}
+                        {p.time && <span className="text-[#e3bd51] font-bold text-lvl-footer shrink-0 pt-0.5">{p.time}</span>}
                         <div className="space-y-1">
-                          <p className="font-bold text-xs text-white leading-snug">{p.title}</p>
-                          {p.description && <p className="text-[11px] text-white/60 leading-relaxed font-sans">{p.description}</p>}
+                          <p className="font-bold text-lvl-footer text-white leading-snug">{p.title}</p>
+                          {p.description && <p className="text-lvl-footer text-white/60">{p.description}</p>}
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-white/50 text-xs italic">Programme communiqué prochainement.</p>
+                  <p className="text-white/50 text-lvl-footer italic">Programme communiqué prochainement.</p>
                 )}
               </div>
             </div>
@@ -315,9 +315,9 @@ const EventDetail = () => {
 
       {/* 3. INTERVENANTS SECTION (uniquement si renseignés par l'admin) */}
       {speakers.length > 0 && (
-        <section className="pt-20 pb-20 md:pt-24 md:pb-24 bg-[#0d0e11] text-center border-b border-white/5">
+        <section className="section-y bg-[#0d0e11] text-center border-b border-white/5">
           <div className="container mx-auto px-4 max-w-6xl">
-            <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[#e3bd51] mb-14 tracking-wide">
+            <h2 className="text-lvl-title text-[#e3bd51] mb-10 md:mb-14 tracking-wide">
               Intervenants
             </h2>
 
@@ -340,16 +340,16 @@ const EventDetail = () => {
                         <Users className="w-16 h-16 text-white/20" />
                       )}
                     </div>
-                    <h3 className="font-serif font-bold text-base sm:text-lg text-[#e3bd51] tracking-wide">
+                    <h3 className="text-lvl-subtitle text-[#e3bd51] tracking-wide">
                       {speaker.name}
                     </h3>
                     {speaker.role && (
-                      <p className="text-white/80 text-[10px] sm:text-[11px] font-bold uppercase tracking-widest mt-1">
+                      <p className="text-white/80 text-lvl-footer font-bold uppercase tracking-widest mt-1">
                         {speaker.role}
                       </p>
                     )}
                     {speaker.company && (
-                      <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider mt-0.5">
+                      <p className="text-white/50 text-lvl-footer font-semibold uppercase tracking-wider mt-0.5">
                         {speaker.company}
                       </p>
                     )}
@@ -403,7 +403,7 @@ const EventDetail = () => {
           </div>
 
           <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-            <div className="bg-[#d4af37] text-black font-bold text-xs sm:text-sm uppercase tracking-wider px-8 py-3.5 rounded-none shadow-2xl border border-black/20 pointer-events-auto hover:bg-[#c29c38] transition-colors">
+            <div className="bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider px-8 py-3.5 rounded-none shadow-2xl border border-black/20 pointer-events-auto hover:bg-[#c29c38] transition-colors">
               L'esprit NFL Courtier & Service
             </div>
           </div>
@@ -412,7 +412,7 @@ const EventDetail = () => {
 
       {/* 5. TÉMOIGNAGES (issus des témoignages publiés sur le site) */}
       {testimonials.length > 0 && (
-        <section className="py-16 md:py-20 bg-[#0d0e11] border-b border-white/5">
+        <section className="section-y bg-[#0d0e11] border-b border-white/5">
           <div className="container mx-auto px-4 max-w-6xl">
             <div className="relative">
               <div
@@ -426,16 +426,16 @@ const EventDetail = () => {
                     : "NFL";
                   return (
                     <div key={t.id} className="w-[85vw] max-w-[340px] md:w-auto shrink-0 snap-center bg-[#15171b] border border-white/5 p-7 sm:p-8 rounded-none flex flex-col justify-between shadow-xl">
-                      <p className="font-serif italic text-white/90 text-sm sm:text-base leading-relaxed mb-8">
+                      <p className="italic text-white/90 text-lvl-body mb-8">
                         "{t.quote}"
                       </p>
                       <div className="flex items-center gap-3.5 pt-4 border-t border-white/5">
-                        <div className="w-9 h-9 bg-[#e3bd51] text-black font-bold text-xs flex items-center justify-center rounded-none shrink-0">
+                        <div className="w-9 h-9 bg-[#e3bd51] text-black font-bold text-lvl-footer flex items-center justify-center rounded-none shrink-0">
                           {initials}
                         </div>
                         <div>
-                          <p className="text-white font-bold text-xs sm:text-sm leading-tight">{t.author_name}</p>
-                          <p className="text-[#e3bd51] text-[10px] font-semibold uppercase tracking-wider mt-0.5">
+                          <p className="text-white font-bold text-lvl-body leading-tight">{t.author_name}</p>
+                          <p className="text-[#e3bd51] text-lvl-footer font-semibold uppercase tracking-wider mt-0.5">
                             {[t.author_role, t.author_company].filter(Boolean).join(", ").toUpperCase()}
                           </p>
                         </div>
@@ -470,11 +470,11 @@ const EventDetail = () => {
       )}
 
       {/* 6. VOTRE PARTICIPATION COMPREND : (offre standard NFL, commune à tous les événements) */}
-      <section className="py-20 md:py-24 bg-[#e8e6e2] text-[#1c1c1c]">
+      <section className="section-y bg-[#e8e6e2] text-[#1c1c1c]">
         <div className="container mx-auto px-4 max-w-5xl">
           <div className="grid lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-5 bg-[#f0ede8] p-8 sm:p-12 border border-black/10 shadow-sm rounded-none text-center lg:text-left min-h-[220px] flex items-center justify-center">
-              <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#1c1c1c] leading-tight">
+              <h2 className="text-lvl-subtitle text-[#1c1c1c] leading-tight">
                 Votre participation<br className="hidden sm:inline" /> comprend :
               </h2>
             </div>
@@ -489,7 +489,7 @@ const EventDetail = () => {
                     "Documentation",
                     "Photos officielles",
                   ].map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-3 text-xs sm:text-sm font-medium text-[#2c2c2c]">
+                    <div key={idx} className="flex items-center gap-3 text-lvl-body font-medium text-[#2c2c2c]">
                       <div className="w-5 h-5 rounded-full bg-[#d4af37]/20 flex items-center justify-center shrink-0">
                         <CheckCircle2 className="w-3.5 h-3.5 text-[#655410]" />
                       </div>
@@ -504,15 +504,15 @@ const EventDetail = () => {
       </section>
 
       {/* 7. RÉSERVEZ VOTRE PLACE (BOOKING SECTION) */}
-      <section id="booking-form" className="py-20 md:py-28 bg-[#0c0d0f] text-white">
+      <section id="booking-form" className="section-y bg-[#0c0d0f] text-white">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid lg:grid-cols-12 gap-12 items-start">
-            <div className="lg:col-span-5 space-y-8">
+            <div className="lg:col-span-5 space-y-7">
               <div>
-                <h2 className="font-serif text-3xl sm:text-4xl md:text-[40px] font-bold text-white leading-tight mb-4">
+                <h2 className="text-lvl-title text-white leading-tight mb-4">
                   Réservez votre place
                 </h2>
-                <p className="text-white/60 text-xs sm:text-sm leading-relaxed font-sans font-normal">
+                <p className="text-white/60 text-lvl-body font-normal">
                   L'accès à cet événement est limité pour garantir une expérience de qualité supérieure.
                 </p>
               </div>
@@ -530,10 +530,10 @@ const EventDetail = () => {
                     <UserCheck className="w-5 h-5 text-[#e3bd51]" />
                   </div>
                   <div>
-                    <span className="text-white/60 text-[10px] font-bold uppercase tracking-wider block">
+                    <span className="text-white/60 text-lvl-footer font-bold uppercase tracking-wider block">
                       Tarif individuel
                     </span>
-                    <span className="font-serif font-bold text-xl sm:text-2xl text-[#e3bd51]">
+                    <span className="text-lvl-subtitle font-bold text-[#e3bd51]">
                       {eventPrice.toLocaleString()} FCFA
                     </span>
                   </div>
@@ -551,10 +551,10 @@ const EventDetail = () => {
                     <Award className="w-5 h-5 text-[#e3bd51]" />
                   </div>
                   <div>
-                    <span className="text-white/60 text-[10px] font-bold uppercase tracking-wider block">
+                    <span className="text-white/60 text-lvl-footer font-bold uppercase tracking-wider block">
                       Table Corporate (8 pers.)
                     </span>
-                    <span className="font-serif font-bold text-xl sm:text-2xl text-[#e3bd51]">
+                    <span className="text-lvl-subtitle font-bold text-[#e3bd51]">
                       {corporatePrice.toLocaleString()} FCFA
                     </span>
                   </div>
@@ -566,7 +566,7 @@ const EventDetail = () => {
               <form onSubmit={handleBooking} className="bg-[#17191d] border border-white/10 p-8 sm:p-10 rounded-none space-y-5 shadow-2xl">
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-white/70">
+                    <label className="text-lvl-footer font-bold uppercase tracking-wider text-white/70">
                       NOM COMPLET
                     </label>
                     <input
@@ -575,12 +575,12 @@ const EventDetail = () => {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="Ex : MOUSSAVOU ALEX"
-                      className="w-full bg-[#22252b] border border-white/10 text-xs text-white px-4 py-3.5 rounded-none placeholder:text-white/30 focus:outline-none focus:border-[#e3bd51]"
+                      className="w-full bg-[#22252b] border border-white/10 text-lvl-footer text-white px-4 py-3.5 rounded-none placeholder:text-white/30 focus:outline-none focus:border-[#e3bd51]"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-white/70">
+                    <label className="text-lvl-footer font-bold uppercase tracking-wider text-white/70">
                       ADRESSE EMAIL
                     </label>
                     <input
@@ -589,20 +589,20 @@ const EventDetail = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="moussavou@gmail.com"
-                      className="w-full bg-[#22252b] border border-white/10 text-xs text-white px-4 py-3.5 rounded-none placeholder:text-white/30 focus:outline-none focus:border-[#e3bd51]"
+                      className="w-full bg-[#22252b] border border-white/10 text-lvl-footer text-white px-4 py-3.5 rounded-none placeholder:text-white/30 focus:outline-none focus:border-[#e3bd51]"
                     />
                   </div>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-white/70">
+                    <label className="text-lvl-footer font-bold uppercase tracking-wider text-white/70">
                       NOMBRE DE PLACES
                     </label>
                     <select
                       value={nbPlaces}
                       onChange={(e) => setNbPlaces(e.target.value)}
-                      className="w-full bg-[#22252b] border border-white/10 text-xs text-white px-4 py-3.5 rounded-none focus:outline-none focus:border-[#e3bd51]"
+                      className="w-full bg-[#22252b] border border-white/10 text-lvl-footer text-white px-4 py-3.5 rounded-none focus:outline-none focus:border-[#e3bd51]"
                     >
                       <option value="1 Place">1 Place</option>
                       <option value="2 Places">2 Places</option>
@@ -613,7 +613,7 @@ const EventDetail = () => {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-white/70">
+                    <label className="text-lvl-footer font-bold uppercase tracking-wider text-white/70">
                       TÉLÉPHONE (WHATSAPP)
                     </label>
                     <input
@@ -622,7 +622,7 @@ const EventDetail = () => {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="+241 00 00 00 00"
-                      className="w-full bg-[#22252b] border border-white/10 text-xs text-white px-4 py-3.5 rounded-none placeholder:text-white/30 focus:outline-none focus:border-[#e3bd51]"
+                      className="w-full bg-[#22252b] border border-white/10 text-lvl-footer text-white px-4 py-3.5 rounded-none placeholder:text-white/30 focus:outline-none focus:border-[#e3bd51]"
                     />
                   </div>
                 </div>
@@ -631,11 +631,11 @@ const EventDetail = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-xs uppercase tracking-widest py-4 px-6 rounded-none transition-colors flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-widest py-4 px-6 rounded-none transition-colors flex items-center justify-center gap-2 shadow-lg"
                   >
                     {isSubmitting ? "TRAITEMENT..." : "CONFIRMER LA RÉSERVATION"} <ArrowRight className="w-4 h-4" />
                   </button>
-                  <p className="text-[10px] text-white/40 text-center italic mt-3">
+                  <p className="text-lvl-footer text-white/40 text-center italic mt-3">
                     Un ticket virtuel vous sera envoyé après validation.
                   </p>
                 </div>

@@ -63,18 +63,18 @@ const CatalogueFormation = () => {
       <Navbar />
 
       {/* 1. HERO SECTION */}
-      <section className="pt-32 pb-16 md:pt-36 md:pb-24 bg-[#0d0e11] border-b border-white/5">
+      <section className="pt-24 pb-14 md:pt-28 md:pb-16 bg-[#0d0e11] border-b border-white/5">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid lg:grid-cols-12 gap-12 items-center">
             {/* Left Info */}
-            <div className="lg:col-span-7 space-y-6">
-              <span className="text-[#e3bd51] text-[10px] font-bold uppercase tracking-[0.25em] block">
+            <div className="lg:col-span-7 space-y-5">
+              <span className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-[0.25em] block">
                 <EditableText value={content.hero.eyebrow || ""} onSave={makeHeroFieldSaver("eyebrow")} label="Eyebrow" />
               </span>
-              <h1 className="font-sans font-bold text-4xl sm:text-5xl md:text-6xl text-white leading-tight">
+              <h1 className="text-lvl-hero text-white leading-tight">
                 <EditableText value={content.hero.title || ""} onSave={makeHeroFieldSaver("title")} label="Titre" multiline />
               </h1>
-              <p className="text-white/70 text-sm sm:text-base leading-relaxed font-sans max-w-xl font-light">
+              <p className="text-white/70 text-lvl-body max-w-xl font-light">
                 <EditableText value={content.hero.description || ""} onSave={makeHeroFieldSaver("description")} label="Description" multiline as="div" />
               </p>
             </div>
@@ -97,21 +97,21 @@ const CatalogueFormation = () => {
       </section>
 
       {/* 2. NOS MODULES DE FORMATION */}
-      <section className="py-20 md:py-28 bg-[#e8e6e2] text-[#1c1c1c]">
+      <section className="section-y bg-[#e8e6e2] text-[#1c1c1c]">
         <div className="container mx-auto px-4 max-w-6xl">
           {/* Header Row */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
             <div>
-              <h2 className="font-sans font-bold text-3xl sm:text-4xl text-[#1c1c1c] mb-3">
+              <h2 className="text-lvl-title text-[#1c1c1c] mb-3">
                 Nos Modules de Formation
               </h2>
-              <p className="text-[#555] text-xs sm:text-sm font-medium max-w-xl leading-relaxed">
+              <p className="text-[#555] text-lvl-body font-medium max-w-xl">
                 Découvrez nos parcours exclusifs conçus pour forger les leaders de demain dans le secteur du luxe et de la finance.
               </p>
             </div>
             <button
               onClick={() => alert("Téléchargement du catalogue PDF en cours...")}
-              className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-[11px] uppercase tracking-wider px-6 py-3.5 rounded-none flex items-center justify-center gap-2 transition-colors shadow-md shrink-0 w-fit"
+              className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider px-6 py-3.5 rounded-none flex items-center justify-center gap-2 transition-colors shadow-md shrink-0 w-fit"
             >
               <Download className="w-4 h-4" /> TÉLÉCHARGER PDF
             </button>
@@ -143,24 +143,24 @@ const CatalogueFormation = () => {
                         </div>
                       )}
                       {m.badge && (
-                        <div className="absolute top-3 left-3 bg-[#e3bd51] text-black text-[9px] font-bold uppercase tracking-wider px-3 py-1 rounded-none shadow-sm">
+                        <div className="absolute top-3 left-3 bg-[#e3bd51] text-black text-lvl-footer font-bold uppercase tracking-wider px-3 py-1 rounded-none shadow-sm">
                           {m.badge}
                         </div>
                       )}
                     </div>
 
                     <div className="p-6 space-y-3">
-                      <h3 className="font-sans font-bold text-lg text-[#1c1c1c] leading-snug">
+                      <h3 className="text-lvl-subtitle text-[#1c1c1c] leading-snug">
                         {m.title}
                       </h3>
-                      <p className="text-[#666] text-xs leading-relaxed font-sans line-clamp-3">
+                      <p className="text-[#666] text-lvl-footer line-clamp-3">
                         {m.description}
                       </p>
 
                       {(m.bullets || []).length > 0 && (
                         <div className="pt-3 border-t border-black/5 space-y-2">
                           {(m.bullets || []).map((b, bIdx) => (
-                            <div key={bIdx} className="flex items-center gap-2 text-xs font-semibold text-[#333]">
+                            <div key={bIdx} className="flex items-center gap-2 text-lvl-footer font-semibold text-[#333]">
                               <div className="w-1.5 h-1.5 bg-[#e3bd51] rounded-full shrink-0" />
                               <span>{b}</span>
                             </div>
@@ -174,7 +174,7 @@ const CatalogueFormation = () => {
                     <Link
                       to={`/formation/${m.slug || m.id}`}
                       onClick={isEditMode ? (e) => e.preventDefault() : undefined}
-                      className="block text-center border border-black/20 bg-white hover:bg-black hover:text-white text-black font-bold text-[10px] uppercase tracking-widest py-3 rounded-none transition-colors"
+                      className="block text-center border border-black/20 bg-white hover:bg-black hover:text-white text-black font-bold text-lvl-footer uppercase tracking-widest py-3 rounded-none transition-colors"
                     >
                       VOIR LE DÉTAIL &rarr;
                     </Link>
@@ -189,7 +189,7 @@ const CatalogueFormation = () => {
       {/* 3. PARTNERS LOGO TICKER */}
       <section className="py-8 bg-[#dedcd7] text-black/70 border-t border-b border-black/10">
         <div className="container mx-auto px-4 max-w-6xl">
-          <div className="flex flex-wrap items-center justify-between gap-8 text-center font-sans font-bold text-base sm:text-lg tracking-widest text-black/60 uppercase">
+          <div className="flex flex-wrap items-center justify-between gap-8 text-center font-bold text-lvl-body tracking-widest text-black/60 uppercase">
             <span>SMAG</span>
             <span>ODILLON</span>
             <span>OGOUUE LABS</span>
