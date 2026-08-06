@@ -205,7 +205,7 @@ const EventDetail = () => {
           </div>
 
           <div className="grid lg:grid-cols-12 gap-10 items-center">
-            <div className="lg:col-span-7 space-y-5">
+            <div className="lg:col-span-7 space-y-5 text-center lg:text-left flex flex-col items-center lg:items-start">
               <span className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-[0.25em] block">
                 {event?.category ? `• ${event.category.toUpperCase()} •` : "• ÉVÉNEMENT EXCLUSIF •"}
               </span>
@@ -214,7 +214,7 @@ const EventDetail = () => {
                 {eventTitle}
               </h1>
 
-              <div className="flex flex-wrap items-center gap-6 text-lvl-footer text-white/90 font-medium">
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 text-lvl-footer text-white/90 font-medium">
                 {event?.date && (
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-[#e3bd51]" />
@@ -233,7 +233,7 @@ const EventDetail = () => {
                 )}
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 pt-3">
+              <div className="flex flex-col sm:flex-row items-center gap-4 pt-3">
                 <button
                   onClick={() => document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth" })}
                   className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider py-4 px-8 rounded-none transition-colors shadow-lg"
@@ -251,9 +251,9 @@ const EventDetail = () => {
 
             {infoStats.length > 0 && (
               <div className="lg:col-span-5">
-                <div className="bg-[#14161a]/90 backdrop-blur-md border border-white/15 p-7 sm:p-8 rounded-none space-y-4 max-w-md ml-auto shadow-2xl">
+                <div className="bg-[#14161a]/90 backdrop-blur-md border border-white/15 p-7 sm:p-8 rounded-none space-y-4 max-w-md mx-auto lg:mx-0 lg:ml-auto shadow-2xl">
                   {infoStats.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-3 text-lvl-footer text-white/90 font-medium">
+                    <div key={idx} className="flex items-center justify-center lg:justify-start gap-3 text-lvl-footer text-white/90 font-medium">
                       <CheckCircle2 className="w-4.5 h-4.5 text-[#e3bd51] shrink-0" />
                       <span>{item}</span>
                     </div>
@@ -269,16 +269,18 @@ const EventDetail = () => {
       <section id="programme-section" className="section-y bg-[#0d0e11] border-b border-white/10">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-            <div className="lg:col-span-7 space-y-5">
+            <div className="lg:col-span-7 space-y-5 text-center lg:text-left flex flex-col items-center lg:items-start">
               <h2 className="text-lvl-subtitle text-white leading-tight">
                 À propos de cet événement
               </h2>
               {event?.description ? (
-                event.description.split("\n").filter(Boolean).map((para, idx) => (
-                  <p key={idx} className="text-white/70 text-lvl-body font-light">
-                    {para}
-                  </p>
-                ))
+                event.description
+                  .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}]/gu, "")
+                  .split("\n").filter(Boolean).map((para, idx) => (
+                    <p key={idx} className="text-white/70 text-lvl-body font-light">
+                      {para.trim()}
+                    </p>
+                  ))
               ) : (
                 <p className="text-white/50 text-lvl-body font-light italic">
                   Description à venir.
@@ -526,7 +528,7 @@ const EventDetail = () => {
       <section id="booking-form" className="section-y bg-[#0c0d0f] text-white">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid lg:grid-cols-12 gap-12 items-start">
-            <div className="lg:col-span-5 space-y-7">
+            <div className="lg:col-span-5 space-y-7 text-center lg:text-left flex flex-col items-center lg:items-start">
               <div>
                 <h2 className="text-lvl-title text-white leading-tight mb-4">
                   Réservez votre place
@@ -536,7 +538,7 @@ const EventDetail = () => {
                 </p>
               </div>
 
-              <div className="space-y-4 pt-2">
+              <div className="space-y-4 pt-2 w-full">
                 <div
                   onClick={() => setSelectedFormule("individuel")}
                   className={`p-6 rounded-none border cursor-pointer transition-all flex items-center gap-4 ${
