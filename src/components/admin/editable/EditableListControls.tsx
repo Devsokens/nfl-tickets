@@ -24,7 +24,7 @@ export const AddCardButton = ({ onClick, label, className }: { onClick: () => vo
     )}
   >
     <Plus className="w-5 h-5" />
-    <span className="text-xs font-bold uppercase tracking-wider">{label}</span>
+    <span className="text-lvl-footer font-bold uppercase tracking-wider">{label}</span>
   </button>
 );
 
@@ -33,7 +33,7 @@ export const AddInlineButton = ({ onClick, label }: { onClick: () => void; label
   <button
     type="button"
     onClick={onClick}
-    className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#e3bd51] hover:text-[#d4af37] transition-colors mt-2"
+    className="inline-flex items-center gap-1.5 text-lvl-footer font-bold uppercase tracking-wider text-[#e3bd51] hover:text-[#d4af37] transition-colors mt-2"
   >
     <Plus className="w-3.5 h-3.5" /> {label}
   </button>

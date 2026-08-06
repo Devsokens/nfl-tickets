@@ -74,8 +74,8 @@ const TestimonialsTab = () => {
     <div className="space-y-8 animate-fade-in max-w-6xl mx-auto pb-24">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Témoignages</h2>
-          <p className="text-sm text-muted-foreground mt-1">Affichés dans le carrousel de la page d'accueil.</p>
+          <h2 className="text-lvl-subtitle font-bold">Témoignages</h2>
+          <p className="text-lvl-footer text-muted-foreground mt-1">Affichés dans le carrousel de la page d'accueil.</p>
         </div>
         <Button variant="gold" className="rounded-2xl h-12 px-6 shadow-xl" onClick={openCreate}>
           <Plus className="h-5 w-5 mr-2" /> Ajouter
@@ -91,11 +91,11 @@ const TestimonialsTab = () => {
           {testimonials.map((t) => (
             <div key={t.id} className="glass-card rounded-3xl p-6 border border-border/50 flex flex-col gap-4">
               <Quote className="h-6 w-6 text-gold/50" />
-              <p className="text-sm text-muted-foreground italic line-clamp-4 flex-1">"{t.quote}"</p>
+              <p className="text-lvl-footer text-muted-foreground italic line-clamp-4 flex-1">"{t.quote}"</p>
               <div className="flex items-center justify-between pt-4 border-t border-border/30">
                 <div>
-                  <p className="font-bold text-sm">{t.author_name}</p>
-                  <p className="text-xs text-gold uppercase tracking-wider">{[t.author_role, t.author_company].filter(Boolean).join(", ")}</p>
+                  <p className="font-bold text-lvl-footer">{t.author_name}</p>
+                  <p className="text-lvl-footer text-gold uppercase tracking-wider">{[t.author_role, t.author_company].filter(Boolean).join(", ")}</p>
                 </div>
                 <Badge variant="outline" className={t.status === 'publié' ? "text-green-600 border-green-500/20" : "text-orange-600 border-orange-500/20"}>
                   {t.status}

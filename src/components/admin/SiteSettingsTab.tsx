@@ -50,7 +50,7 @@ const SiteSettingsTab = () => {
 
   const Section = ({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) => (
     <div className="glass-card rounded-3xl p-8 border border-border/50 space-y-5">
-      <h3 className="font-bold text-lg flex items-center gap-2">{icon} {title}</h3>
+      <h3 className="font-bold text-lvl-body flex items-center gap-2">{icon} {title}</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">{children}</div>
     </div>
   );
@@ -66,8 +66,8 @@ const SiteSettingsTab = () => {
     <div className="space-y-8 animate-fade-in max-w-4xl mx-auto pb-24">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Réglages avancés</h2>
-          <p className="text-sm text-muted-foreground mt-1">Champs sans équivalent visuel sur le site (SEO, identité technique, mentions légales).</p>
+          <h2 className="text-lvl-subtitle font-bold">Réglages avancés</h2>
+          <p className="text-lvl-footer text-muted-foreground mt-1">Champs sans équivalent visuel sur le site (SEO, identité technique, mentions légales).</p>
         </div>
         <Button variant="gold" className="rounded-2xl h-12 px-6 shadow-xl shrink-0" onClick={handleSave} disabled={isSaving}>
           {isSaving ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Save className="h-5 w-5 mr-2" />}
@@ -75,7 +75,7 @@ const SiteSettingsTab = () => {
         </Button>
       </div>
 
-      <div className="flex items-center gap-2 text-muted-foreground text-xs bg-secondary/30 border border-border/50 rounded-xl px-4 py-3">
+      <div className="flex items-center gap-2 text-muted-foreground text-lvl-footer bg-secondary/30 border border-border/50 rounded-xl px-4 py-3">
         <Info className="w-4 h-4 text-gold shrink-0" />
         Le téléphone, l'email, l'adresse, les réseaux sociaux et tous les textes de page se modifient directement dans l'onglet <strong className="text-foreground">Éditeur visuel</strong>.
       </div>

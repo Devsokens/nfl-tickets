@@ -36,7 +36,7 @@ export const EditableIcon = ({ value, onSave, className }: EditableIconProps) =>
         </span>
       </PopoverTrigger>
       <PopoverContent className="w-64 z-[200] space-y-2">
-        <Label className="text-xs text-muted-foreground uppercase tracking-wider">Choisir une icône</Label>
+        <Label className="text-lvl-footer text-muted-foreground uppercase tracking-wider">Choisir une icône</Label>
         <div className="grid grid-cols-5 gap-2">
           {ICON_NAMES.map((name) => {
             const ItemIcon = getIcon(name);

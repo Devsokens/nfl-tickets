@@ -103,8 +103,8 @@ const FormationsTab = () => {
     <div className="space-y-8 animate-fade-in max-w-7xl mx-auto pb-24">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Formations</h2>
-          <p className="text-sm text-muted-foreground mt-1">Modules affichés dans le catalogue formation.</p>
+          <h2 className="text-lvl-subtitle font-bold">Formations</h2>
+          <p className="text-lvl-footer text-muted-foreground mt-1">Modules affichés dans le catalogue formation.</p>
         </div>
         <Button variant="gold" className="rounded-2xl h-12 px-6 shadow-xl" onClick={openCreate}>
           <Plus className="h-5 w-5 mr-2" /> Créer
@@ -131,8 +131,8 @@ const FormationsTab = () => {
                   <Button variant="ghost" size="icon" className="h-8 w-8 text-gold" onClick={() => openEdit(f)}><Pencil className="h-4 w-4" /></Button>
                   <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(f.id)}><Trash2 className="h-4 w-4" /></Button>
                 </div>
-                <h3 className="font-bold text-lg mb-2">{f.title}</h3>
-                <p className="text-sm text-muted-foreground line-clamp-2">{f.description}</p>
+                <h3 className="font-bold text-lvl-body mb-2">{f.title}</h3>
+                <p className="text-lvl-footer text-muted-foreground line-clamp-2">{f.description}</p>
               </div>
             </div>
           ))}
@@ -183,7 +183,7 @@ const FormationsTab = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Image</Label>
+              <Label className="text-lvl-footer font-semibold text-muted-foreground uppercase tracking-wider">Image</Label>
               <div
                 className={`relative border-2 border-dashed rounded-2xl p-6 transition-all flex flex-col items-center justify-center gap-3 cursor-pointer group
                   ${isUploading ? "bg-muted/50 border-gold/20" : "bg-gold/5 border-gold/20 hover:border-gold hover:bg-gold/10"}`}
@@ -197,7 +197,7 @@ const FormationsTab = () => {
                 ) : (
                   <>
                     <ImageIcon className="w-8 h-8 text-gold" />
-                    <p className="text-sm text-muted-foreground">Cliquez pour charger une image</p>
+                    <p className="text-lvl-footer text-muted-foreground">Cliquez pour charger une image</p>
                   </>
                 )}
               </div>

@@ -179,6 +179,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Intercepteur de réponse : un 401 signifie token absent/invalide/expiré.
+// On nettoie la session et on renvoie vers la connexion admin, sauf si on
+// est déjà sur la page de login (évite une boucle de redirection).
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 401 && !window.location.pathname.startsWith('/admin/login')) {
+      localStorage.removeItem('nfl_token');
+      window.location.href = '/admin/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Services d'API
 export const EventsAPI = {
   getUpcoming: async () => {

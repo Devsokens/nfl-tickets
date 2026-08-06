@@ -73,9 +73,9 @@ export const EditableSocialLink = ({ url, onSave, icon: Icon, label }: EditableS
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-72 z-[200] space-y-2" onCloseAutoFocus={(e) => e.preventDefault()}>
-        <Label className="text-xs text-muted-foreground uppercase tracking-wider">{label}</Label>
+        <Label className="text-lvl-footer text-muted-foreground uppercase tracking-wider">{label}</Label>
         <Input autoFocus value={draft} placeholder="https://..." onChange={(e) => handleChange(e.target.value)} />
-        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground h-4">
+        <div className="flex items-center gap-1.5 text-lvl-footer text-muted-foreground h-4">
           {status === "saving" && <><Loader2 className="w-3 h-3 animate-spin" /> Enregistrement...</>}
           {status === "saved" && <><Check className="w-3 h-3 text-green-600" /> Enregistré</>}
           {status === "error" && <><AlertCircle className="w-3 h-3 text-destructive" /> Erreur</>}

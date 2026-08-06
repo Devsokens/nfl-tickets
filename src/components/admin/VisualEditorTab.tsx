@@ -37,14 +37,14 @@ export const VisualEditorTab = () => {
     <div className="space-y-6 animate-fade-in max-w-7xl mx-auto pb-6 h-full flex flex-col">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Éditeur visuel</h2>
-          <p className="text-sm text-muted-foreground mt-1">Cliquez directement sur un texte, une image ou une icône ci-dessous pour le modifier.</p>
+          <h2 className="text-lvl-subtitle font-bold">Éditeur visuel</h2>
+          <p className="text-lvl-footer text-muted-foreground mt-1">Cliquez directement sur un texte, une image ou une icône ci-dessous pour le modifier.</p>
         </div>
         <a
           href={current.path}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-gold hover:text-gold/80 text-xs font-bold uppercase tracking-wider transition-colors shrink-0"
+          className="inline-flex items-center gap-1.5 text-gold hover:text-gold/80 text-lvl-footer font-bold uppercase tracking-wider transition-colors shrink-0"
         >
           Voir cette page en ligne <ExternalLink className="h-3.5 w-3.5" />
         </a>
@@ -58,7 +58,7 @@ export const VisualEditorTab = () => {
               key={p.key}
               onClick={() => setPage(p.key)}
               className={cn(
-                "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors",
+                "flex items-center gap-2 px-4 py-2.5 rounded-xl text-lvl-footer font-bold uppercase tracking-wider transition-colors",
                 page === p.key ? "bg-gold text-[#32140c] shadow-md" : "text-muted-foreground hover:text-foreground hover:bg-white/5",
               )}
             >

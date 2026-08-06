@@ -117,16 +117,16 @@ const DemandesList = () => {
         <tr key={d.id} className="hover:bg-muted/5 transition-colors group cursor-pointer" onClick={() => setSelectedDemande(d)}>
           <td className="px-6 py-5">
             <div className="font-bold text-foreground">{d.name}</div>
-            <div className="text-xs text-muted-foreground">{d.email}</div>
-            <div className="mt-2 text-gold font-semibold text-xs uppercase tracking-wider">{d.subject}</div>
+            <div className="text-lvl-footer text-muted-foreground">{d.email}</div>
+            <div className="mt-2 text-gold font-semibold text-lvl-footer uppercase tracking-wider">{d.subject}</div>
           </td>
           <td className="px-6 py-5">
-            <p className="text-sm text-muted-foreground line-clamp-2 max-w-md group-hover:line-clamp-none transition-all">
+            <p className="text-lvl-footer text-muted-foreground line-clamp-2 max-w-md group-hover:line-clamp-none transition-all">
               {d.message}
             </p>
           </td>
           <td className="px-6 py-5">
-            <div className="text-xs font-mono text-muted-foreground">
+            <div className="text-lvl-footer font-mono text-muted-foreground">
               {new Date(d.created_at || Date.now()).toLocaleString('fr-FR', {
                 day: '2-digit',
                 month: '2-digit',
@@ -137,7 +137,7 @@ const DemandesList = () => {
             </div>
           </td>
           <td className="px-6 py-5">
-            <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/20 uppercase text-[10px]">
+            <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/20 uppercase text-lvl-footer">
               {d.status || 'En attente'}
             </Badge>
           </td>
@@ -254,10 +254,10 @@ const CertificateModal = ({ event, isOpen, onClose }: { event: any, isOpen: bool
                     />
                     <label htmlFor={`ticket-${t.id}`} className="cursor-pointer">
                       <div className="font-bold text-foreground">{t.full_name || t.name}</div>
-                      <div className="text-[10px] text-muted-foreground font-mono">{t.email}</div>
+                      <div className="text-lvl-footer text-muted-foreground font-mono">{t.email}</div>
                     </label>
                   </div>
-                  <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20 uppercase text-[9px] font-black tracking-widest">Scanné</Badge>
+                  <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20 uppercase text-lvl-footer font-black tracking-widest">Scanné</Badge>
                 </div>
               ))
             )}
@@ -281,7 +281,7 @@ const FormSection = ({ icon, title, children }: { icon: React.ReactNode; title: 
   <div className="space-y-4">
     <div className="flex items-center gap-2.5">
       <span className="w-7 h-7 rounded-lg bg-gold/10 text-gold flex items-center justify-center shrink-0">{icon}</span>
-      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{title}</h4>
+      <h4 className="text-lvl-footer font-bold uppercase tracking-wider text-muted-foreground">{title}</h4>
     </div>
     <div className="space-y-4 pl-1">{children}</div>
   </div>
@@ -309,7 +309,19 @@ const AdminDashboard = () => {
   const [scanMode, setScanMode] = useState<"manual" | "camera">("camera");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
- 
+
+  // Garde-fou côté client : sans token, on ne rend jamais la coquille du
+  // dashboard. L'intercepteur 401 dans lib/api.ts prend le relais si le
+  // token existe mais est invalide/expiré (rejet par le serveur).
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+  useEffect(() => {
+    if (!localStorage.getItem("nfl_token")) {
+      navigate("/admin/login", { replace: true });
+      return;
+    }
+    setIsAuthChecked(true);
+  }, [navigate]);
+
   const { data: subscribers = [] } = useQuery<any[]>({
     queryKey: ["subscribers"],
     queryFn: NewsletterAPI.getAll,
@@ -922,6 +934,17 @@ const AdminDashboard = () => {
     navigate("/admin/login");
   };
 
+  // Tant que la vérification du token n'a pas eu lieu (ou en cas de
+  // redirection en cours vers /admin/login), on ne rend rien : aucune
+  // fuite de la coquille du dashboard pour un visiteur non authentifié.
+  if (!isAuthChecked) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-gold" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col md:flex-row overflow-hidden text-foreground">
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#32140c] border-r border-sidebar-border flex flex-col transition-transform md:translate-x-0 md:static md:h-screen ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
@@ -943,7 +966,7 @@ const AdminDashboard = () => {
                 <button
                   key={tab.key}
                   onClick={() => { setActiveTab(tab.key); setIsMobileMenuOpen(false); }}
-                  className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-sm font-semibold transition-all ${
+                  className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-lvl-footer font-semibold transition-all ${
                     activeTab === tab.key
                       ? "bg-gold text-[#32140c] shadow-lg shadow-gold/20"
                       : "text-white/60 hover:bg-white/10 hover:text-white"
@@ -959,7 +982,7 @@ const AdminDashboard = () => {
               <div key={entry.label}>
                 <button
                   onClick={() => setIsEventGroupOpen((o) => !o)}
-                  className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-sm font-semibold transition-all ${
+                  className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-lvl-footer font-semibold transition-all ${
                     isGroupActive && !isEventGroupOpen
                       ? "bg-gold text-[#32140c] shadow-lg shadow-gold/20"
                       : "text-white/60 hover:bg-white/10 hover:text-white"
@@ -976,7 +999,7 @@ const AdminDashboard = () => {
                         <button
                           key={tab.key}
                           onClick={() => { setActiveTab(tab.key); setIsMobileMenuOpen(false); }}
-                          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all ${
+                          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-lvl-footer font-semibold transition-all ${
                             activeTab === tab.key
                               ? "bg-gold text-[#32140c] shadow-md shadow-gold/20"
                               : "text-white/50 hover:bg-white/10 hover:text-white"
@@ -1002,8 +1025,8 @@ const AdminDashboard = () => {
                   <CircleUserRound className="h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-white truncate">Administrateur</p>
-                  <p className="text-[11px] text-white/45 truncate">Compte NFL Admin</p>
+                  <p className="text-lvl-footer font-semibold text-white truncate">Administrateur</p>
+                  <p className="text-lvl-footer text-white/45 truncate">Compte NFL Admin</p>
                 </div>
                 <ChevronDown className="h-4 w-4 text-white/40 shrink-0" />
               </button>
@@ -1026,7 +1049,7 @@ const AdminDashboard = () => {
         <header className="h-20 border-b border-border bg-card/80 backdrop-blur-md flex items-center justify-between gap-4 px-6 md:px-10 shrink-0 text-foreground">
           <div className="flex items-center gap-4 shrink-0">
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMobileMenuOpen(true)}><Menu className="h-6 w-6" /></Button>
-            <h1 className="font-display text-2xl font-bold hidden lg:flex items-center gap-3 whitespace-nowrap">
+            <h1 className="font-display text-lvl-subtitle font-bold hidden lg:flex items-center gap-3 whitespace-nowrap">
               <span className="text-gold">{tabs.find(t => t.key === activeTab)?.icon}</span>
               {tabs.find(t => t.key === activeTab)?.label}
             </h1>
@@ -1050,7 +1073,7 @@ const AdminDashboard = () => {
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="h-5 w-5" />
                   {notificationsCount > 0 && (
-                    <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                    <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-lvl-footer font-bold text-destructive-foreground">
                       {notificationsCount > 99 ? "99+" : notificationsCount}
                     </span>
                   )}
@@ -1060,7 +1083,7 @@ const AdminDashboard = () => {
                 <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {notificationsCount === 0 ? (
-                  <div className="px-2 py-4 text-sm text-muted-foreground text-center">Aucune nouvelle notification.</div>
+                  <div className="px-2 py-4 text-lvl-footer text-muted-foreground text-center">Aucune nouvelle notification.</div>
                 ) : (
                   <>
                     {pendingTicketsCount > 0 && (
@@ -1069,7 +1092,7 @@ const AdminDashboard = () => {
                         onClick={() => { setActiveTab("tickets"); setFilterStatus("soumis"); }}
                       >
                         <span className="font-semibold">{pendingTicketsCount} réservation(s) à valider</span>
-                        <span className="text-xs text-muted-foreground">Cliquez pour voir les billets en attente</span>
+                        <span className="text-lvl-footer text-muted-foreground">Cliquez pour voir les billets en attente</span>
                       </DropdownMenuItem>
                     )}
                     {pendingContactsCount > 0 && (
@@ -1078,7 +1101,7 @@ const AdminDashboard = () => {
                         onClick={() => setActiveTab("demandes")}
                       >
                         <span className="font-semibold">{pendingContactsCount} nouvelle(s) demande(s) de contact</span>
-                        <span className="text-xs text-muted-foreground">Cliquez pour voir les demandes</span>
+                        <span className="text-lvl-footer text-muted-foreground">Cliquez pour voir les demandes</span>
                       </DropdownMenuItem>
                     )}
                   </>
@@ -1095,24 +1118,24 @@ const AdminDashboard = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 <div className="glass-card rounded-3xl p-8 border border-gold/10 relative overflow-hidden">
                   <div className="flex items-center justify-between mb-6">
-                    <span className="text-sm font-semibold text-muted-foreground uppercase">Billets</span>
+                    <span className="text-lvl-footer font-semibold text-muted-foreground uppercase">Billets</span>
                     <TicketIcon className="h-6 w-6 text-gold" />
                   </div>
-                  <p className="text-5xl font-bold">{totalTickets}</p>
+                  <p className="text-lvl-hero font-bold">{totalTickets}</p>
                 </div>
                 <div className="glass-card rounded-3xl p-8 border border-gold/10 relative overflow-hidden">
                   <div className="flex items-center justify-between mb-6">
-                    <span className="text-sm font-semibold text-muted-foreground uppercase">Revenus (FCFA)</span>
+                    <span className="text-lvl-footer font-semibold text-muted-foreground uppercase">Revenus (FCFA)</span>
                     <DollarSign className="h-6 w-6 text-gold" />
                   </div>
-                  <p className="text-5xl font-bold">{totalRevenue.toLocaleString()}</p>
+                  <p className="text-lvl-hero font-bold">{totalRevenue.toLocaleString()}</p>
                 </div>
                 <div className="glass-card rounded-3xl p-8 border border-gold/10 relative overflow-hidden">
                   <div className="flex items-center justify-between mb-6">
-                    <span className="text-sm font-semibold text-muted-foreground uppercase">Événements</span>
+                    <span className="text-lvl-footer font-semibold text-muted-foreground uppercase">Événements</span>
                     <Calendar className="h-6 w-6 text-gold" />
                   </div>
-                  <p className="text-5xl font-bold">{activeEventsCount}</p>
+                  <p className="text-lvl-hero font-bold">{activeEventsCount}</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -1167,7 +1190,7 @@ const AdminDashboard = () => {
               {/* Activités récentes */}
               <div className="glass-card rounded-3xl p-8 border border-border/50">
                 <div className="flex items-center justify-between mb-8">
-                  <h3 className="font-display text-2xl font-bold">Dernières réservations</h3>
+                  <h3 className="font-display text-lvl-subtitle font-bold">Dernières réservations</h3>
                   <Button variant="ghost" size="sm" onClick={() => setActiveTab("tickets")} className="text-gold hover:text-gold/80 flex items-center gap-1 font-semibold">
                     Voir tout <ArrowRight className="h-4 w-4" />
                   </Button>
@@ -1187,10 +1210,10 @@ const AdminDashboard = () => {
                              {ticket.status}
                            </Badge>
                         </div>
-                        <p className="text-xs text-muted-foreground uppercase tracking-widest truncate mb-2">{event?.title || "Événement inconnu"}</p>
+                        <p className="text-lvl-footer text-muted-foreground uppercase tracking-widest truncate mb-2">{event?.title || "Événement inconnu"}</p>
                         
                         <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/30">
-                          <p className="text-[10px] text-muted-foreground/60 font-mono">REF: NFL-{ticket.id.split("-")[0].toUpperCase()}</p>
+                          <p className="text-lvl-footer text-muted-foreground/60 font-mono">REF: NFL-{ticket.id.split("-")[0].toUpperCase()}</p>
                           <div className="flex gap-1">
                             {ticket.status === 'soumis' && (
                               <>
@@ -1216,14 +1239,14 @@ const AdminDashboard = () => {
           {activeTab === "events" && (
             <div className="space-y-8 animate-fade-in max-w-7xl mx-auto">
               <div className="flex items-center justify-between gap-4">
-                <h2 className="text-2xl font-bold">Événements</h2>
+                <h2 className="text-lvl-subtitle font-bold">Événements</h2>
                 <Button variant="gold" disabled={isSavingEvent} className="rounded-2xl h-12 px-6 shadow-xl" onClick={handleStartNewEvent}>
                   {isSavingEvent ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Plus className="h-5 w-5 mr-2" />} 
                   Créer
                 </Button>
               </div>
               {headerSearch && (
-                <p className="text-sm text-muted-foreground">{filteredEventsHeader.length} résultat(s) pour "{headerSearch}"</p>
+                <p className="text-lvl-footer text-muted-foreground">{filteredEventsHeader.length} résultat(s) pour "{headerSearch}"</p>
               )}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredEventsHeader.map((event) => (
@@ -1256,10 +1279,10 @@ const AdminDashboard = () => {
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteEvent(event.id)}><Trash2 className="h-4 w-4" /></Button>
                         </div>
                       </div>
-                      <h3 className="font-bold text-xl mb-2">{event.title}</h3>
-                      <p className="text-sm text-muted-foreground mb-4 font-mono">{new Date(event.date).toLocaleDateString()} - {event.location}</p>
+                      <h3 className="font-bold text-lvl-subtitle mb-2">{event.title}</h3>
+                      <p className="text-lvl-footer text-muted-foreground mb-4 font-mono">{new Date(event.date).toLocaleDateString()} - {event.location}</p>
                       <div className="mt-auto pt-4 border-t border-border/50">
-                        <div className="flex text-sm font-bold text-muted-foreground">
+                        <div className="flex text-lvl-footer font-bold text-muted-foreground">
                           <span className="text-gold mr-1">{event.ticketsSold || 0}</span> places validées
                         </div>
                       </div>
@@ -1276,7 +1299,7 @@ const AdminDashboard = () => {
             <div className="space-y-8 animate-fade-in max-w-7xl mx-auto pb-20">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                  <h2 className="text-3xl font-bold mb-2">Réservations</h2>
+                  <h2 className="text-lvl-title font-bold mb-2">Réservations</h2>
                   <p className="text-muted-foreground">{filteredTickets.length} billets correspondants</p>
                 </div>
                 <Button variant="gold" className="rounded-2xl h-12 px-6 font-bold shadow-xl" onClick={() => setTicketDialogOpen(true)}>
@@ -1320,8 +1343,8 @@ const AdminDashboard = () => {
 
               <div className="glass-card rounded-3xl border border-border/50 overflow-hidden shadow-2xl">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="bg-secondary/20 text-muted-foreground uppercase tracking-widest text-[10px] font-bold">
+                  <table className="w-full text-lvl-footer text-left">
+                    <thead className="bg-secondary/20 text-muted-foreground uppercase tracking-widest text-lvl-footer font-bold">
                       <tr>
                         <th className="px-8 py-5">Réf / Client</th>
                         <th className="px-8 py-5">Événement</th>
@@ -1336,7 +1359,7 @@ const AdminDashboard = () => {
                         paginatedTickets.map((ticket) => (
                           <tr key={ticket.id} className="hover:bg-secondary/5 transition-colors cursor-pointer group" onClick={() => { setSelectedTicket(ticket); setShowTicketModal(true); }}>
                             <td className="px-8 py-5">
-                              <span className="text-gold font-bold block text-xs mb-1">REF: {ticket.id.split("-")[0].toUpperCase()}</span>
+                              <span className="text-gold font-bold block text-lvl-footer mb-1">REF: {ticket.id.split("-")[0].toUpperCase()}</span>
                               <span className="font-semibold text-foreground group-hover:text-gold transition-colors">{ticket.full_name || ticket.name}</span>
                             </td>
                             <td className="px-8 py-5">
@@ -1377,7 +1400,7 @@ const AdminDashboard = () => {
                 {/* Pagination Tickets */}
                 {totalTicketPages > 1 && (
                   <div className="p-6 border-t border-border/30 flex items-center justify-between">
-                    <p className="text-xs text-muted-foreground">Page {ticketPage} sur {totalTicketPages}</p>
+                    <p className="text-lvl-footer text-muted-foreground">Page {ticketPage} sur {totalTicketPages}</p>
                     <div className="flex gap-2">
                       <Button 
                         variant="outline" 
@@ -1406,11 +1429,11 @@ const AdminDashboard = () => {
 
           {activeTab === "demandes" && (
             <div className="space-y-8 animate-fade-in max-w-7xl mx-auto">
-              <h2 className="text-2xl font-bold">Demandes de Contact</h2>
+              <h2 className="text-lvl-subtitle font-bold">Demandes de Contact</h2>
               <div className="glass-card rounded-3xl border border-border/50 overflow-hidden shadow-2xl">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
-                    <thead className="bg-secondary/20 uppercase text-[10px] tracking-widest text-muted-foreground">
+                    <thead className="bg-secondary/20 uppercase text-lvl-footer tracking-widest text-muted-foreground">
                       <tr>
                         <th className="px-6 py-4">Client / Sujet</th>
                         <th className="px-6 py-4">Message</th>
@@ -1431,7 +1454,7 @@ const AdminDashboard = () => {
             <div className="space-y-8 animate-fade-in max-w-7xl mx-auto pb-20">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                  <h2 className="text-3xl font-bold mb-2">Newsletter</h2>
+                  <h2 className="text-lvl-title font-bold mb-2">Newsletter</h2>
                   <p className="text-muted-foreground">{subscribers.length} abonnés actifs</p>
                 </div>
                 <div className="flex gap-3">
@@ -1461,14 +1484,14 @@ const AdminDashboard = () => {
                     checked={selectedEmails.length === filteredSubscribers.length && filteredSubscribers.length > 0}
                     onCheckedChange={(v) => handleToggleSelectAll(!!v)}
                   />
-                  <Label htmlFor="select-all-news" className="text-sm font-semibold cursor-pointer">Tout sélectionner ({filteredSubscribers.length})</Label>
+                  <Label htmlFor="select-all-news" className="text-lvl-footer font-semibold cursor-pointer">Tout sélectionner ({filteredSubscribers.length})</Label>
                 </div>
               </div>
 
               <div className="glass-card rounded-3xl border border-border/50 overflow-hidden shadow-2xl">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
-                    <thead className="bg-secondary/20 uppercase text-[10px] tracking-widest text-muted-foreground font-bold">
+                    <thead className="bg-secondary/20 uppercase text-lvl-footer tracking-widest text-muted-foreground font-bold">
                       <tr>
                         <th className="px-6 py-5 w-10"></th>
                         <th className="px-6 py-5">Email de l'Abonné</th>
@@ -1486,7 +1509,7 @@ const AdminDashboard = () => {
                             />
                           </td>
                           <td className="px-6 py-5 font-medium text-foreground">{sub.email}</td>
-                          <td className="px-6 py-5 text-xs text-muted-foreground">
+                          <td className="px-6 py-5 text-lvl-footer text-muted-foreground">
                             {new Date(sub.created_at || Date.now()).toLocaleDateString('fr-FR', {
                               day: '2-digit',
                               month: 'long',
@@ -1507,7 +1530,7 @@ const AdminDashboard = () => {
                 {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="p-6 border-t border-border/30 flex items-center justify-between">
-                    <p className="text-xs text-muted-foreground">Page {newsPage} sur {totalPages}</p>
+                    <p className="text-lvl-footer text-muted-foreground">Page {newsPage} sur {totalPages}</p>
                     <div className="flex gap-2">
                       <Button 
                         variant="outline" 
@@ -1544,7 +1567,7 @@ const AdminDashboard = () => {
 
           {activeTab === "scanner" && (
             <div className="max-w-2xl mx-auto space-y-8 animate-fade-in py-10">
-              <div className="text-center"><h2 className="text-4xl font-bold mb-4">Scanner</h2><p className="text-muted-foreground">Vérification en temps réel.</p></div>
+              <div className="text-center"><h2 className="text-lvl-title font-bold mb-4">Scanner</h2><p className="text-muted-foreground">Vérification en temps réel.</p></div>
               <div className="flex justify-center bg-secondary/30 p-1.5 rounded-2xl w-fit mx-auto border border-border/50"><Button variant={scanMode === "camera" ? "gold" : "ghost"} onClick={() => setScanMode("camera")}>Caméra</Button><Button variant={scanMode === "manual" ? "gold" : "ghost"} onClick={() => setScanMode("manual")}>Manuel</Button></div>
               <div className="glass-card p-10 rounded-[40px] border border-border/50 shadow-2xl">
                 {scanMode === "camera" ? <div id="reader" className="min-h-[300px] bg-black/5 rounded-3xl overflow-hidden" /> : <div className="space-y-4 font-mono"><Input placeholder="Code NFL-..." value={scanInput} onChange={(e) => setScanInput(e.target.value)} /><Button variant="gold" className="w-full h-14" onClick={handleScanQR}>Valider</Button></div>}
@@ -1558,12 +1581,12 @@ const AdminDashboard = () => {
       <Sheet open={eventDialogOpen} onOpenChange={setEventDialogOpen}>
         <SheetContent side="right" className="w-full sm:max-w-2xl lg:max-w-3xl p-0 flex flex-col gap-0 border-gold/10">
           <SheetHeader className="px-6 sm:px-8 py-6 border-b border-border/50 shrink-0 space-y-2">
-            <SheetTitle className="text-2xl font-bold text-foreground flex items-center justify-between pr-8">
+            <SheetTitle className="text-lvl-subtitle font-bold text-foreground flex items-center justify-between pr-8">
               <span>{editingEventId ? "Modifier l'événement" : "Nouvel événement"}</span>
               <div className="flex items-center gap-2">
-                {autoSaveStatus === "saving" && <Badge variant="outline" className="animate-pulse text-xs py-0 h-5 border-gold/30 text-gold">Enregistrement...</Badge>}
-                {autoSaveStatus === "saved" && <Badge variant="outline" className="text-xs py-0 h-5 border-green-500/30 text-green-500">Brouillon enregistré</Badge>}
-                {autoSaveStatus === "error" && <Badge variant="outline" className="text-xs py-0 h-5 border-destructive/30 text-destructive text-[10px]">Erreur de sauvegarde</Badge>}
+                {autoSaveStatus === "saving" && <Badge variant="outline" className="animate-pulse text-lvl-footer py-0 h-5 border-gold/30 text-gold">Enregistrement...</Badge>}
+                {autoSaveStatus === "saved" && <Badge variant="outline" className="text-lvl-footer py-0 h-5 border-green-500/30 text-green-500">Brouillon enregistré</Badge>}
+                {autoSaveStatus === "error" && <Badge variant="outline" className="text-lvl-footer py-0 h-5 border-destructive/30 text-destructive text-lvl-footer">Erreur de sauvegarde</Badge>}
               </div>
             </SheetTitle>
             <SheetDescription>
@@ -1654,7 +1677,7 @@ const AdminDashboard = () => {
                           alt="Aperçu"
                           className="w-full max-h-[200px] object-contain rounded-xl shadow-lg border border-gold/20"
                         />
-                        <p className="text-gold font-bold text-sm bg-[#32140c] px-3 py-1 rounded-full border border-gold/30">Cliquer pour changer l'affiche</p>
+                        <p className="text-gold font-bold text-lvl-footer bg-[#32140c] px-3 py-1 rounded-full border border-gold/30">Cliquer pour changer l'affiche</p>
                       </div>
                     ) : (
                       <>
@@ -1662,15 +1685,15 @@ const AdminDashboard = () => {
                           <ImageIcon className="w-8 h-8 text-gold" />
                         </div>
                         <div className="text-center">
-                          <p className="font-bold text-lg">Cliquez ou glissez l'affiche ici</p>
-                          <p className="text-xs text-muted-foreground mt-1">PNG, JPG ou JPEG (Max. 5Mo)</p>
+                          <p className="font-bold text-lvl-body">Cliquez ou glissez l'affiche ici</p>
+                          <p className="text-lvl-footer text-muted-foreground mt-1">PNG, JPG ou JPEG (Max. 5Mo)</p>
                         </div>
                       </>
                     )}
                   </div>
                 )}
                 {eventForm.image_url && !isUploading && (
-                  <div className="absolute top-2 right-2 bg-gold text-[#32140c] text-[10px] font-bold px-2 py-1 rounded-full uppercase">Prêt</div>
+                  <div className="absolute top-2 right-2 bg-gold text-[#32140c] text-lvl-footer font-bold px-2 py-1 rounded-full uppercase">Prêt</div>
                 )}
               </div>
             </FormSection>
@@ -1732,8 +1755,8 @@ const AdminDashboard = () => {
               <div className="bg-gold/5 border border-gold/10 rounded-2xl p-6 space-y-4">
                 <div className="flex items-center justify-between gap-4">
                   <div className="space-y-1">
-                    <Label className="text-sm font-bold">Envoyer aux abonnés Newsletter</Label>
-                    <p className="text-xs text-muted-foreground">
+                    <Label className="text-lvl-footer font-bold">Envoyer aux abonnés Newsletter</Label>
+                    <p className="text-lvl-footer text-muted-foreground">
                       {eventForm.status === 'brouillon'
                         ? "Publiez l'événement pour pouvoir envoyer la newsletter."
                         : "Les invitations seront envoyées dès la publication."}
@@ -1741,7 +1764,7 @@ const AdminDashboard = () => {
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     {eventForm.newsletter_status === 'sent' && (
-                      <Badge className="bg-green-500/20 text-green-500 border-green-500/30 font-bold uppercase text-[10px]">Déjà envoyé</Badge>
+                      <Badge className="bg-green-500/20 text-green-500 border-green-500/30 font-bold uppercase text-lvl-footer">Déjà envoyé</Badge>
                     )}
                     <Switch
                       disabled={eventForm.newsletter_status === 'sent' || eventForm.status === 'brouillon'}
@@ -1757,7 +1780,7 @@ const AdminDashboard = () => {
           <SheetFooter className="px-6 sm:px-8 py-5 border-t border-border/50 shrink-0 bg-card/50 backdrop-blur-sm sm:justify-stretch">
             <Button
               variant={eventForm.status === 'publié' ? "outline" : "gold"}
-              className={`w-full h-10 text-sm font-bold shadow-lg rounded-xl group relative overflow-hidden ${eventForm.status === 'publié' ? 'border-green-500 text-green-500 hover:bg-green-50' : 'shadow-gold/20'}`}
+              className={`w-full h-10 text-lvl-footer font-bold shadow-lg rounded-xl group relative overflow-hidden ${eventForm.status === 'publié' ? 'border-green-500 text-green-500 hover:bg-green-50' : 'shadow-gold/20'}`}
               onClick={handleSaveEvent}
               disabled={isUploading || isSavingEvent}
             >
@@ -1776,7 +1799,7 @@ const AdminDashboard = () => {
 
       <Dialog open={ticketDialogOpen} onOpenChange={setTicketDialogOpen}><DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Nouvelle inscription</DialogTitle>
+          <DialogTitle className="text-lvl-subtitle font-bold">Nouvelle inscription</DialogTitle>
           <DialogDescription>
             Inscrire manuellement un participant à un événement.
           </DialogDescription>
@@ -1795,15 +1818,15 @@ const AdminDashboard = () => {
 
       <Dialog open={showTicketModal} onOpenChange={setShowTicketModal}><DialogContent className="sm:max-w-[450px]">
          <DialogHeader>
-           <DialogTitle className="text-xl font-bold">Détails du billet</DialogTitle>
+           <DialogTitle className="text-lvl-subtitle font-bold">Détails du billet</DialogTitle>
            <DialogDescription>
              Consultez et gérez les informations de cette réservation.
            </DialogDescription>
          </DialogHeader>
          {selectedTicket && <div className="space-y-6 pt-6">
             <div className="bg-secondary/20 p-6 rounded-2xl grid grid-cols-2 gap-4">
-              <div><Label className="opacity-50 uppercase text-[10px] font-bold">Bénéficiaire</Label><p className="font-bold">{selectedTicket.full_name || selectedTicket.name}</p></div>
-              <div><Label className="opacity-50 uppercase text-[10px] font-bold">Statut</Label><p className="text-gold font-bold">{selectedTicket.status}</p></div>
+              <div><Label className="opacity-50 uppercase text-lvl-footer font-bold">Bénéficiaire</Label><p className="font-bold">{selectedTicket.full_name || selectedTicket.name}</p></div>
+              <div><Label className="opacity-50 uppercase text-lvl-footer font-bold">Statut</Label><p className="text-gold font-bold">{selectedTicket.status}</p></div>
             </div>
             <div className="flex gap-4">
               {(selectedTicket.status === 'validé' || selectedTicket.status === 'utilisé') && (
@@ -1829,7 +1852,7 @@ const AdminDashboard = () => {
       <Dialog open={confirmValidateOpen} onOpenChange={setConfirmValidateOpen}>
         <DialogContent className="sm:max-w-[400px] rounded-[30px] p-8 text-center bg-card border-gold/10">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-bold text-foreground">Confirmer</DialogTitle>
+              <DialogTitle className="text-lvl-subtitle font-bold text-foreground">Confirmer</DialogTitle>
               <DialogDescription>
                 Voulez-vous valider cette réservation et envoyer le billet ?
               </DialogDescription>
@@ -1857,7 +1880,7 @@ const AdminDashboard = () => {
       <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-[30px] p-8 border-gold/10">
           <DialogHeader>
-            <DialogTitle className="text-3xl font-display font-bold">Rédiger une newsletter</DialogTitle>
+            <DialogTitle className="text-lvl-title font-display font-bold">Rédiger une newsletter</DialogTitle>
             <DialogDescription>
               {newsletterForm.sendToAll 
                 ? `Envoi à tous les abonnés (${subscribers.length})` 
@@ -1871,7 +1894,7 @@ const AdminDashboard = () => {
                 placeholder="Ex: Nouvelle offre exclusive..." 
                 value={newsletterForm.subject}
                 onChange={(e) => setNewsletterForm(p => ({ ...p, subject: e.target.value }))}
-                className="h-12 text-lg font-semibold border-gold/20"
+                className="h-12 text-lvl-body font-semibold border-gold/20"
               />
             </div>
             
@@ -1898,17 +1921,17 @@ const AdminDashboard = () => {
             </div>
 
             <div className="space-y-3 pt-4">
-              <Label className="text-base">Pièce jointe (Optionnel)</Label>
+              <Label className="text-lvl-body">Pièce jointe (Optionnel)</Label>
               {!newsletterForm.attachmentFile ? (
                 <Label 
                   className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border/50 rounded-2xl cursor-pointer bg-secondary/20 hover:bg-gold/5 hover:border-gold/30 transition-all group"
                 >
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
                     <UploadCloud className="w-8 h-8 mb-3 text-gold/50 group-hover:text-gold transition-colors" />
-                    <p className="mb-2 text-sm text-muted-foreground">
+                    <p className="mb-2 text-lvl-footer text-muted-foreground">
                       <span className="font-semibold text-gold">Cliquez pour parcourir</span> ou glissez un fichier
                     </p>
-                    <p className="text-xs text-muted-foreground/60">PDF, Images, DOC (Max 5MB)</p>
+                    <p className="text-lvl-footer text-muted-foreground/60">PDF, Images, DOC (Max 5MB)</p>
                   </div>
                   <Input 
                     type="file" 
@@ -1925,8 +1948,8 @@ const AdminDashboard = () => {
                       <FileText className="h-6 w-6 text-gold" />
                     </div>
                     <div className="truncate flex-1">
-                      <p className="text-sm font-bold truncate text-foreground">{newsletterForm.attachmentFile.name}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="text-lvl-footer font-bold truncate text-foreground">{newsletterForm.attachmentFile.name}</p>
+                      <p className="text-lvl-footer text-muted-foreground mt-0.5">
                         {(newsletterForm.attachmentFile.size / 1024 / 1024).toFixed(2)} MB
                       </p>
                     </div>
@@ -1945,7 +1968,7 @@ const AdminDashboard = () => {
 
             <Button 
               variant="gold" 
-              className="w-full h-16 text-xl font-bold shadow-2xl rounded-2xl mt-8" 
+              className="w-full h-16 text-lvl-subtitle font-bold shadow-2xl rounded-2xl mt-8" 
               onClick={handleSendManualNewsletter}
               disabled={isSendingNewsletter}
             >
@@ -1959,7 +1982,7 @@ const AdminDashboard = () => {
       <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
         <DialogContent className="max-w-5xl max-h-[80vh] overflow-hidden flex flex-col rounded-[30px] p-8 border-gold/10">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">Historique des envois</DialogTitle>
+            <DialogTitle className="text-lvl-subtitle font-bold">Historique des envois</DialogTitle>
             <DialogDescription>Retrouvez vos campagnes de newsletter passées.</DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto mt-6 pr-2">
@@ -1970,12 +1993,12 @@ const AdminDashboard = () => {
                 {newsletterHistory.map((item: any) => (
                   <div key={item.id} className="p-5 glass-card rounded-2xl border border-border/50">
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-bold text-lg text-gold">{item.subject}</h4>
-                      <Badge variant="outline" className="text-[10px] opacity-70">
+                      <h4 className="font-bold text-lvl-body text-gold">{item.subject}</h4>
+                      <Badge variant="outline" className="text-lvl-footer opacity-70">
                         {new Date(item.created_at).toLocaleDateString()}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-6 mt-4 pt-4 border-t border-border/20 text-xs text-foreground">
+                    <div className="flex items-center gap-6 mt-4 pt-4 border-t border-border/20 text-lvl-footer text-foreground">
                       <div className="flex items-center gap-2">
                         <Users className="h-3 w-3 text-muted-foreground" />
                         <span>{item.recipient_count} destinataires</span>

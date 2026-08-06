@@ -57,7 +57,7 @@ export const EditableImage = ({ src, alt, onSave, className, wrapperClassName }:
         ) : (
           <>
             <ImagePlus className="w-6 h-6" />
-            <span className="text-[10px] font-bold uppercase tracking-wider">Changer l'image</span>
+            <span className="text-lvl-footer font-bold uppercase tracking-wider">Changer l'image</span>
           </>
         )}
         <input

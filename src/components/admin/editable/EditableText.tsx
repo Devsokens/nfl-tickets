@@ -86,7 +86,7 @@ export const EditableText = ({
         </Wrapper>
       </PopoverTrigger>
       <PopoverContent className="w-80 z-[200] space-y-3" onCloseAutoFocus={(e) => e.preventDefault()}>
-        {label && <Label className="text-xs text-muted-foreground uppercase tracking-wider">{label}</Label>}
+        {label && <Label className="text-lvl-footer text-muted-foreground uppercase tracking-wider">{label}</Label>}
         <Field
           autoFocus
           value={draft}
@@ -94,7 +94,7 @@ export const EditableText = ({
           onChange={(e) => handleChange(e.target.value)}
           className={multiline ? "min-h-[100px]" : ""}
         />
-        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground h-4">
+        <div className="flex items-center gap-1.5 text-lvl-footer text-muted-foreground h-4">
           {status === "saving" && <><Loader2 className="w-3 h-3 animate-spin" /> Enregistrement...</>}
           {status === "saved" && <><Check className="w-3 h-3 text-green-600" /> Enregistré</>}
           {status === "error" && <><AlertCircle className="w-3 h-3 text-destructive" /> Erreur d'enregistrement</>}

@@ -19,7 +19,7 @@ const ProfileSection = ({ icon, title, children }: { icon: React.ReactNode; titl
   <div className="space-y-4">
     <div className="flex items-center gap-2.5">
       <span className="w-7 h-7 rounded-lg bg-gold/10 text-gold flex items-center justify-center shrink-0">{icon}</span>
-      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{title}</h4>
+      <h4 className="text-lvl-footer font-bold uppercase tracking-wider text-muted-foreground">{title}</h4>
     </div>
     <div className="space-y-4 pl-1">{children}</div>
   </div>
@@ -99,7 +99,7 @@ const ProfileSheet = ({ open, onOpenChange }: ProfileSheetProps) => {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-lg p-0 flex flex-col gap-0 border-gold/10">
         <SheetHeader className="px-6 sm:px-8 py-6 border-b border-border/50 shrink-0 space-y-2">
-          <SheetTitle className="text-2xl font-bold text-foreground">Mon profil</SheetTitle>
+          <SheetTitle className="text-lvl-subtitle font-bold text-foreground">Mon profil</SheetTitle>
           <SheetDescription>Gérez vos informations personnelles et votre mot de passe.</SheetDescription>
         </SheetHeader>
 
@@ -129,8 +129,8 @@ const ProfileSheet = ({ open, onOpenChange }: ProfileSheetProps) => {
                 />
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-semibold">Photo de profil</p>
-                <p className="text-xs text-muted-foreground">Cliquez sur l'avatar pour la changer.</p>
+                <p className="text-lvl-footer font-semibold">Photo de profil</p>
+                <p className="text-lvl-footer text-muted-foreground">Cliquez sur l'avatar pour la changer.</p>
               </div>
             </div>
 
@@ -142,7 +142,7 @@ const ProfileSheet = ({ open, onOpenChange }: ProfileSheetProps) => {
             <div className="space-y-2">
               <Label>Email</Label>
               <Input value={profile?.email || ""} disabled className="opacity-60" />
-              <p className="text-[11px] text-muted-foreground">L'email de connexion ne peut pas être modifié ici.</p>
+              <p className="text-lvl-footer text-muted-foreground">L'email de connexion ne peut pas être modifié ici.</p>
             </div>
           </ProfileSection>
 
@@ -155,14 +155,14 @@ const ProfileSheet = ({ open, onOpenChange }: ProfileSheetProps) => {
               <Label>Confirmer le nouveau mot de passe</Label>
               <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Retapez le mot de passe" />
             </div>
-            <p className="text-[11px] text-muted-foreground">Au moins 8 caractères.</p>
+            <p className="text-lvl-footer text-muted-foreground">Au moins 8 caractères.</p>
           </ProfileSection>
         </div>
 
         <SheetFooter className="px-6 sm:px-8 py-5 border-t border-border/50 shrink-0 bg-card/50 backdrop-blur-sm sm:justify-stretch">
           <Button
             variant="gold"
-            className="w-full h-10 text-sm font-bold rounded-xl shadow-lg shadow-gold/20"
+            className="w-full h-10 text-lvl-footer font-bold rounded-xl shadow-lg shadow-gold/20"
             onClick={handleSave}
             disabled={isSaving || isUploadingAvatar}
           >

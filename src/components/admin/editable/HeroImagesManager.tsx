@@ -44,13 +44,13 @@ export const HeroImagesManager = ({ images, onSave }: HeroImagesManagerProps) =>
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="absolute top-3 right-3 z-40 flex items-center gap-1.5 bg-black/70 hover:bg-black/90 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-2 rounded-full backdrop-blur-md border border-white/20 transition-colors"
+          className="absolute top-3 right-3 z-40 flex items-center gap-1.5 bg-black/70 hover:bg-black/90 text-white text-lvl-footer font-bold uppercase tracking-wider px-3 py-2 rounded-full backdrop-blur-md border border-white/20 transition-colors"
         >
           <Images className="w-3.5 h-3.5 text-[#e3bd51]" /> Images du diaporama
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-80 z-[200] space-y-3" align="end">
-        <Label className="text-xs text-muted-foreground uppercase tracking-wider">Images du diaporama</Label>
+        <Label className="text-lvl-footer text-muted-foreground uppercase tracking-wider">Images du diaporama</Label>
         <div className="grid grid-cols-3 gap-2">
           {images.map((img, idx) => (
             <div key={idx} className="relative aspect-video rounded-lg overflow-hidden border border-border/50 group">

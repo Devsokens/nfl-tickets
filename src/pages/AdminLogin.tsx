@@ -54,8 +54,8 @@ const AdminLogin = () => {
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-x-0 bottom-0 p-12 z-20 bg-gradient-to-t from-[#32140c] via-transparent to-transparent">
-          <h1 className="text-4xl font-display font-bold text-white mb-4">NFL Courtier & Service</h1>
-          <p className="text-white/80 text-lg max-w-md">
+          <h1 className="text-lvl-title font-display font-bold text-white mb-4">NFL Courtier & Service</h1>
+          <p className="text-white/80 text-lvl-body max-w-md">
             Interface de gestion administrative pour la billetterie, les événements et le suivi client.
           </p>
         </div>
@@ -65,7 +65,7 @@ const AdminLogin = () => {
       <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 sm:px-12 lg:px-24 bg-background relative">
         <Link 
           to="/" 
-          className="absolute top-8 left-8 lg:left-24 flex items-center gap-2 text-sm text-muted-foreground hover:text-gold transition-colors group"
+          className="absolute top-8 left-8 lg:left-24 flex items-center gap-2 text-lvl-footer text-muted-foreground hover:text-gold transition-colors group"
         >
           <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
           Retour au site
@@ -78,7 +78,7 @@ const AdminLogin = () => {
               alt="NFL Logo"
               className="nfl-logo nfl-logo-on-light h-24 w-auto mb-8 mx-auto lg:mx-0"
             />
-            <h2 className="text-3xl font-display font-bold text-foreground">
+            <h2 className="text-lvl-title font-display font-bold text-foreground">
               Espace Administration
             </h2>
             <p className="mt-3 text-muted-foreground">
@@ -127,7 +127,7 @@ const AdminLogin = () => {
               <Button 
                 type="submit" 
                 variant="gold" 
-                className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all" 
+                className="w-full h-12 text-lvl-body font-semibold shadow-lg hover:shadow-xl transition-all" 
                 disabled={isLoading}
               >
                 {isLoading ? "Connexion en cours..." : "Se connecter au Dashboard"}
