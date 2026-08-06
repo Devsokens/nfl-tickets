@@ -44,11 +44,12 @@ const Navbar = () => {
         description: res.message || "Vous êtes bien inscrit à la newsletter.",
       });
       setEmail("");
-    } catch (err: any) {
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Une erreur est survenue.";
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: err.response?.data?.message || "Une erreur est survenue.",
+        description: (err as any).response?.data?.message || errorMsg,
       });
     } finally {
       setIsLoading(false);
