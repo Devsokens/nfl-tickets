@@ -39,11 +39,15 @@ const TestimonialsTab = () => {
     }
     setIsSaving(true);
     try {
+      // `openEdit` initialise `form` avec l'objet complet renvoyé par l'API
+      // (id, created_at, updated_at inclus) : à exclure du payload envoyé,
+      // sous peine de 400 côté backend.
+      const { id, created_at, updated_at, ...payload } = form as any;
       if (editingId) {
-        await TestimonialsAPI.update(editingId, form);
+        await TestimonialsAPI.update(editingId, payload);
         toast.success("Témoignage mis à jour.");
       } else {
-        await TestimonialsAPI.create(form);
+        await TestimonialsAPI.create(payload);
         toast.success("Témoignage créé.");
       }
       queryClient.invalidateQueries({ queryKey: ["adminTestimonials"] });

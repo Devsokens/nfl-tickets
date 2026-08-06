@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nfl-ga-pwa-v1';
+const CACHE_NAME = 'nfl-ga-pwa-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -61,8 +61,22 @@ self.addEventListener('fetch', (event) => {
             return cachedResponse;
           }
           if (event.request.headers.get('accept')?.includes('text/html')) {
-            return caches.match('/');
+            // Toute route SPA (ex: /admin) retombe sur l'index caché.
+            return caches.match('/').then((indexResponse) => {
+              if (indexResponse) return indexResponse;
+              // Rien en cache non plus : jamais renvoyer `undefined` à
+              // respondWith(), sous peine de "Failed to convert value to
+              // 'Response'" côté navigateur. On répond une vraie erreur.
+              return new Response('Hors ligne : contenu indisponible.', {
+                status: 503,
+                statusText: 'Service Unavailable',
+                headers: { 'Content-Type': 'text/plain; charset=UTF-8' },
+              });
+            });
           }
+          // Requête non-HTML (JS/CSS/image) sans version en cache : échec
+          // réseau explicite plutôt qu'une réponse `undefined` invalide.
+          return new Response(null, { status: 504, statusText: 'Gateway Timeout' });
         });
       })
   );

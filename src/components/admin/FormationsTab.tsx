@@ -68,11 +68,16 @@ const FormationsTab = () => {
     }
     setIsSaving(true);
     try {
+      // Ne renvoyer que les champs éditables : `openEdit` initialise `form`
+      // avec l'objet Formation complet renvoyé par l'API (id, slug,
+      // created_at, updated_at inclus), que le backend rejette en 400 s'ils
+      // sont présents dans le payload de mise à jour.
+      const { id, created_at, updated_at, slug, ...payload } = form as any;
       if (editingId) {
-        await FormationsAPI.update(editingId, form);
+        await FormationsAPI.update(editingId, payload);
         toast.success("Formation mise à jour.");
       } else {
-        await FormationsAPI.create(form);
+        await FormationsAPI.create(payload);
         toast.success("Formation créée.");
       }
       queryClient.invalidateQueries({ queryKey: ["adminFormations"] });
