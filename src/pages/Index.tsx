@@ -423,26 +423,6 @@ const Index = () => {
           </div>
         </div>
       </section>
-
-      {/* PARTNERS LOGO MARQUEE */}
-      <section className="py-10 bg-[#0a0b0d] border-y border-white/5 overflow-hidden relative">
-        <div className="w-full relative">
-          <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
-          <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
-          
-          <div className="flex gap-20 w-max py-1 animate-marquee items-center">
-            {Array.from({ length: 3 }).map((_, outerIdx) => (
-              <div key={outerIdx} className="flex gap-20 items-center">
-                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">BGFIBank</span>
-                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">Airtel</span>
-                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">Moov Africa</span>
-                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">TotalEnergies</span>
-                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">Gabon Telecom</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
  
       {/* 2. NOS PILIERS D'ACCOMPAGNEMENT */}
       <section className="section-y bg-[#E5E2E1]">
@@ -801,49 +781,25 @@ const Index = () => {
       </section>
       */}
 
-      {/* 7. BIOGRAPHIE (Présentation personnelle) 
-      <section id="biographie" className="py-24 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto glass-card rounded-[2.5rem] p-8 md:p-12 border border-gold/20 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-gold/10 rounded-full blur-3xl -z-10" />
-            
-            <div className="grid lg:grid-cols-5 gap-10 items-center">
-              <div className="lg:col-span-2 relative">
-                <div className="absolute inset-0 bg-gold/20 rotate-[-4deg] rounded-[2rem]" />
-                <div className="rounded-[2rem] overflow-hidden border border-gold/20 shadow-2xl relative z-10 transform transition-transform hover:scale-[1.02] duration-500">
-                  <img src={louisePhoto} alt="LOUISE AUDYLL Ongoum" className="w-full h-[450px] object-cover object-top" />
-                </div>
+      {/* PARTNERS LOGO MARQUEE */}
+      <section className="py-10 bg-[#0a0b0d] border-y border-white/5 overflow-hidden relative">
+        <div className="w-full relative">
+          <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
+          <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
+          
+          <div className="flex gap-20 w-max py-1 animate-marquee items-center">
+            {Array.from({ length: 3 }).map((_, outerIdx) => (
+              <div key={outerIdx} className="flex gap-20 items-center">
+                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">BGFIBank</span>
+                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">Airtel</span>
+                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">Moov Africa</span>
+                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">TotalEnergies</span>
+                <span className="text-white/20 hover:text-white/50 transition-colors font-display text-2xl tracking-[0.2em] uppercase font-bold">Gabon Telecom</span>
               </div>
-              <div className="lg:col-span-3 lg:pl-6">
-                <h2 className="font-display text-4xl lg:text-5xl font-bold text-foreground mb-6">
-                  LOUISE AUDYLL <span className="text-gradient-gold">Ongoum</span>
-                </h2>
-                <div className="space-y-6 text-muted-foreground text-lg leading-relaxed">
-                  <p>
-                    Avec plus de 30 années d'expérience accumulée sur le terrain, LOUISE AUDYLL accompagne 
-                    les dirigeants, les équipes commerciales et les collaborateurs vers le dépassement d'eux-mêmes.
-                  </p>
-                  <p>
-                    NFL Courtier & Service n'est pas qu'un simple cabinet de conseils. C'est l'aboutissement 
-                    d'une trajectoire dédiée à <strong>l'excellence opérationnelle</strong>. L'objectif est clair : transformer 
-                    le potentiel brut en résultats mesurables et impacter durablement les écosystèmes des entreprises.
-                  </p>
-                  <p>
-                    <em>"Le succès n'est pas le fruit du hasard, mais de la rigueur, de l'apprentissage continu et 
-                    d'une résilience sans faille."</em>
-                  </p>
-                </div>
-                <div className="mt-8">
-                  <div className="inline-flex items-center gap-4 bg-background border border-gold/20 px-6 py-3 rounded-full">
-                    <span className="font-bold text-gold">Fondatrice & Experte Leadership</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
-      */}
 
       <Footer />
     </div>
