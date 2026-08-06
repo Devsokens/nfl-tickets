@@ -66,7 +66,7 @@ const EventCard = ({ event }: EventCardProps) => {
         to={`/event/${event.slug || event.id}`} 
         className="block h-full animate-fade-in"
       >
-        <div className={`relative overflow-hidden rounded-[2rem] border border-gold/15 hover:border-gold/45 bg-[#1b0a06]/20 aspect-[4/5] sm:aspect-[3/4] flex flex-col justify-end p-5 sm:p-6 shadow-xl hover:shadow-[0_20px_45px_-15px_rgba(199,157,79,0.15)] transition-all duration-500 h-full ${isPast ? 'grayscale-[10%] opacity-95' : ''}`}>
+        <div className={`relative overflow-hidden rounded-[2rem] border border-gold/15 hover:border-gold/45 bg-[#1b0a06]/20 min-h-[380px] sm:min-h-[440px] flex flex-col justify-end p-5 sm:p-6 shadow-xl hover:shadow-[0_20px_45px_-15px_rgba(199,157,79,0.15)] transition-all duration-500 h-full ${isPast ? 'grayscale-[10%] opacity-95' : ''}`}>
           
           {/* Background image covering card */}
           <img
