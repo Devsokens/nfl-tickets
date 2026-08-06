@@ -392,7 +392,7 @@ const Index = () => {
 
           {/* Feature strip (Static centered on Desktop) */}
           <div className="border-t border-white/10 mt-10 lg:mt-14 pt-8 w-full pointer-events-auto">
-            <div className="flex flex-wrap justify-center lg:justify-between gap-8 lg:gap-12 py-2">
+            <div className="flex flex-wrap justify-center gap-6 lg:gap-10 py-2">
               {content.featureStrip.map(({ icon, title, subtitle }, idx) => (
                 <div key={idx} className="group relative flex items-center gap-4 shrink-0">
                   {isEditMode && content.featureStrip.length > 1 && (
@@ -824,9 +824,9 @@ const Index = () => {
             <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
             <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
 
-            <div className="flex gap-16 w-max py-1 animate-marquee items-center">
+            <div className="flex gap-8 sm:gap-12 w-max py-1 animate-marquee items-center">
               {Array.from({ length: 3 }).map((_, outerIdx) => (
-                <div key={outerIdx} className="flex gap-16 items-center shrink-0">
+                <div key={outerIdx} className="flex gap-8 sm:gap-12 items-center shrink-0">
                   {content.partners.map((p, idx) =>
                     p.logo_url ? (
                       <img
