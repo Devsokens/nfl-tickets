@@ -283,10 +283,10 @@ const Catalog = () => {
               <h2 className="font-sans text-4xl sm:text-5xl font-bold text-white mb-3">
                 <EditableText value={content.agenda.title} onSave={makeAgendaFieldSaver("title")} label="Titre" />
               </h2>
-              <p className="font-serif italic text-white/90 text-2xl sm:text-3xl mb-4 font-normal leading-snug">
+              <p className="font-display italic text-white/95 text-3xl sm:text-4xl mb-4 font-normal leading-snug">
                 <EditableText value={content.agenda.subtitle} onSave={makeAgendaFieldSaver("subtitle")} label="Sous-titre" multiline />
               </p>
-              <p className="text-white/60 text-xs sm:text-sm leading-relaxed font-sans max-w-2xl">
+              <p className="text-white/70 text-sm sm:text-base leading-relaxed font-sans max-w-2xl">
                 <EditableText value={content.agenda.description} onSave={makeAgendaFieldSaver("description")} label="Description" multiline as="div" />
               </p>
             </div>

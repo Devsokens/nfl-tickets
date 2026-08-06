@@ -623,6 +623,14 @@ const Index = () => {
 
       {/* 5. TEMOIGNAGES - Linear Infinite Marquee */}
       <section className="py-20 md:py-24 bg-[#0a0b0d] overflow-hidden relative">
+        <div className="container mx-auto px-4 mb-14 text-center">
+          <span className="text-[#e3bd51] text-xs font-bold uppercase tracking-[0.2em] block">NFL Impact</span>
+          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-white mt-3">
+            Témoignages
+          </h2>
+          <div className="w-16 h-[3px] bg-gradient-to-r from-[#b89535] via-[#e3bd51] to-[#b89535] mx-auto mt-5 rounded-full" />
+        </div>
+
         <div className="w-full relative">
           {/* Subtle edge fade overlays for smooth scrolling transition */}
           <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
