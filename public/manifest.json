@@ -1,0 +1,41 @@
+{
+  "name": "NFL Courtier & Service — Billetterie Gabon",
+  "short_name": "NFL-GA",
+  "description": "La plateforme officielle de billetterie, réservations et formations de NFL Courtier & Service au Gabon.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0c0d0f",
+  "theme_color": "#0c0d0f",
+  "lang": "fr-GA",
+  "categories": ["tickets", "entertainment", "business"],
+  "icons": [
+    {
+      "src": "/favicon.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Événements & Billets",
+      "short_name": "Événements",
+      "description": "Voir la liste des événements et masterclass",
+      "url": "/"
+    },
+    {
+      "name": "Catalogue Formations",
+      "short_name": "Formations",
+      "description": "Découvrir le catalogue de formations Élite",
+      "url": "/catalogue-formations"
+    }
+  ]
+}

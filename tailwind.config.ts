@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
@@ -14,8 +15,14 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "sans-serif"],
-        display: ["Playfair Display", "serif"],
+        sans: ["EB Garamond", "serif"],
+        display: ["EB Garamond", "serif"],
+      },
+      fontSize: {
+        title: ["clamp(1.75rem, 5vw, 2.75rem)", { lineHeight: "1.2", fontWeight: "700" }],
+        subtitle: ["clamp(1.125rem, 3vw, 1.5rem)", { lineHeight: "1.4", fontWeight: "600" }],
+        body: ["clamp(0.9375rem, 2vw, 1rem)", { lineHeight: "1.6", fontWeight: "400" }],
+        footer: ["clamp(0.75rem, 1.5vw, 0.875rem)", { lineHeight: "1.5", fontWeight: "400" }],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -113,5 +120,5 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 } satisfies Config;

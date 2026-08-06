@@ -10,6 +10,20 @@
     <link rel="canonical" href="https://nfl-ga.com" />
     <link rel="icon" type="image/jpeg" href="/favicon.jpg" />
 
+    <!-- Meta Tags PWA & Thème Multiplateforme -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0c0d0f" />
+
+    <!-- Support iOS / Safari App PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="NFL-GA" />
+    <link rel="apple-touch-icon" href="/favicon.jpg" />
+
+    <!-- Support Windows / Microsoft Edge Tiles -->
+    <meta name="msapplication-TileColor" content="#0c0d0f" />
+    <meta name="msapplication-TileImage" content="/favicon.jpg" />
+
     <meta property="og:site_name" content="NFL Courtier & Service" />
     <meta property="og:title" content="NFL-GA — Billetterie & Formations au Gabon" />
     <meta property="og:description" content="Réservez vos places pour les meilleurs événements et masterclass de NFL Courtier & Service au Gabon. Simple, rapide et sécurisé." />
@@ -49,6 +63,7 @@
         height: clamp(8rem, 26vw, 14rem);
         width: auto;
         object-fit: contain;
+        -webkit-user-select: none;
         user-select: none;
         -webkit-user-drag: none;
         animation: nfl-splash-fadein 0.8s ease-out, nfl-splash-float 3s ease-in-out infinite 0.8s;
@@ -99,5 +114,19 @@
       })();
     </script>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').then(
+            function (registration) {
+              console.log('PWA ServiceWorker actif :', registration.scope);
+            },
+            function (err) {
+              console.log('Erreur d\'enregistrement ServiceWorker PWA :', err);
+            }
+          );
+        });
+      }
+    </script>
   </body>
 </html>

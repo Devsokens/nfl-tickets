@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=Inter:wght@300;400;500;600;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -89,20 +89,82 @@
 @layer base {
   * {
     @apply border-border;
+    font-family: 'EB Garamond', serif !important;
+  }
+
+  html {
+    font-size: 16px;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
     @apply bg-background text-foreground font-sans;
+    font-size: clamp(0.9375rem, 2vw, 1rem); /* Niveau 3 : Texte Lambda */
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
+  /* ------------------------------------------------------------- */
+  /* SYSTEME TYPOGRAPHIQUE STRICT - 4 NIVEAUX DE TAILLE MOBILE-FIRST */
+  /* ------------------------------------------------------------- */
+
+  /* Niveau 1 : TITRES MAJEURS (H1, H2, Grands Titres) */
+  h1, h2, .app-title, .text-level-1 {
+    font-family: 'EB Garamond', serif;
+    font-size: clamp(1.75rem, 5vw, 2.75rem);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  /* Niveau 2 : SOUS-TITRES & PASSAGES IMPORTANTS (H3, H4, Mises en avant) */
+  h3, h4, h5, h6, .app-subtitle, .text-important, .text-level-2 {
+    font-family: 'EB Garamond', serif;
+    font-size: clamp(1.125rem, 3vw, 1.5rem);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  /* Niveau 3 : TEXTE LAMBDA / CORPS DE TEXTE (Paragraphes, Boutons, Inputs) */
+  p, label, button, input, select, textarea, .app-body, .text-level-3 {
+    font-size: clamp(0.9375rem, 2vw, 1rem);
+    line-height: 1.6;
+  }
+
+  /* Niveau 4 : FOOTER, CAPTIONS & MENTIONS SECONDAIRES */
+  footer, caption, small, .app-footer, .text-footer-meta, .text-level-4 {
+    font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+    line-height: 1.5;
   }
 }
 
 @layer utilities {
   .font-display {
-    font-family: 'Playfair Display', serif;
+    font-family: 'EB Garamond', serif;
+  }
+
+  /* Utilitaires explicites à 4 niveaux pour surcharge directe */
+  .size-level-1, .text-lvl-title {
+    font-size: clamp(1.75rem, 5vw, 2.75rem) !important;
+    line-height: 1.2 !important;
+    font-weight: 700 !important;
+  }
+
+  .size-level-2, .text-lvl-subtitle {
+    font-size: clamp(1.125rem, 3vw, 1.5rem) !important;
+    line-height: 1.4 !important;
+    font-weight: 600 !important;
+  }
+
+  .size-level-3, .text-lvl-body {
+    font-size: clamp(0.9375rem, 2vw, 1rem) !important;
+    line-height: 1.6 !important;
+  }
+
+  .size-level-4, .text-lvl-footer {
+    font-size: clamp(0.75rem, 1.5vw, 0.875rem) !important;
+    line-height: 1.5 !important;
   }
 
   .gradient-gold {
@@ -118,6 +180,7 @@
 
   .glass-card {
     background: hsl(var(--card) / 0.85);
+    -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     border: 1px solid hsl(var(--gold) / 0.18);
   }
@@ -191,6 +254,7 @@
   /* === NFL Logo Utilities === */
   .nfl-logo {
     object-fit: contain;
+    -webkit-user-select: none;
     user-select: none;
     -webkit-user-drag: none;
   }
