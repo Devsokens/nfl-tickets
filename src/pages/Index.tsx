@@ -381,28 +381,37 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Feature strip */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-white/10 border-t border-white/10 mt-16 lg:mt-20 pt-10">
-            {content.featureStrip.map(({ icon, title, subtitle }, idx) => (
-              <div key={idx} className="group relative flex items-center gap-4 py-6 sm:py-0 sm:px-8 first:sm:pl-0 last:sm:pr-0">
-                {isEditMode && content.featureStrip.length > 1 && (
-                  <RemoveItemButton onClick={() => removeListItem("featureStrip", idx)} label="Retirer cet item" />
-                )}
-                <div className="w-11 h-11 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
-                  <EditableIcon value={icon} onSave={makeArrayItemFieldSaver("featureStrip", idx, "icon")} className="w-5 h-5 text-gold" />
-                </div>
-                <div>
-                  <p className="text-white font-bold text-sm sm:text-base">
-                    <EditableText value={title || ""} onSave={makeArrayItemFieldSaver("featureStrip", idx, "title")} label="Titre" />
-                  </p>
-                  <p className="text-white/50 text-xs sm:text-sm">
-                    <EditableText value={subtitle || ""} onSave={makeArrayItemFieldSaver("featureStrip", idx, "subtitle")} label="Sous-titre" />
-                  </p>
-                </div>
-              </div>
-            ))}
+          {/* Feature strip (Scrolling Marquee to optimize space) */}
+          <div className="border-t border-white/10 mt-16 lg:mt-20 pt-10 overflow-hidden relative w-full pointer-events-auto">
+            {/* Subtle edge fade overlays for smooth scrolling transition */}
+            <div className="absolute top-0 bottom-0 left-0 w-12 bg-gradient-to-r from-[#0c0d0f] to-transparent z-10 pointer-events-none" />
+            <div className="absolute top-0 bottom-0 right-0 w-12 bg-gradient-to-l from-[#0c0d0f] to-transparent z-10 pointer-events-none" />
+
+            <div className={`flex gap-12 w-max py-2 ${isEditMode ? "" : "animate-marquee"}`}>
+              {(isEditMode ? content.featureStrip : Array.from({ length: 4 }, () => content.featureStrip).flat()).map(({ icon, title, subtitle }, idx) => {
+                const realIdx = idx % content.featureStrip.length;
+                return (
+                  <div key={idx} className="group relative flex items-center gap-4 shrink-0 pr-4">
+                    {isEditMode && content.featureStrip.length > 1 && (
+                      <RemoveItemButton onClick={() => removeListItem("featureStrip", realIdx)} label="Retirer cet item" />
+                    )}
+                    <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
+                      <EditableIcon value={icon} onSave={makeArrayItemFieldSaver("featureStrip", realIdx, "icon")} className="w-4.5 h-4.5 text-gold" />
+                    </div>
+                    <div>
+                      <p className="text-white font-bold text-xs sm:text-sm whitespace-nowrap">
+                        <EditableText value={title || ""} onSave={makeArrayItemFieldSaver("featureStrip", realIdx, "title")} label="Titre" />
+                      </p>
+                      <p className="text-white/50 text-[10px] sm:text-xs whitespace-nowrap">
+                        <EditableText value={subtitle || ""} onSave={makeArrayItemFieldSaver("featureStrip", realIdx, "subtitle")} label="Sous-titre" />
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
             {isEditMode && (
-              <div className="flex items-center py-6 sm:py-0 sm:px-8">
+              <div className="flex items-center pt-4 justify-center">
                 <button
                   onClick={() => addListItem("featureStrip", { icon: "Star", title: "Nouvel item", subtitle: "Sous-titre" })}
                   className="text-[#e3bd51] text-xs font-bold uppercase tracking-wider hover:text-[#d4af37] transition-colors"
@@ -414,7 +423,7 @@ const Index = () => {
           </div>
         </div>
       </section>
-
+ 
       {/* 2. NOS PILIERS D'ACCOMPAGNEMENT */}
       <section className="py-20 md:py-28 bg-[#E5E2E1]">
         <div className="container mx-auto px-4">
@@ -425,7 +434,7 @@ const Index = () => {
             </h2>
             <div className="w-16 h-[3px] gradient-gold mx-auto mt-5 rounded-full" />
           </div>
-
+ 
           {/* Stacked on Mobile & Grid on Desktop */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {content.pillars.map((pillar, idx) => {
@@ -440,16 +449,16 @@ const Index = () => {
                   )}
                   <div>
                     <EditableIcon value={pillar.icon} onSave={makeArrayItemFieldSaver("pillars", idx, "icon")} className="w-4 h-4 sm:w-8 sm:h-8 text-gold-dark mb-1 sm:mb-5 shrink-0" />
-                    <h3 className="font-display text-[11px] sm:text-2xl font-bold text-[#1c1c1c] mb-1 sm:mb-3 leading-tight">
+                    <h3 className="font-display text-lg sm:text-2xl font-bold text-[#1c1c1c] mb-1 sm:mb-3 leading-tight">
                       <EditableText value={pillar.title || ""} onSave={makeArrayItemFieldSaver("pillars", idx, "title")} label="Titre" />
                     </h3>
-                    <p className="text-[#555] text-[9px] sm:text-[15px] leading-tight sm:leading-relaxed mb-2 sm:mb-6 font-sans font-normal">
+                    <p className="text-[#555] text-sm sm:text-[15px] leading-relaxed mb-2 sm:mb-6 font-sans font-normal">
                       <EditableText value={pillar.description || ""} onSave={makeArrayItemFieldSaver("pillars", idx, "description")} label="Description" multiline as="div" />
                     </p>
                   </div>
                   {isEditMode ? (
-                    <span className="text-[8px] sm:text-xs font-bold uppercase tracking-tighter sm:tracking-wider text-gold-dark inline-flex items-center gap-0.5 sm:gap-2 mt-auto pt-1">
-                      <EditableText value={pillar.ctaText || ""} onSave={makeArrayItemFieldSaver("pillars", idx, "ctaText")} label="Texte du bouton" /> <ArrowRight className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 shrink-0" />
+                    <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-gold-dark inline-flex items-center gap-2 mt-auto pt-1">
+                      <EditableText value={pillar.ctaText || ""} onSave={makeArrayItemFieldSaver("pillars", idx, "ctaText")} label="Texte du bouton" /> <ArrowRight className="w-3.5 h-3.5 shrink-0" />
                     </span>
                   ) : !isAnchor(link) ? (
                     <Link
