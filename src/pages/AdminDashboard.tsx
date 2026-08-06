@@ -474,8 +474,8 @@ const AdminDashboard = () => {
     }
 
     setIsSendingNewsletter(true);
-    let attachmentUrl = undefined;
-    let attachmentName = undefined;
+    let attachmentUrl: string | undefined = undefined;
+    let attachmentName: string | undefined = undefined;
 
     try {
       if (newsletterForm.attachmentFile) {
