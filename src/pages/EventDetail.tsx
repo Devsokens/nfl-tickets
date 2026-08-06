@@ -9,7 +9,6 @@ import { Calendar, MapPin, Clock, CheckCircle2, ArrowRight, ArrowLeft, UserCheck
 import { Helmet } from "react-helmet-async";
 
 import nflImg1 from "@/assets/nfl img1.jpeg";
-import nflImg5 from "@/assets/nfl img 5.jpeg";
 
 function formatEventDate(dateStr?: string) {
   if (!dateStr) return "";
@@ -43,6 +42,18 @@ const EventDetail = () => {
     queryKey: ["testimonials"],
     queryFn: () => TestimonialsAPI.getAll(false),
   });
+
+  const { data: allEvents = [] } = useQuery<Event[]>({
+    queryKey: ["allEvents"],
+    queryFn: () => EventsAPI.getAll(),
+  });
+
+  // "Retour sur l'édition précédente" : les 3 derniers événements passés
+  // (hors l'événement courant), triés du plus récent au plus ancien.
+  const throwbackEvents = allEvents
+    .filter((e) => e.id !== event?.id && (e.image_url || e.image) && new Date(e.date).getTime() < Date.now())
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 3);
 
   const speakers = event?.speakers || [];
   const program = event?.program || [];
@@ -383,34 +394,43 @@ const EventDetail = () => {
         </section>
       )}
 
-      {/* 4. RETOUR SUR L'ÉDITION PRÉCÉDENTE (bandeau décoratif de marque) */}
-      <section className="relative overflow-hidden bg-black py-2 sm:py-0">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 relative min-h-[380px] sm:min-h-[460px]">
-          <div className="relative h-64 md:h-auto overflow-hidden">
-            <img
-              src={nflImg1}
-              alt="Banquet de gala"
-              className="w-full h-full object-cover filter brightness-[0.75]"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/80" />
-          </div>
+      {/* 4. RETOUR SUR L'ÉDITION PRÉCÉDENTE (3 derniers événements passés) */}
+      {throwbackEvents.length > 0 && (
+        <section className="relative overflow-hidden bg-black py-2 sm:py-0">
+          <div
+            className="grid grid-cols-1 gap-0 relative min-h-[380px] sm:min-h-[460px]"
+            style={{ gridTemplateColumns: `repeat(${throwbackEvents.length}, minmax(0, 1fr))` }}
+          >
+            {throwbackEvents.map((ev, idx) => (
+              <Link
+                key={ev.id}
+                to={`/event/${ev.slug || ev.id}`}
+                className="relative h-64 md:h-auto overflow-hidden group block"
+              >
+                <img
+                  src={ev.image_url || ev.image}
+                  alt={ev.title}
+                  className="w-full h-full object-cover filter brightness-[0.75] transition-transform duration-700 group-hover:scale-105"
+                />
+                <div
+                  className={`absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-black/70 md:from-black/60 via-transparent to-black/40 ${
+                    idx === throwbackEvents.length - 1 ? "md:bg-gradient-to-l" : ""
+                  }`}
+                />
+                <div className="absolute bottom-4 inset-x-4 md:hidden">
+                  <p className="text-white text-lvl-footer font-bold uppercase tracking-wider line-clamp-1">{ev.title}</p>
+                </div>
+              </Link>
+            ))}
 
-          <div className="relative h-64 md:h-auto overflow-hidden">
-            <img
-              src={nflImg5}
-              alt="Réunion des décideurs"
-              className="w-full h-full object-cover filter brightness-[0.75]"
-            />
-            <div className="absolute inset-0 bg-gradient-to-l from-black/60 via-transparent to-black/80" />
-          </div>
-
-          <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-            <div className="bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider px-8 py-3.5 rounded-none shadow-2xl border border-black/20 pointer-events-auto hover:bg-[#c29c38] transition-colors">
-              L'esprit NFL Courtier & Service
+            <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+              <div className="bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider px-8 py-3.5 rounded-none shadow-2xl border border-black/20 pointer-events-none">
+                L'esprit NFL Courtier & Service
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* 5. TÉMOIGNAGES (issus des témoignages publiés sur le site) */}
       {testimonials.length > 0 && (

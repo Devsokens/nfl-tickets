@@ -86,9 +86,9 @@ const Footer = () => {
   return (
     <footer id="footer-contact" className="border-t border-black bg-[#0c0d0f] text-white pt-16 pb-8">
       <div className="container mx-auto px-4 max-w-6xl">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-10 md:gap-8 mb-12">
           {/* Column 1: Brand & Tagline */}
-          <div className="space-y-4">
+          <div className="col-span-2 md:col-span-1 space-y-4">
             <div className="flex items-start">
               <Link
                 to="/admin/login"
@@ -159,7 +159,7 @@ const Footer = () => {
           </div>
 
           {/* Column 4: SIÈGE SOCIAL & NEWSLETTER */}
-          <div className="space-y-4">
+          <div className="col-span-2 md:col-span-1 space-y-4">
             <h4 className="text-lvl-footer font-bold uppercase tracking-[0.2em] text-[#c29c38] mb-4">
               SIÈGE SOCIAL
             </h4>
