@@ -167,9 +167,9 @@ const FormationDetail = () => {
             </Link>
           </div>
 
-          <div className="max-w-3xl space-y-6">
+          <div className="max-w-3xl mx-auto lg:mx-0 space-y-6 text-center lg:text-left flex flex-col items-center lg:items-start">
             {/* Top Eyebrow Badge */}
-            <div className="flex items-center gap-3 text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-[0.25em]">
+            <div className="flex items-center justify-center lg:justify-start gap-3 text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-[0.25em]">
               <span className="w-8 h-[1px] bg-[#e3bd51] inline-block" />
               <span>{formation.badge || "EXCELLENCE ACADÉMIQUE"}</span>
             </div>
@@ -184,23 +184,23 @@ const FormationDetail = () => {
             </h1>
 
             {/* Metadata Cards Row (Niveau, Durée, Certification) */}
-            <div className="grid grid-cols-3 gap-3 sm:gap-6 pt-2 max-w-xl">
-              <div className="bg-white/[0.03] border border-white/15 p-3.5 sm:p-5 rounded-none">
-                <span className="text-white/40 text-lvl-footer font-bold uppercase tracking-widest block mb-1">NIVEAU</span>
-                <span className="text-white font-bold text-lvl-subtitle">{formation.level || "Expert"}</span>
+            <div className="grid grid-cols-3 gap-2 sm:gap-6 pt-2 w-full max-w-xl">
+              <div className="min-w-0 bg-white/[0.03] border border-white/15 p-2.5 sm:p-5 rounded-none">
+                <span className="text-white/40 text-lvl-footer font-bold uppercase tracking-widest block mb-1 truncate">NIVEAU</span>
+                <span className="text-white font-bold text-lvl-body sm:text-lvl-subtitle break-words">{formation.level || "Expert"}</span>
               </div>
-              <div className="bg-white/[0.03] border border-white/15 p-3.5 sm:p-5 rounded-none">
-                <span className="text-white/40 text-lvl-footer font-bold uppercase tracking-widest block mb-1">DURÉE</span>
-                <span className="text-white font-bold text-lvl-subtitle">{formation.duration || "3 Jours"}</span>
+              <div className="min-w-0 bg-white/[0.03] border border-white/15 p-2.5 sm:p-5 rounded-none">
+                <span className="text-white/40 text-lvl-footer font-bold uppercase tracking-widest block mb-1 truncate">DURÉE</span>
+                <span className="text-white font-bold text-lvl-body sm:text-lvl-subtitle break-words">{formation.duration || "3 Jours"}</span>
               </div>
-              <div className="bg-white/[0.03] border border-white/15 p-3.5 sm:p-5 rounded-none">
-                <span className="text-white/40 text-lvl-footer font-bold uppercase tracking-widest block mb-1">CERTIFICATION</span>
-                <span className="text-[#e3bd51] font-bold text-lvl-subtitle">{formation.certification || "NFL Élite"}</span>
+              <div className="min-w-0 bg-white/[0.03] border border-white/15 p-2.5 sm:p-5 rounded-none">
+                <span className="text-white/40 text-lvl-footer font-bold uppercase tracking-widest block mb-1 truncate">CERTIF.</span>
+                <span className="text-[#e3bd51] font-bold text-lvl-body sm:text-lvl-subtitle break-words">{formation.certification || "NFL Élite"}</span>
               </div>
             </div>
 
             {/* CTA Button */}
-            <div className="pt-2 flex items-center gap-4">
+            <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-4">
               <button
                 onClick={() => document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth" })}
                 className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-widest py-4 px-9 rounded-none transition-all flex items-center gap-3 shadow-xl hover:shadow-[#e3bd51]/20 active:scale-95"
@@ -220,7 +220,7 @@ const FormationDetail = () => {
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid lg:grid-cols-12 gap-10 items-start">
             {/* Left Title */}
-            <div className="lg:col-span-5">
+            <div className="lg:col-span-5 text-center lg:text-left">
               <h2 className="text-lvl-title leading-snug">
                 <span className="block text-white">Redéfinir les</span>
                 <span className="block text-white">standards de la</span>
@@ -232,7 +232,7 @@ const FormationDetail = () => {
             </div>
 
             {/* Right Paragraph & Key Badges */}
-            <div className="lg:col-span-7 space-y-5">
+            <div className="lg:col-span-7 space-y-5 text-center lg:text-left flex flex-col items-center lg:items-start">
               <p className="text-white/80 text-lvl-body font-light">
                 {formation.description ||
                   "Cette Masterclass immersive est conçue pour l'élite financière. Elle transcende la théorie conventionnelle pour explorer les mécanismes complexes des marchés mondiaux et les stratégies de structuration de capital les plus sophistiquées."}
@@ -243,7 +243,7 @@ const FormationDetail = () => {
               </p>
 
               {/* Highlights List */}
-              <div className="flex flex-wrap gap-8 pt-4 border-t border-white/10">
+              <div className="flex flex-wrap justify-center lg:justify-start gap-8 pt-4 border-t border-white/10 w-full">
                 <div className="flex items-center gap-3 text-lvl-footer font-bold uppercase tracking-wider text-white">
                   <div className="w-7 h-7 rounded-full bg-[#e3bd51]/10 border border-[#e3bd51]/40 flex items-center justify-center text-[#e3bd51]">
                     <Sparkles className="w-3.5 h-3.5" />
@@ -314,7 +314,7 @@ const FormationDetail = () => {
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid lg:grid-cols-12 gap-12 items-center">
             {/* Left Quote */}
-            <div className="lg:col-span-7 space-y-5">
+            <div className="lg:col-span-7 space-y-5 text-center lg:text-left flex flex-col items-center lg:items-start">
               <div className="w-12 h-12 bg-white/5 border border-white/10 flex items-center justify-center text-[#e3bd51] text-lvl-title">
                 "
               </div>
@@ -371,7 +371,7 @@ const FormationDetail = () => {
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid lg:grid-cols-12 gap-12 items-start">
             {/* Left Block */}
-            <div className="lg:col-span-5 space-y-4">
+            <div className="lg:col-span-5 space-y-4 text-center lg:text-left flex flex-col items-center lg:items-start">
               <h2 className="text-lvl-title leading-tight">
                 <span className="block text-white">Une Immersion</span>
                 <span className="inline-block italic text-[#e3bd51] relative pb-1 mt-1">
@@ -451,7 +451,7 @@ const FormationDetail = () => {
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="grid lg:grid-cols-12 gap-12 items-start">
             <div className="lg:col-span-5 space-y-6">
-              <div>
+              <div className="text-center lg:text-left">
                 <h2 className="text-lvl-title text-[#1c1c1c] leading-tight mb-4">
                   Inscrivez-vous
                 </h2>
