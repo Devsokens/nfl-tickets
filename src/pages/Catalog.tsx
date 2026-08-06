@@ -203,18 +203,18 @@ const Catalog = () => {
             {/* Right: Next Event Highlight */}
             <div className="lg:col-span-5">
               <div className="bg-[#121315]/80 backdrop-blur-md border border-white/10 p-6 sm:p-8 rounded-none text-center space-y-4 max-w-md mx-auto shadow-2xl">
-                <span className="text-[#c29c38] text-[10px] font-bold uppercase tracking-[0.25em] block">
+                <span className="text-[#e3bd51] text-xs sm:text-sm font-bold uppercase tracking-[0.2em] block font-sans">
                   {nextEvent ? "PROCHAIN ÉVÉNEMENT" : "AUCUN ÉVÉNEMENT PROGRAMMÉ"}
                 </span>
                 {nextEvent ? (
                   <>
-                    <p className="font-serif text-xl sm:text-2xl font-bold text-white leading-snug">{nextEvent.title}</p>
-                    <p className="text-white/70 text-xs">{formatEventDate(nextEvent.date)} — {nextEvent.location}</p>
+                    <p className="font-display text-2xl sm:text-3xl font-bold text-white leading-snug">{nextEvent.title}</p>
+                    <p className="text-white/90 text-sm">{formatEventDate(nextEvent.date)} — {nextEvent.location}</p>
                   </>
                 ) : (
-                  <p className="text-white/50 text-xs">Revenez bientôt pour découvrir nos prochains rendez-vous.</p>
+                  <p className="text-white/85 text-sm sm:text-base font-sans">Revenez bientôt pour découvrir nos prochains rendez-vous.</p>
                 )}
-                <p className="text-[10px] text-white/50 font-medium tracking-wider uppercase pt-2">
+                <p className="text-xs sm:text-sm text-white/70 font-semibold tracking-wide uppercase pt-2 font-display">
                   <EditableText value={content.hero.footnote} onSave={makeHeroFieldSaver("footnote")} label="Petite phrase" />
                 </p>
               </div>
