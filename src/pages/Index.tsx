@@ -426,14 +426,14 @@ const Index = () => {
             <div className="w-16 h-[3px] gradient-gold mx-auto mt-5 rounded-full" />
           </div>
 
-          {/* 3 Cards on 1 Single Line on Mobile & Grid on Desktop (No Scroll, Compact Height, All Text Visible) */}
-          <div className="grid grid-cols-3 gap-1.5 sm:gap-6 md:gap-8">
+          {/* Stacked on Mobile & Grid on Desktop */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {content.pillars.map((pillar, idx) => {
               const link = pillar.link || "";
               return (
                 <div
                   key={idx}
-                  className="group relative bg-[#DEDAD7] rounded-md p-2 sm:p-7 md:p-9 flex flex-col justify-between shadow-sm border border-black/5 min-h-[140px] sm:min-h-[360px] md:min-h-[400px]"
+                  className="group relative bg-[#DEDAD7] rounded-md p-6 sm:p-7 md:p-9 flex flex-col justify-between shadow-sm border border-black/5 min-h-[220px] sm:min-h-[360px] md:min-h-[400px]"
                 >
                   {isEditMode && content.pillars.length > 1 && (
                     <RemoveItemButton onClick={() => removeListItem("pillars", idx)} label="Retirer ce pilier" />
@@ -635,9 +635,9 @@ const Index = () => {
                 return (
                   <div
                     key={`${t.id}-${index}`}
-                    className="w-[310px] sm:w-[350px] min-h-[460px] h-[480px] bg-[#282a2e] border border-white/5 p-8 sm:p-9 rounded-none flex flex-col justify-between shrink-0 shadow-2xl"
+                    className="w-[280px] sm:w-[320px] min-h-[300px] bg-[#282a2e] border border-white/5 p-6 sm:p-7 rounded-none flex flex-col justify-between shrink-0 shadow-2xl h-auto"
                   >
-                    <p className="font-serif italic text-white/90 text-sm sm:text-base leading-relaxed tracking-wide">
+                    <p className="font-serif italic text-white/90 text-xs sm:text-sm leading-relaxed tracking-wide">
                       "{t.quote}"
                     </p>
 

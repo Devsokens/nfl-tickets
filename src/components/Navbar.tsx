@@ -87,8 +87,8 @@ const Navbar = () => {
         <nav
           className={`pointer-events-auto transition-all duration-500 ease-in-out flex items-center justify-between ${
             isScrolled
-              ? "max-w-5xl mx-auto h-20 sm:h-20 md:h-20 rounded-full bg-[#0c0d0f]/90 backdrop-blur-xl border border-[#e3bd51]/30 shadow-[0_15px_40px_rgba(0,0,0,0.8)] px-5 sm:px-8"
-              : "w-full h-32 sm:h-28 md:h-28 rounded-none bg-[#0c0d0f]/95 backdrop-blur-md border-b border-white/10 px-4 sm:px-8"
+              ? "max-w-5xl mx-auto h-14 sm:h-20 rounded-full bg-[#0c0d0f]/90 backdrop-blur-xl border border-[#e3bd51]/30 shadow-[0_15px_40px_rgba(0,0,0,0.8)] px-5 sm:px-8"
+              : "w-full h-20 sm:h-28 rounded-none bg-[#0c0d0f]/95 backdrop-blur-md border-b border-white/10 px-4 sm:px-8"
           }`}
         >
           <div className="container mx-auto px-0 h-full flex items-center justify-between">
@@ -100,10 +100,8 @@ const Navbar = () => {
               <img
                 src="/assets/Logo_NFL_fond_marron__écrits_jaune_-removebg-preview.png"
                 alt="NFL Courtier & Service"
-                className={`nfl-logo transition-all duration-500 ${
-                  isScrolled ? "h-18 sm:h-18 md:h-20" : "h-28 sm:h-24 md:h-28"
-                }`}
-                style={{ height: isScrolled ? "clamp(4rem, 11vw, 5rem)" : "clamp(6rem, 18vw, 8rem)" }}
+                className="nfl-logo transition-all duration-500"
+                style={{ height: isScrolled ? "clamp(2.5rem, 8vw, 4rem)" : "clamp(3.5rem, 14vw, 5.5rem)" }}
               />
             </Link>
 
