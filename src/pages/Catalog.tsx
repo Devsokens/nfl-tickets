@@ -343,17 +343,17 @@ const Catalog = () => {
                       </div>
 
                       <div className="p-3 sm:p-6 space-y-1.5 sm:space-y-2">
-                        <span className="text-[#c29c38] text-[9px] sm:text-[10px] font-bold uppercase tracking-wider block">
+                        <span className="text-[#c29c38] text-[11px] sm:text-xs font-bold uppercase tracking-wider block">
                           {formatEventDate(ev.date)}
                         </span>
-                        <h3 className="font-sans text-xs sm:text-lg font-bold text-[#1c1c1c] leading-snug line-clamp-2">
+                        <h3 className="font-sans text-sm sm:text-xl font-bold text-[#1c1c1c] leading-snug line-clamp-2">
                           {ev.title}
                         </h3>
-                        <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-[11px] text-black/60 font-medium pt-0.5 sm:pt-1">
-                          <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#c29c38] shrink-0" />
+                        <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-black/60 font-medium pt-0.5 sm:pt-1">
+                          <MapPin className="w-3.5 h-3.5 text-[#c29c38] shrink-0" />
                           <span className="truncate">{ev.location}</span>
                         </div>
-                        <div className="text-[10px] sm:text-xs font-bold text-[#c29c38] pt-0.5 sm:pt-1">
+                        <div className="text-xs sm:text-sm font-bold text-[#c29c38] pt-0.5 sm:pt-1">
                           🏷️ {ev.price ? `${ev.price.toLocaleString()} ${ev.currency || "FCFA"}` : "Sur invitation"}
                         </div>
                       </div>
@@ -363,7 +363,7 @@ const Catalog = () => {
                       <Link
                         to={`/event/${ev.slug || ev.id}`}
                         onClick={isEditMode ? (e) => e.preventDefault() : undefined}
-                        className="block text-center border border-[#c29c38] bg-white hover:bg-[#c29c38] hover:text-black text-black font-bold text-[9px] sm:text-[10px] uppercase tracking-wider py-2 sm:py-2.5 rounded-none transition-colors"
+                        className="block text-center border border-[#c29c38] bg-white hover:bg-[#c29c38] hover:text-black text-black font-bold text-xs sm:text-sm uppercase tracking-wider py-2 sm:py-2.5 rounded-none transition-colors"
                       >
                         RÉSERVER
                       </Link>

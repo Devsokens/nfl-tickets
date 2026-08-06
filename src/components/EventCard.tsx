@@ -88,15 +88,15 @@ const EventCard = ({ event }: EventCardProps) => {
 
           {/* Top Badges */}
           <div className="absolute top-4 left-4 flex flex-wrap gap-2 z-10 pr-14">
-            <span className="text-[9px] font-black tracking-widest text-gold bg-[#32140c]/90 px-3 py-1 rounded-full border border-gold/20 uppercase">
+            <span className="text-[11px] font-black tracking-widest text-gold bg-[#32140c]/90 px-3 py-1 rounded-full border border-gold/20 uppercase">
               {event.category}
             </span>
             {isPast ? (
-              <span className="text-[9px] font-black text-[#150805] bg-white border border-white/90 px-2.5 py-0.5 rounded-full uppercase tracking-widest">
+              <span className="text-[11px] font-black text-[#150805] bg-white border border-white/90 px-2.5 py-0.5 rounded-full uppercase tracking-widest">
                 Terminé
               </span>
             ) : (
-              <span className="text-[9px] font-black text-[#150805] bg-gold border border-gold/90 px-2.5 py-0.5 rounded-full uppercase tracking-widest">
+              <span className="text-[11px] font-black text-[#150805] bg-gold border border-gold/90 px-2.5 py-0.5 rounded-full uppercase tracking-widest">
                 À venir
               </span>
             )}
@@ -106,20 +106,20 @@ const EventCard = ({ event }: EventCardProps) => {
           <div className="relative z-10 space-y-3 w-full">
             
             {/* Title */}
-            <h3 className="font-display text-lg sm:text-xl font-bold text-white mb-2 group-hover:text-gold transition-colors line-clamp-2 leading-tight">
+            <h3 className="font-display text-xl sm:text-2xl font-bold text-white mb-2 group-hover:text-gold transition-colors line-clamp-2 leading-tight">
               {event.title}
             </h3>
 
             {/* Meta Info */}
-            <div className="flex flex-col gap-1 text-white/70 text-[11px] font-medium">
+            <div className="flex flex-col gap-1.5 text-white/80 text-xs sm:text-sm font-medium">
               <div className="flex items-center gap-2">
-                <Calendar className="w-3.5 h-3.5 text-gold shrink-0" />
+                <Calendar className="w-4 h-4 text-gold shrink-0" />
                 <span>{formattedDate}</span>
-                <Clock className="w-3.5 h-3.5 text-gold shrink-0 ml-2" />
+                <Clock className="w-4 h-4 text-gold shrink-0 ml-2" />
                 <span>{event.time}</span>
               </div>
               <div className="flex items-center gap-2">
-                <MapPin className="w-3.5 h-3.5 text-gold shrink-0" />
+                <MapPin className="w-4 h-4 text-gold shrink-0" />
                 <span className="truncate">{event.location}</span>
               </div>
             </div>
@@ -128,18 +128,18 @@ const EventCard = ({ event }: EventCardProps) => {
             <div className="pt-3 border-t border-white/10 flex items-center justify-between mt-2">
               {!isPast ? (
                 <>
-                  <span className="text-gold font-black text-sm">
+                  <span className="text-gold font-black text-base">
                     {event.price.toLocaleString()} {event.currency}
                   </span>
-                  <div className="flex items-center gap-1 text-gold font-bold text-xs group-hover:text-white transition-colors">
+                  <div className="flex items-center gap-1.5 text-gold font-bold text-sm group-hover:text-white transition-colors">
                     <span>Réserver</span>
-                    <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
                   </div>
                 </>
               ) : (
-                <div className="flex items-center justify-between w-full text-gold font-bold text-xs group-hover:text-white transition-colors">
+                <div className="flex items-center justify-between w-full text-gold font-bold text-sm group-hover:text-white transition-colors">
                   <span>Revoir les détails</span>
-                  <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
                 </div>
               )}
             </div>
