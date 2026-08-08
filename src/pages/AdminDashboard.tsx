@@ -52,6 +52,7 @@ import {
 } from 'recharts';
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { isPushSupported, getCurrentPushSubscription, subscribeToPush, unsubscribeFromPush } from "@/lib/push";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Dialog,
@@ -539,6 +540,33 @@ const AdminDashboard = () => {
     [contactRequests]
   );
   const notificationsCount = pendingTicketsCount + pendingContactsCount;
+
+  // Notifications push (Web Push) : reflète si CET appareil est abonné.
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  useEffect(() => {
+    if (!isPushSupported()) return;
+    getCurrentPushSubscription().then((sub) => setPushEnabled(!!sub)).catch(() => {});
+  }, []);
+
+  const handleTogglePush = async (checked: boolean) => {
+    setPushBusy(true);
+    try {
+      if (checked) {
+        await subscribeToPush();
+        setPushEnabled(true);
+        toast.success("Notifications push activées sur cet appareil.");
+      } else {
+        await unsubscribeFromPush();
+        setPushEnabled(false);
+        toast.info("Notifications push désactivées sur cet appareil.");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Impossible de modifier les notifications push.");
+    } finally {
+      setPushBusy(false);
+    }
+  };
 
   // Recherche navbar contextuelle : reflète l'état de recherche propre à l'onglet actif
   useEffect(() => {
@@ -1222,6 +1250,21 @@ const AdminDashboard = () => {
                         <span className="text-lvl-footer text-muted-foreground">Cliquez pour voir les demandes</span>
                       </DropdownMenuItem>
                     )}
+                  </>
+                )}
+                {isPushSupported() && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <div
+                      className="flex items-center justify-between gap-3 px-2 py-2.5"
+                      onClick={(e) => e.preventDefault()}
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-lvl-footer font-semibold">Notifications push</span>
+                        <span className="text-lvl-footer text-muted-foreground">Sur cet appareil</span>
+                      </div>
+                      <Switch checked={pushEnabled} disabled={pushBusy} onCheckedChange={handleTogglePush} />
+                    </div>
                   </>
                 )}
               </DropdownMenuContent>

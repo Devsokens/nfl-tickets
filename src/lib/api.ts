@@ -403,6 +403,25 @@ export const EmailTemplatesAPI = {
   },
 };
 
+export const PushAPI = {
+  getVapidPublicKey: async (): Promise<string | null> => {
+    const res = await api.get('/push/vapid-public-key');
+    return res.data.publicKey;
+  },
+  subscribe: async (subscription: PushSubscriptionJSON) => {
+    const res = await api.post('/push/subscribe', {
+      endpoint: subscription.endpoint,
+      keys: subscription.keys,
+      userAgent: navigator.userAgent,
+    });
+    return res.data;
+  },
+  unsubscribe: async (endpoint: string) => {
+    const res = await api.delete('/push/subscribe', { data: { endpoint } });
+    return res.data;
+  },
+};
+
 export const AnalyticsAPI = {
   track: async (path: string) => {
     try {

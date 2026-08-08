@@ -10,6 +10,50 @@ const ASSETS_TO_CACHE = [
   '/assets/Logo_NFL_fond_blanc-removebg-preview.png'
 ];
 
+// Notifications push (Web Push standard, indépendant du cache PWA ci-dessous).
+// Le payload est envoyé par le backend en JSON : { title, body, url?, tag? }
+// (voir nfl-backend/src/push/push.service.ts).
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+  let payload;
+  try {
+    payload = event.data.json();
+  } catch {
+    payload = { title: 'NFL Courtier & Service', body: event.data.text() };
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title || 'NFL Courtier & Service', {
+      body: payload.body,
+      icon: '/favicon.jpg',
+      badge: '/favicon.jpg',
+      tag: payload.tag,
+      data: { url: payload.url || '/admin' },
+    })
+  );
+});
+
+// Clic sur la notification : ouvre (ou refocus) l'onglet admin sur la bonne page.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = event.notification.data?.url || '/admin';
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.includes(new URL(targetUrl, self.location.origin).pathname) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clientList.length > 0 && 'focus' in clientList[0]) {
+        clientList[0].navigate(targetUrl);
+        return clientList[0].focus();
+      }
+      return self.clients.openWindow(targetUrl);
+    })
+  );
+});
+
 // Phase d'installation du Service Worker
 self.addEventListener('install', (event) => {
   event.waitUntil(
