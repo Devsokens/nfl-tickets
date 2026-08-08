@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, EventsAPI, TicketsAPI, NewsletterAPI, ContactAPI, AnalyticsAPI, CertificatesAPI, type Event, type Ticket, type EventSpeaker, type EventProgramStep, type ContactRequest } from "@/lib/api";
+import { api, EventsAPI, TicketsAPI, NewsletterAPI, ContactAPI, AnalyticsAPI, CertificatesAPI, AuthAPI, type Event, type Ticket, type EventSpeaker, type EventProgramStep, type ContactRequest, type AdminProfile, type ModuleKey } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -440,6 +440,15 @@ const AdminDashboard = () => {
     }
     setIsAuthChecked(true);
   }, [navigate]);
+
+  // Rôle + permissions par module de l'admin connecté (cache partagé avec
+  // ProfileSheet/UsersTab via la même queryKey) : pilote quels onglets de la
+  // sidebar sont visibles pour un compte Admin (un Super Admin voit tout).
+  const { data: currentProfile } = useQuery<AdminProfile>({
+    queryKey: ["adminProfile"],
+    queryFn: AuthAPI.getProfile,
+    enabled: isAuthChecked,
+  });
 
   const { data: subscribers = [] } = useQuery<any[]>({
     queryKey: ["subscribers"],
@@ -1069,8 +1078,49 @@ const AdminDashboard = () => {
     { type: "item", key: "site-settings" },
   ];
   const eventGroupKeys: Tab[] = ["events", "tickets", "scanner"];
+
+  // Chaque onglet appartient à un module (voir users.constants.ts côté backend,
+  // à garder synchronisé) : sert à masquer de la sidebar ce qu'un Admin (pas
+  // Super Admin) n'a pas le droit de voir.
+  const TAB_MODULE: Record<Tab, ModuleKey> = {
+    dashboard: "tableau_de_bord",
+    formations: "formations",
+    events: "evenementiel",
+    tickets: "evenementiel",
+    scanner: "evenementiel",
+    demandes: "demandes",
+    newsletter: "newsletter",
+    testimonials: "temoignages",
+    "visual-editor": "contenu",
+    users: "utilisateurs",
+    "site-settings": "parametres",
+  };
+  const canAccessTab = (tab: Tab) =>
+    currentProfile?.role === "super_admin" ||
+    !!currentProfile?.permissions?.[TAB_MODULE[tab]] && currentProfile.permissions[TAB_MODULE[tab]] !== "aucun";
+  const visibleSidebarNav = !currentProfile
+    ? sidebarNav
+    : sidebarNav
+        .map((entry) =>
+          entry.type === "item"
+            ? entry
+            : { ...entry, items: entry.items.filter(canAccessTab) },
+        )
+        .filter((entry) => (entry.type === "item" ? canAccessTab(entry.key) : entry.items.length > 0));
+
   const [isEventGroupOpen, setIsEventGroupOpen] = useState(eventGroupKeys.includes(activeTab));
   const [isProfileSheetOpen, setIsProfileSheetOpen] = useState(false);
+  // Si l'onglet actif devient inaccessible (permissions changées, ou premier
+  // chargement du profil d'un compte Admin restreint), on retombe sur le
+  // premier onglet auquel il a droit plutôt que de rendre un écran interdit.
+  useEffect(() => {
+    if (!currentProfile || currentProfile.role === "super_admin") return;
+    if (canAccessTab(activeTab)) return;
+    const firstAccessible = visibleSidebarNav
+      .flatMap((entry) => (entry.type === "item" ? [entry.key] : entry.items))[0];
+    if (firstAccessible) setActiveTab(firstAccessible);
+  }, [currentProfile, activeTab]);
+
   useEffect(() => {
     if (eventGroupKeys.includes(activeTab)) setIsEventGroupOpen(true);
   }, [activeTab]);
@@ -1105,7 +1155,7 @@ const AdminDashboard = () => {
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMobileMenuOpen(false)}><X className="h-6 w-6" /></Button>
         </div>
         <nav className="flex-1 px-4 pt-5 pb-6 flex flex-col gap-1.5 overflow-y-auto scrollbar-hide">
-          {sidebarNav.map((entry) => {
+          {visibleSidebarNav.map((entry) => {
             if (entry.type === "item") {
               const tab = tabs.find((t) => t.key === entry.key)!;
               return (
@@ -1171,8 +1221,8 @@ const AdminDashboard = () => {
                   <CircleUserRound className="h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-lvl-footer font-semibold text-white truncate">Administrateur</p>
-                  <p className="text-lvl-footer text-white/45 truncate">Compte NFL Admin</p>
+                  <p className="text-lvl-footer font-semibold text-white truncate">{currentProfile?.full_name || "Administrateur"}</p>
+                  <p className="text-lvl-footer text-white/45 truncate">{currentProfile?.role === "super_admin" ? "Super Admin" : "Admin"}</p>
                 </div>
                 <ChevronDown className="h-4 w-4 text-white/40 shrink-0" />
               </button>

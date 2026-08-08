@@ -329,12 +329,19 @@ export const NewsletterAPI = {
   }
 };
 
+export type ModuleKey =
+  | 'tableau_de_bord' | 'formations' | 'evenementiel' | 'demandes'
+  | 'newsletter' | 'temoignages' | 'contenu' | 'utilisateurs' | 'parametres';
+export type PermissionLevel = 'aucun' | 'voir' | 'editer';
+export type ModulePermissions = Partial<Record<ModuleKey, PermissionLevel>>;
+
 export interface AdminProfile {
   id: string;
   email: string;
   full_name: string;
   avatar_url: string | null;
-  role: string;
+  role: 'admin' | 'super_admin';
+  permissions?: ModulePermissions;
 }
 
 export const AuthAPI = {
@@ -381,6 +388,43 @@ export const ContactAPI = {
   },
   reject: async (id: string, data: { reason?: string }) => {
     const res = await api.patch(`/contact/${id}/reject`, data);
+    return res.data;
+  },
+};
+
+export interface AdminUser {
+  user_id: string;
+  email: string;
+  full_name: string | null;
+  role: 'admin' | 'super_admin';
+  permissions: ModulePermissions;
+  created_at: string;
+}
+
+export interface AdminUserModule {
+  key: ModuleKey;
+  label: string;
+}
+
+export const UsersAPI = {
+  getModules: async (): Promise<AdminUserModule[]> => {
+    const res = await api.get('/users/modules');
+    return res.data;
+  },
+  getAll: async (): Promise<AdminUser[]> => {
+    const res = await api.get('/users');
+    return res.data;
+  },
+  create: async (data: { email: string; password: string; full_name: string; role: 'admin' | 'super_admin'; permissions?: ModulePermissions }) => {
+    const res = await api.post('/users', data);
+    return res.data;
+  },
+  update: async (id: string, data: { full_name?: string; role?: 'admin' | 'super_admin'; permissions?: ModulePermissions; password?: string }) => {
+    const res = await api.patch(`/users/${id}`, data);
+    return res.data;
+  },
+  remove: async (id: string) => {
+    const res = await api.delete(`/users/${id}`);
     return res.data;
   },
 };
