@@ -2,13 +2,24 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { SiteSettingsAPI, EmailTemplatesAPI, type SiteSettings, type EmailTemplate } from "@/lib/api";
-import { htmlToEditableText, textToHtml } from "@/lib/emailTemplateText";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, Save, Search, ScrollText, Info, Mail, Bell, TicketX } from "lucide-react";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
+
+// Toolbar volontairement réduite (pas de titres/couleurs) : un email
+// automatique reste un message court, pas une page à mettre en page.
+const emailQuillModules = {
+  toolbar: [
+    ["bold", "italic", "underline"],
+    [{ list: "ordered" }, { list: "bullet" }],
+    ["link"],
+    ["clean"],
+  ],
+};
 
 const emptySettings: SiteSettings = {};
 
@@ -47,15 +58,14 @@ const TEMPLATE_PLACEHOLDERS: Record<string, string> = {
 
 const EmailTemplateCard = ({ template, onSaved }: { template: EmailTemplate; onSaved: (t: EmailTemplate) => void }) => {
   const [subject, setSubject] = useState(template.subject);
-  const [bodyText, setBodyText] = useState(() => htmlToEditableText(template.body_html));
+  const [bodyHtml, setBodyHtml] = useState(template.body_html);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const updated = await EmailTemplatesAPI.update(template.key, { subject, body_html: textToHtml(bodyText) });
+      const updated = await EmailTemplatesAPI.update(template.key, { subject, body_html: bodyHtml });
       onSaved(updated);
-      setBodyText(htmlToEditableText(updated.body_html));
       toast.success("Template mis à jour !");
     } catch (err: any) {
       toast.error("Erreur : " + (err.response?.data?.message || err.message));
@@ -82,13 +92,16 @@ const EmailTemplateCard = ({ template, onSaved }: { template: EmailTemplate; onS
       </div>
       <div className="space-y-2">
         <Label className="text-xs text-muted-foreground uppercase tracking-wider">Message</Label>
-        <Textarea
-          value={bodyText}
-          onChange={(e) => setBodyText(e.target.value)}
-          className="bg-card border-border/50 min-h-[140px]"
-          placeholder="Écris le message comme un email normal. Laisse une ligne vide entre deux paragraphes."
-        />
-        <p className="text-xs text-muted-foreground">Pas de code à écrire : la mise en forme (paragraphes, mise en page de l'email) est appliquée automatiquement.</p>
+        <div className="bg-white text-black rounded-xl overflow-hidden border border-border">
+          <ReactQuill
+            theme="snow"
+            value={bodyHtml}
+            onChange={setBodyHtml}
+            modules={emailQuillModules}
+            className="min-h-[140px] [&_.ql-editor]:min-h-[140px]"
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">Pas de code à écrire : mets en forme comme dans un traitement de texte, avec la barre d'outils.</p>
       </div>
     </div>
   );
