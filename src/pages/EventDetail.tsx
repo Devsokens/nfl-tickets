@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { useQuery } from "@tanstack/react-query";
 import { EventsAPI, TicketsAPI, TestimonialsAPI, SiteSettingsAPI, type Event, type Testimonial, type SiteSettings } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, MapPin, Clock, CheckCircle2, ArrowRight, ArrowLeft, UserCheck, Award, Users, Images, X as XIcon } from "lucide-react";
+import { Calendar, MapPin, Clock, CheckCircle2, ArrowRight, ArrowLeft, UserCheck, Award, Users, X as XIcon } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 
 import nflImg1 from "@/assets/nfl img1.jpeg";
@@ -403,30 +403,31 @@ const EventDetail = () => {
         </section>
       )}
 
-      {/* GALERIE PHOTOS (album de cet événement, alimenté depuis l'admin) */}
-      {gallery.length > 0 && (
-        <section className="section-y bg-[#0d0e11] border-b border-white/5">
-          <div className="container mx-auto px-4 max-w-6xl">
-            <div className="flex items-center gap-3 mb-8">
-              <Images className="w-5 h-5 text-[#e3bd51]" />
-              <h2 className="text-white text-xl md:text-2xl font-bold">Galerie photos</h2>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {gallery.map((src, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setLightboxIndex(idx)}
-                  className="relative aspect-square rounded-xl overflow-hidden group"
-                >
-                  <img
-                    src={src}
-                    alt={`${eventTitle} — photo ${idx + 1}`}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
-                </button>
-              ))}
+      {/* 4. ALBUM — galerie de CET événement si l'admin en a fourni une, sinon
+          repli sur les 3 derniers événements passés en guise d'illustration. */}
+      {gallery.length > 0 ? (
+        <section className="relative overflow-hidden bg-black py-2 sm:py-0">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-0 relative">
+            {gallery.slice(0, 6).map((src, idx) => (
+              <button
+                key={idx}
+                onClick={() => setLightboxIndex(idx)}
+                className="relative h-40 sm:h-56 md:h-64 overflow-hidden group block w-full"
+              >
+                <img
+                  src={src}
+                  alt={`${eventTitle} — photo ${idx + 1}`}
+                  className="w-full h-full object-cover filter brightness-[0.75] transition-transform duration-700 group-hover:scale-105"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
+              </button>
+            ))}
+
+            <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+              <div className="bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider px-8 py-3.5 rounded-none shadow-2xl border border-black/20 pointer-events-none">
+                L'esprit NFL Courtier & Service
+              </div>
             </div>
           </div>
 
@@ -451,10 +452,7 @@ const EventDetail = () => {
             </div>
           )}
         </section>
-      )}
-
-      {/* 4. RETOUR SUR L'ÉDITION PRÉCÉDENTE (3 derniers événements passés) */}
-      {throwbackEvents.length > 0 && (
+      ) : throwbackEvents.length > 0 && (
         <section className="relative overflow-hidden bg-black py-2 sm:py-0">
           <div
             className="grid grid-cols-1 gap-0 relative min-h-[380px] sm:min-h-[460px]"
