@@ -350,13 +350,53 @@ export const AuthAPI = {
   },
 };
 
+export interface ContactRequest {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: 'pending' | 'rdv_programme' | 'refuse' | string;
+  appointment_at?: string | null;
+  appointment_notes?: string | null;
+  rejection_reason?: string | null;
+  handled_at?: string | null;
+  created_at?: string;
+}
+
 export const ContactAPI = {
   send: async (contactData: { name: string; email: string; subject: string; message: string }) => {
     const res = await api.post('/contact', contactData);
     return res.data;
   },
-  getAll: async () => {
+  getAll: async (): Promise<ContactRequest[]> => {
     const res = await api.get('/contact');
+    return res.data;
+  },
+  scheduleAppointment: async (id: string, data: { appointment_at: string; notes?: string }) => {
+    const res = await api.patch(`/contact/${id}/schedule`, data);
+    return res.data;
+  },
+  reject: async (id: string, data: { reason?: string }) => {
+    const res = await api.patch(`/contact/${id}/reject`, data);
+    return res.data;
+  },
+};
+
+export interface EmailTemplate {
+  key: string;
+  label: string;
+  subject: string;
+  body_html: string;
+}
+
+export const EmailTemplatesAPI = {
+  getAll: async (): Promise<EmailTemplate[]> => {
+    const res = await api.get('/email-templates');
+    return res.data;
+  },
+  update: async (key: string, data: { subject?: string; body_html?: string }): Promise<EmailTemplate> => {
+    const res = await api.patch(`/email-templates/${key}`, data);
     return res.data;
   },
 };

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, EventsAPI, TicketsAPI, NewsletterAPI, ContactAPI, AnalyticsAPI, CertificatesAPI, type Event, type Ticket, type EventSpeaker, type EventProgramStep } from "@/lib/api";
+import { api, EventsAPI, TicketsAPI, NewsletterAPI, ContactAPI, AnalyticsAPI, CertificatesAPI, type Event, type Ticket, type EventSpeaker, type EventProgramStep, type ContactRequest } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -101,12 +101,72 @@ import ProfileSheet from "@/components/admin/ProfileSheet";
 
 type Tab = "dashboard" | "events" | "formations" | "tickets" | "demandes" | "newsletter" | "testimonials" | "site-settings" | "visual-editor" | "users" | "scanner";
 
+const DEMANDE_STATUS_STYLES: Record<string, string> = {
+  pending: "bg-orange-500/10 text-orange-600 border-orange-500/20",
+  rdv_programme: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  refuse: "bg-destructive/10 text-destructive border-destructive/20",
+};
+const DEMANDE_STATUS_LABELS: Record<string, string> = {
+  pending: "Nouveau",
+  rdv_programme: "RDV programmé",
+  refuse: "Refusée",
+};
+
+const DemandeStatusBadge = ({ status }: { status: string }) => (
+  <Badge variant="outline" className={`uppercase text-lvl-footer ${DEMANDE_STATUS_STYLES[status] || DEMANDE_STATUS_STYLES.pending}`}>
+    {DEMANDE_STATUS_LABELS[status] || status || "Nouveau"}
+  </Badge>
+);
+
 const DemandesList = () => {
-  const [selectedDemande, setSelectedDemande] = useState<any>(null);
-  const { data: demandes = [], isLoading } = useQuery<any[]>({
+  const queryClient = useQueryClient();
+  const [selectedDemande, setSelectedDemande] = useState<ContactRequest | null>(null);
+  const [action, setAction] = useState<"schedule" | "reject" | "">("");
+  const [appointmentAt, setAppointmentAt] = useState("");
+  const [appointmentNotes, setAppointmentNotes] = useState("");
+  const [rejectReason, setRejectReason] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { data: demandes = [], isLoading } = useQuery<ContactRequest[]>({
     queryKey: ["contacts"],
     queryFn: ContactAPI.getAll,
   });
+
+  const openDemande = (d: ContactRequest) => {
+    setSelectedDemande(d);
+    setAction("");
+    setAppointmentAt("");
+    setAppointmentNotes("");
+    setRejectReason("");
+  };
+
+  const handleConfirmAction = async () => {
+    if (!selectedDemande) return;
+    setIsSubmitting(true);
+    try {
+      if (action === "schedule") {
+        if (!appointmentAt) {
+          toast.error("Choisissez une date et une heure de rendez-vous.");
+          setIsSubmitting(false);
+          return;
+        }
+        await ContactAPI.scheduleAppointment(selectedDemande.id, {
+          appointment_at: new Date(appointmentAt).toISOString(),
+          notes: appointmentNotes || undefined,
+        });
+        toast.success("Rendez-vous programmé, email envoyé au demandeur.");
+      } else if (action === "reject") {
+        await ContactAPI.reject(selectedDemande.id, { reason: rejectReason || undefined });
+        toast.success("Demande refusée, email envoyé au demandeur.");
+      }
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      setSelectedDemande(null);
+    } catch (err: any) {
+      toast.error("Erreur : " + (err.response?.data?.message || err.message));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (isLoading) return <tr><td colSpan={4} className="text-center py-10 opacity-50">Chargement...</td></tr>;
   if (demandes.length === 0) return <tr><td colSpan={4} className="text-center py-10 opacity-50">Aucune demande reçue.</td></tr>;
@@ -114,7 +174,7 @@ const DemandesList = () => {
   return (
     <>
       {demandes.map((d) => (
-        <tr key={d.id} className="hover:bg-muted/5 transition-colors group cursor-pointer" onClick={() => setSelectedDemande(d)}>
+        <tr key={d.id} className="hover:bg-muted/5 transition-colors group cursor-pointer" onClick={() => openDemande(d)}>
           <td className="px-6 py-5">
             <div className="font-bold text-foreground">{d.name}</div>
             <div className="text-lvl-footer text-muted-foreground">{d.email}</div>
@@ -137,27 +197,85 @@ const DemandesList = () => {
             </div>
           </td>
           <td className="px-6 py-5">
-            <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/20 uppercase text-lvl-footer">
-              {d.status || 'En attente'}
-            </Badge>
+            <DemandeStatusBadge status={d.status} />
           </td>
         </tr>
       ))}
-      <Dialog open={!!selectedDemande} onOpenChange={(open) => !open && setSelectedDemande(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Demande de {selectedDemande?.name}</DialogTitle>
-            <DialogDescription>{selectedDemande?.email}</DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <h4 className="font-bold text-gold uppercase mb-2">{selectedDemande?.subject}</h4>
-            <p className="whitespace-pre-wrap text-muted-foreground">{selectedDemande?.message}</p>
+
+      <Sheet open={!!selectedDemande} onOpenChange={(open) => !open && setSelectedDemande(null)}>
+        <SheetContent side="right" className="w-full sm:max-w-lg p-0 flex flex-col gap-0 border-gold/10">
+          <SheetHeader className="px-6 sm:px-8 py-6 border-b border-border/50 shrink-0 space-y-2">
+            <SheetTitle className="flex items-center justify-between pr-8">
+              <span>Demande de {selectedDemande?.name}</span>
+              {selectedDemande && <DemandeStatusBadge status={selectedDemande.status} />}
+            </SheetTitle>
+            <SheetDescription>{selectedDemande?.email}</SheetDescription>
+          </SheetHeader>
+
+          <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-6">
+            <div>
+              <h4 className="font-bold text-gold uppercase text-lvl-footer tracking-wider mb-2">{selectedDemande?.subject}</h4>
+              <p className="whitespace-pre-wrap text-muted-foreground text-lvl-body">{selectedDemande?.message}</p>
+            </div>
+
+            {selectedDemande?.status === "rdv_programme" && selectedDemande.appointment_at && (
+              <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 text-lvl-footer space-y-1">
+                <p className="font-bold text-blue-600">Rendez-vous programmé</p>
+                <p>{new Date(selectedDemande.appointment_at).toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' })}</p>
+                {selectedDemande.appointment_notes && <p className="text-muted-foreground">{selectedDemande.appointment_notes}</p>}
+              </div>
+            )}
+            {selectedDemande?.status === "refuse" && (
+              <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-4 text-lvl-footer space-y-1">
+                <p className="font-bold text-destructive">Demande refusée</p>
+                {selectedDemande.rejection_reason && <p className="text-muted-foreground">{selectedDemande.rejection_reason}</p>}
+              </div>
+            )}
+
+            <div className="border-t border-border/50 pt-6 space-y-4">
+              <Label className="text-lvl-footer font-bold uppercase tracking-wider text-muted-foreground">Choisir une action</Label>
+              <Select value={action} onValueChange={(v: any) => setAction(v)}>
+                <SelectTrigger><SelectValue placeholder="Sélectionner une action..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="schedule">Programmer un rendez-vous</SelectItem>
+                  <SelectItem value="reject">Refuser la demande</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {action === "schedule" && (
+                <div className="space-y-3 animate-fade-in">
+                  <div className="space-y-2">
+                    <Label>Date et heure du rendez-vous</Label>
+                    <Input type="datetime-local" value={appointmentAt} onChange={(e) => setAppointmentAt(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Notes (optionnel)</Label>
+                    <Textarea placeholder="Lieu, lien de visio, précisions..." value={appointmentNotes} onChange={(e) => setAppointmentNotes(e.target.value)} />
+                  </div>
+                </div>
+              )}
+              {action === "reject" && (
+                <div className="space-y-2 animate-fade-in">
+                  <Label>Motif (optionnel, inclus dans l'email envoyé)</Label>
+                  <Textarea placeholder="Raison du refus..." value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
+                </div>
+              )}
+            </div>
           </div>
-          <DialogFooter>
-            <Button onClick={() => setSelectedDemande(null)}>Fermer</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+          <SheetFooter className="px-6 sm:px-8 py-5 border-t border-border/50 shrink-0 bg-card/50 backdrop-blur-sm sm:justify-stretch">
+            <Button
+              variant="gold"
+              className="w-full h-10 text-lvl-footer font-bold rounded-xl"
+              onClick={handleConfirmAction}
+              disabled={!action || isSubmitting}
+            >
+              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Confirmer et envoyer l'email
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </>
   );
 };
