@@ -1095,9 +1095,18 @@ const AdminDashboard = () => {
     users: "utilisateurs",
     "site-settings": "parametres",
   };
+  // Filet de sécurité : si le profil n'a AUCUN module explicitement accordé
+  // (aucune ligne "voir"/"editer"), on considère que ses permissions n'ont
+  // simplement pas encore été configurées plutôt que de le verrouiller hors
+  // de son propre tableau de bord — un compte réellement restreint aura
+  // toujours au moins un module accordé par le Super Admin qui l'a créé.
+  const hasAnyModuleAccess = !!currentProfile?.permissions &&
+    Object.values(currentProfile.permissions).some((level) => level && level !== "aucun");
   const canAccessTab = (tab: Tab) =>
-    currentProfile?.role === "super_admin" ||
-    !!currentProfile?.permissions?.[TAB_MODULE[tab]] && currentProfile.permissions[TAB_MODULE[tab]] !== "aucun";
+    !currentProfile ||
+    currentProfile.role === "super_admin" ||
+    !hasAnyModuleAccess ||
+    (!!currentProfile.permissions?.[TAB_MODULE[tab]] && currentProfile.permissions[TAB_MODULE[tab]] !== "aucun");
   const visibleSidebarNav = !currentProfile
     ? sidebarNav
     : sidebarNav
