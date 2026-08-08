@@ -94,7 +94,12 @@ const TestimonialsTab = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {testimonials.map((t) => (
             <div key={t.id} className="glass-card rounded-3xl p-6 border border-border/50 flex flex-col gap-4">
-              <Quote className="h-6 w-6 text-gold/50" />
+              <div className="flex items-center justify-between">
+                <Quote className="h-6 w-6 text-gold/50" />
+                {t.ticket_id && (
+                  <Badge variant="outline" className="text-blue-600 border-blue-500/20 text-[10px] uppercase">Soumis par un participant</Badge>
+                )}
+              </div>
               <p className="text-lvl-footer text-muted-foreground italic line-clamp-4 flex-1">"{t.quote}"</p>
               <div className="flex items-center justify-between pt-4 border-t border-border/30">
                 <div>

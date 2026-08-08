@@ -17,6 +17,7 @@ const EventDetail = lazy(() => import("./pages/EventDetail.tsx"));
 const CatalogueFormation = lazy(() => import("./pages/CatalogueFormation.tsx"));
 const FormationDetail = lazy(() => import("./pages/FormationDetail.tsx"));
 const Contact = lazy(() => import("./pages/Contact.tsx"));
+const TestimonialSubmission = lazy(() => import("./pages/TestimonialSubmission.tsx"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard.tsx"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
@@ -108,6 +109,7 @@ const App = () => (
               <Route path="/catalogue-formations" element={<CatalogueFormation />} />
               <Route path="/formation/:id" element={<FormationDetail />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/temoignage/:ticketId" element={<TestimonialSubmission />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="*" element={<NotFound />} />

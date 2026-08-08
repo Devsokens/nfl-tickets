@@ -121,6 +121,8 @@ export interface Testimonial {
   avatar_url?: string;
   display_order?: number;
   status?: 'publié' | 'brouillon';
+  /** Renseigné si soumis par un participant via le lien privé post-certificat (voir TestimonialsTab). */
+  ticket_id?: string | null;
 }
 
 export interface Formation {
@@ -493,6 +495,14 @@ export const TestimonialsAPI = {
   },
   delete: async (id: string) => {
     const res = await api.delete(`/testimonials/${id}`);
+    return res.data;
+  },
+  getSubmissionInfo: async (ticketId: string, token: string): Promise<{ author_name: string; event_title: string | null }> => {
+    const res = await api.get(`/testimonials/submission-info/${ticketId}`, { params: { token } });
+    return res.data;
+  },
+  submit: async (data: { ticket_id: string; token: string; quote: string; author_role?: string; author_company?: string; avatar_url?: string }) => {
+    const res = await api.post('/testimonials/submit', data);
     return res.data;
   },
 };
