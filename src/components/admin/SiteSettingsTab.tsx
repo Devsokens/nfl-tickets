@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { SiteSettingsAPI, EmailTemplatesAPI, type SiteSettings, type EmailTemplate } from "@/lib/api";
@@ -23,8 +23,19 @@ const emailQuillModules = {
 
 const emptySettings: SiteSettings = {};
 
-const Section = ({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) => (
-  <div className="glass-card rounded-3xl p-8 border border-border/50 space-y-5">
+// Sert à la fois de sommaire (timeline latérale) et d'ancres de scroll —
+// une seule liste à tenir à jour pour les deux.
+const SECTIONS = [
+  { id: "settings-notifications", label: "Notifications", icon: Bell },
+  { id: "settings-disponibilite", label: "Disponibilité", icon: TicketX },
+  { id: "settings-identite", label: "Identité technique", icon: Search },
+  { id: "settings-seo", label: "SEO par défaut", icon: Search },
+  { id: "settings-legal", label: "Mentions légales", icon: ScrollText },
+  { id: "settings-emails", label: "Emails automatiques", icon: Mail },
+] as const;
+
+const Section = ({ id, icon, title, children }: { id?: string; icon: React.ReactNode; title: string; children: React.ReactNode }) => (
+  <div id={id} className="glass-card rounded-3xl p-8 border border-border/50 space-y-5 scroll-mt-6">
     <h3 className="font-bold text-lg flex items-center gap-2">{icon} {title}</h3>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">{children}</div>
   </div>
@@ -150,10 +161,37 @@ const SiteSettingsTab = () => {
 
   const [form, setForm] = useState<SiteSettings>(emptySettings);
   const [isSaving, setIsSaving] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>(SECTIONS[0].id);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (data) setForm(data);
   }, [data]);
+
+  // Suit la section visible pour surligner la timeline latérale, en observant
+  // par rapport au vrai conteneur qui défile (le panneau d'onglet admin),
+  // pas la fenêtre — le layout admin scrolle une div interne, pas le body.
+  useEffect(() => {
+    const scrollParent = rootRef.current?.closest(".overflow-y-auto") as HTMLElement | null;
+    const sectionEls = SECTIONS.map((s) => document.getElementById(s.id)).filter((el): el is HTMLElement => !!el);
+    if (!sectionEls.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible[0]) setActiveSection(visible[0].target.id);
+      },
+      { root: scrollParent || null, rootMargin: "0px 0px -70% 0px", threshold: 0 },
+    );
+    sectionEls.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [isLoading]);
+
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const set = (key: keyof SiteSettings) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((p) => ({ ...p, [key]: e.target.value }));
@@ -178,83 +216,107 @@ const SiteSettingsTab = () => {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in max-w-4xl mx-auto pb-24">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold">Réglages avancés</h2>
-          <p className="text-sm text-muted-foreground mt-1">Champs sans équivalent visuel sur le site (SEO, identité technique, mentions légales, emails automatiques).</p>
+    <div ref={rootRef} className="animate-fade-in max-w-6xl mx-auto pb-24 flex flex-col lg:flex-row gap-8 items-start">
+      <div className="flex-1 min-w-0 space-y-8">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold">Réglages avancés</h2>
+            <p className="text-sm text-muted-foreground mt-1">Champs sans équivalent visuel sur le site (SEO, identité technique, mentions légales, emails automatiques).</p>
+          </div>
+          <Button variant="gold" className="rounded-2xl h-12 px-6 shadow-xl shrink-0" onClick={handleSave} disabled={isSaving}>
+            {isSaving ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Save className="h-5 w-5 mr-2" />}
+            Enregistrer
+          </Button>
         </div>
-        <Button variant="gold" className="rounded-2xl h-12 px-6 shadow-xl shrink-0" onClick={handleSave} disabled={isSaving}>
-          {isSaving ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Save className="h-5 w-5 mr-2" />}
-          Enregistrer
-        </Button>
-      </div>
 
-      <div className="flex items-center gap-2 text-muted-foreground text-xs bg-secondary/30 border border-border/50 rounded-xl px-4 py-3">
-        <Info className="w-4 h-4 text-gold shrink-0" />
-        Le téléphone, l'email, l'adresse, les réseaux sociaux et tous les textes de page se modifient directement dans l'onglet <strong className="text-foreground">Éditeur visuel</strong>.
-      </div>
+        <div className="flex items-center gap-2 text-muted-foreground text-xs bg-secondary/30 border border-border/50 rounded-xl px-4 py-3">
+          <Info className="w-4 h-4 text-gold shrink-0" />
+          Le téléphone, l'email, l'adresse, les réseaux sociaux et tous les textes de page se modifient directement dans l'onglet <strong className="text-foreground">Éditeur visuel</strong>.
+        </div>
 
-      <div className="glass-card rounded-3xl p-8 border border-border/50 space-y-5">
-        <h3 className="font-bold text-lg flex items-center gap-2"><Bell className="h-5 w-5 text-gold" /> Notifications admin</h3>
-        <p className="text-sm text-muted-foreground -mt-3">Alertes envoyées à l'admin pour une nouvelle demande de contact (email + push).</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Toggle
-            label="Email de notification"
-            description="Un email t'est envoyé pour chaque nouvelle demande."
-            checked={form.notify_admin_email_enabled !== false}
-            onChange={setBool("notify_admin_email_enabled")}
+        <div id="settings-notifications" className="glass-card rounded-3xl p-8 border border-border/50 space-y-5 scroll-mt-6">
+          <h3 className="font-bold text-lg flex items-center gap-2"><Bell className="h-5 w-5 text-gold" /> Notifications admin</h3>
+          <p className="text-sm text-muted-foreground -mt-3">Alertes envoyées à l'admin pour une nouvelle demande de contact (email + push).</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Toggle
+              label="Email de notification"
+              description="Un email t'est envoyé pour chaque nouvelle demande."
+              checked={form.notify_admin_email_enabled !== false}
+              onChange={setBool("notify_admin_email_enabled")}
+            />
+            <Toggle
+              label="Notification push"
+              description="Une notif push t'est envoyée (demande, réservation, témoignage)."
+              checked={form.notify_admin_push_enabled !== false}
+              onChange={setBool("notify_admin_push_enabled")}
+            />
+          </div>
+          <Field
+            label="Adresse de réception des notifications"
+            value={form.admin_notification_email}
+            onChange={set("admin_notification_email")}
+            placeholder="Laisser vide pour utiliser l'adresse Gmail par défaut"
           />
+        </div>
+
+        <div id="settings-disponibilite" className="glass-card rounded-3xl p-8 border border-border/50 space-y-5 scroll-mt-6">
+          <h3 className="font-bold text-lg flex items-center gap-2"><TicketX className="h-5 w-5 text-gold" /> Disponibilité des réservations</h3>
           <Toggle
-            label="Notification push"
-            description="Une notif push t'est envoyée (demande, réservation, témoignage)."
-            checked={form.notify_admin_push_enabled !== false}
-            onChange={setBool("notify_admin_push_enabled")}
+            danger
+            label="Suspendre toutes les réservations"
+            description="Bloque instantanément toute nouvelle réservation sur le site, tous événements confondus (ex. incident de paiement). Les événements restent visibles."
+            checked={!!form.reservations_paused}
+            onChange={setBool("reservations_paused")}
           />
         </div>
-        <Field
-          label="Adresse de réception des notifications"
-          value={form.admin_notification_email}
-          onChange={set("admin_notification_email")}
-          placeholder="Laisser vide pour utiliser l'adresse Gmail par défaut"
-        />
-      </div>
 
-      <div className="glass-card rounded-3xl p-8 border border-border/50 space-y-5">
-        <h3 className="font-bold text-lg flex items-center gap-2"><TicketX className="h-5 w-5 text-gold" /> Disponibilité des réservations</h3>
-        <Toggle
-          danger
-          label="Suspendre toutes les réservations"
-          description="Bloque instantanément toute nouvelle réservation sur le site, tous événements confondus (ex. incident de paiement). Les événements restent visibles."
-          checked={!!form.reservations_paused}
-          onChange={setBool("reservations_paused")}
-        />
-      </div>
+        <Section id="settings-identite" icon={<Search className="h-5 w-5 text-gold" />} title="Identité technique">
+          <Field label="Nom du site" value={form.site_name} onChange={set("site_name")} placeholder="NFL Courtier & Service" />
+          <Field label="URL du site" value={form.site_url} onChange={set("site_url")} placeholder="https://nfl-ga.com" />
+        </Section>
 
-      <Section icon={<Search className="h-5 w-5 text-gold" />} title="Identité technique">
-        <Field label="Nom du site" value={form.site_name} onChange={set("site_name")} placeholder="NFL Courtier & Service" />
-        <Field label="URL du site" value={form.site_url} onChange={set("site_url")} placeholder="https://nfl-ga.com" />
-      </Section>
+        <Section id="settings-seo" icon={<Search className="h-5 w-5 text-gold" />} title="SEO par défaut">
+          <Field label="Suffixe du titre" value={form.meta_title_suffix} onChange={set("meta_title_suffix")} placeholder="| NFL Courtier & Service" />
+          <Field label="Image Open Graph (partage)" value={form.og_image_url} onChange={set("og_image_url")} placeholder="URL de l'image" />
+          <div className="md:col-span-2 space-y-2">
+            <Label>Meta description par défaut</Label>
+            <Input value={form.meta_description_default || ""} onChange={set("meta_description_default")} placeholder="Description affichée dans Google..." className="bg-card border-border/50" />
+          </div>
+        </Section>
 
-      <Section icon={<Search className="h-5 w-5 text-gold" />} title="SEO par défaut">
-        <Field label="Suffixe du titre" value={form.meta_title_suffix} onChange={set("meta_title_suffix")} placeholder="| NFL Courtier & Service" />
-        <Field label="Image Open Graph (partage)" value={form.og_image_url} onChange={set("og_image_url")} placeholder="URL de l'image" />
-        <div className="md:col-span-2 space-y-2">
-          <Label>Meta description par défaut</Label>
-          <Input value={form.meta_description_default || ""} onChange={set("meta_description_default")} placeholder="Description affichée dans Google..." className="bg-card border-border/50" />
+        <Section id="settings-legal" icon={<ScrollText className="h-5 w-5 text-gold" />} title="Mentions légales">
+          <Field label="Lien Mentions légales" value={form.legal_mentions_url} onChange={set("legal_mentions_url")} placeholder="https://... ou #" />
+          <Field label="Lien Politique de confidentialité" value={form.privacy_policy_url} onChange={set("privacy_policy_url")} placeholder="https://... ou #" />
+        </Section>
+
+        <div id="settings-emails" className="space-y-5 scroll-mt-6">
+          <h3 className="font-bold text-lg flex items-center gap-2"><Mail className="h-5 w-5 text-gold" /> Emails automatiques</h3>
+          <p className="text-sm text-muted-foreground -mt-3">Personnalise le contenu des emails envoyés automatiquement par le site (accusé de réception, confirmation de rendez-vous, refus de demande...).</p>
+          <EmailTemplatesSection />
         </div>
-      </Section>
-
-      <Section icon={<ScrollText className="h-5 w-5 text-gold" />} title="Mentions légales">
-        <Field label="Lien Mentions légales" value={form.legal_mentions_url} onChange={set("legal_mentions_url")} placeholder="https://... ou #" />
-        <Field label="Lien Politique de confidentialité" value={form.privacy_policy_url} onChange={set("privacy_policy_url")} placeholder="https://... ou #" />
-      </Section>
-
-      <div className="space-y-5">
-        <h3 className="font-bold text-lg flex items-center gap-2"><Mail className="h-5 w-5 text-gold" /> Emails automatiques</h3>
-        <p className="text-sm text-muted-foreground -mt-3">Personnalise le contenu des emails envoyés automatiquement par le site (accusé de réception, confirmation de rendez-vous, refus de demande...).</p>
-        <EmailTemplatesSection />
       </div>
+
+      <nav className="hidden lg:flex flex-col gap-0.5 sticky top-6 w-56 shrink-0 self-start">
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground px-3 pb-2">Navigation</p>
+        {SECTIONS.map((s) => {
+          const Icon = s.icon;
+          const isActive = activeSection === s.id;
+          return (
+            <button
+              key={s.id}
+              onClick={() => scrollToSection(s.id)}
+              className={`flex items-center gap-2.5 text-left text-sm py-2.5 px-3 rounded-xl border-l-2 transition-all ${
+                isActive
+                  ? "border-gold bg-gold/10 text-gold font-semibold"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary/40"
+              }`}
+            >
+              <Icon className="h-4 w-4 shrink-0" />
+              <span className="truncate">{s.label}</span>
+            </button>
+          );
+        })}
+      </nav>
     </div>
   );
 };

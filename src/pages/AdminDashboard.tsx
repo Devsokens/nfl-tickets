@@ -2114,17 +2114,17 @@ const AdminDashboard = () => {
       </Dialog>
 
       {/* MODAL REDACTION NEWSLETTER */}
-      <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-[30px] p-8 border-gold/10">
-          <DialogHeader>
-            <DialogTitle className="text-lvl-title font-display font-bold">Rédiger une newsletter</DialogTitle>
-            <DialogDescription>
-              {newsletterForm.sendToAll 
-                ? `Envoi à tous les abonnés (${subscribers.length})` 
+      <Sheet open={isComposeOpen} onOpenChange={setIsComposeOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-2xl lg:max-w-3xl p-0 flex flex-col gap-0 border-gold/10">
+          <SheetHeader className="px-6 sm:px-8 py-6 border-b border-border/50 shrink-0 space-y-2">
+            <SheetTitle className="text-lvl-subtitle font-bold text-foreground">Rédiger une newsletter</SheetTitle>
+            <SheetDescription>
+              {newsletterForm.sendToAll
+                ? `Envoi à tous les abonnés (${subscribers.length})`
                 : `Envoi à ${selectedEmails.length} destinataires sélectionnés`}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-6 pt-4">
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-6">
             <div className="space-y-2">
               <Label>Objet du mail</Label>
               <Input 
@@ -2203,17 +2203,17 @@ const AdminDashboard = () => {
               )}
             </div>
 
-            <Button 
-              variant="gold" 
-              className="w-full h-16 text-lvl-subtitle font-bold shadow-2xl rounded-2xl mt-8" 
+            <Button
+              variant="gold"
+              className="w-full h-16 text-lvl-subtitle font-bold shadow-2xl rounded-2xl mt-8"
               onClick={handleSendManualNewsletter}
               disabled={isSendingNewsletter}
             >
               {isSendingNewsletter ? <Loader2 className="h-6 w-6 animate-spin" /> : "Envoyer la newsletter"}
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
       {/* MODAL HISTORIQUE NEWSLETTER */}
       <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>

@@ -8,8 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
-} from "@/components/ui/dialog";
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter,
+} from "@/components/ui/sheet";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -144,13 +144,13 @@ const FormationsTab = () => {
         </div>
       )}
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px] rounded-[30px] p-8 border-gold/10">
-          <DialogHeader>
-            <DialogTitle>{editingId ? "Modifier la formation" : "Nouvelle formation"}</DialogTitle>
-            <DialogDescription>Ce module apparaîtra dans le catalogue formation une fois publié.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
+      <Sheet open={dialogOpen} onOpenChange={setDialogOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-2xl p-0 flex flex-col gap-0 border-gold/10">
+          <SheetHeader className="px-6 sm:px-8 py-6 border-b border-border/50 shrink-0 space-y-2">
+            <SheetTitle className="text-lvl-subtitle font-bold text-foreground">{editingId ? "Modifier la formation" : "Nouvelle formation"}</SheetTitle>
+            <SheetDescription>Ce module apparaîtra dans le catalogue formation une fois publié.</SheetDescription>
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2"><Label>Statut</Label>
                 <Select value={form.status || "brouillon"} onValueChange={(v: any) => setForm(p => ({ ...p, status: v }))}>
@@ -208,14 +208,14 @@ const FormationsTab = () => {
               </div>
             </div>
           </div>
-          <DialogFooter className="pt-4">
-            <Button variant="ghost" onClick={() => setDialogOpen(false)}>Annuler</Button>
-            <Button variant="gold" onClick={handleSave} disabled={isSaving || isUploading}>
+          <SheetFooter className="px-6 sm:px-8 py-5 border-t border-border/50 shrink-0 bg-card/50 backdrop-blur-sm sm:justify-stretch gap-2">
+            <Button variant="ghost" className="rounded-xl" onClick={() => setDialogOpen(false)}>Annuler</Button>
+            <Button variant="gold" className="flex-1 h-10 rounded-xl shadow-lg shadow-gold/20" onClick={handleSave} disabled={isSaving || isUploading}>
               {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null} Enregistrer
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
