@@ -7,7 +7,7 @@ import { Helmet } from "react-helmet-async";
 import {
   ArrowRight, ArrowLeft, ShieldCheck, CheckCircle2, Layers, BarChart3, Award, Lock,
   Building2, Utensils, Smartphone, Headset, Loader2, UserCheck, Users2,
-  FileText, Sparkles, TrendingUp, Briefcase, Scale, Globe, Quote, Download, Images, X as XIcon
+  FileText, Sparkles, TrendingUp, Briefcase, Scale, Globe, Quote, Download, Images
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { FormationsAPI, TestimonialsAPI, type Formation, type Testimonial } from "@/lib/api";
@@ -37,7 +37,6 @@ const FormationDetail = () => {
   const [phone, setPhone] = useState("");
   const [nbPlaces, setNbPlaces] = useState("1 Place");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const gallery = formation?.gallery || [];
 
   const handleBooking = (e: React.FormEvent) => {
@@ -383,49 +382,31 @@ const FormationDetail = () => {
       {gallery.length > 0 && (
         <section className="section-y bg-[#07080a] border-b border-white/5">
           <div className="container mx-auto px-4 max-w-6xl">
-            <div className="flex items-center gap-3 mb-8">
-              <Images className="w-5 h-5 text-[#e3bd51]" />
-              <h2 className="text-white text-xl md:text-2xl font-bold">Galerie photos</h2>
+            <div className="flex items-center justify-between gap-4 mb-8">
+              <div className="flex items-center gap-3">
+                <Images className="w-5 h-5 text-[#e3bd51]" />
+                <h2 className="text-white text-xl md:text-2xl font-bold">Galerie photos</h2>
+              </div>
+              <Link
+                to={`/formation/${formation?.slug || id}/galerie`}
+                className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-wider hover:text-white transition-colors whitespace-nowrap"
+              >
+                Voir tout →
+              </Link>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {gallery.map((src, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setLightboxIndex(idx)}
-                  className="relative aspect-square rounded-xl overflow-hidden group"
-                >
+            <Link to={`/formation/${formation?.slug || id}/galerie`} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 group/album">
+              {gallery.slice(0, 8).map((src, idx) => (
+                <div key={idx} className="relative aspect-square rounded-xl overflow-hidden">
                   <img
                     src={src}
                     alt={`${formation?.title || "Formation"} — photo ${idx + 1}`}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover/album:scale-105"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
-                </button>
+                </div>
               ))}
-            </div>
+            </Link>
           </div>
-
-          {lightboxIndex !== null && (
-            <div
-              className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4"
-              onClick={() => setLightboxIndex(null)}
-            >
-              <button
-                className="absolute top-5 right-5 text-white/70 hover:text-white"
-                onClick={() => setLightboxIndex(null)}
-                aria-label="Fermer"
-              >
-                <XIcon className="w-7 h-7" />
-              </button>
-              <img
-                src={gallery[lightboxIndex]}
-                alt={`${formation?.title || "Formation"} — photo ${lightboxIndex + 1}`}
-                className="max-w-full max-h-full object-contain rounded-lg"
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
-          )}
         </section>
       )}
 

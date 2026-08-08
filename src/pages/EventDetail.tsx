@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { useQuery } from "@tanstack/react-query";
 import { EventsAPI, TicketsAPI, TestimonialsAPI, SiteSettingsAPI, type Event, type Testimonial, type SiteSettings } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, MapPin, Clock, CheckCircle2, ArrowRight, ArrowLeft, UserCheck, Award, Users, X as XIcon } from "lucide-react";
+import { Calendar, MapPin, Clock, CheckCircle2, ArrowRight, ArrowLeft, UserCheck, Award, Users } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 
 import nflImg1 from "@/assets/nfl img1.jpeg";
@@ -70,7 +70,6 @@ const EventDetail = () => {
   const [nbPlaces, setNbPlaces] = useState("1 Place");
   const [selectedFormule, setSelectedFormule] = useState<"individuel" | "corporate">("individuel");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const gallery = event?.gallery || [];
 
   // Carousel states & refs for Intervenants and Testimonials
@@ -407,50 +406,26 @@ const EventDetail = () => {
           repli sur les 3 derniers événements passés en guise d'illustration. */}
       {gallery.length > 0 ? (
         <section className="relative overflow-hidden bg-black py-2 sm:py-0">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-0 relative">
+          <Link to={`/event/${event?.slug || event?.id}/galerie`} className="grid grid-cols-2 sm:grid-cols-3 gap-0 relative group/album">
             {gallery.slice(0, 6).map((src, idx) => (
-              <button
-                key={idx}
-                onClick={() => setLightboxIndex(idx)}
-                className="relative h-40 sm:h-56 md:h-64 overflow-hidden group block w-full"
-              >
+              <div key={idx} className="relative h-40 sm:h-56 md:h-64 overflow-hidden">
                 <img
                   src={src}
                   alt={`${eventTitle} — photo ${idx + 1}`}
-                  className="w-full h-full object-cover filter brightness-[0.75] transition-transform duration-700 group-hover:scale-105"
+                  className="w-full h-full object-cover filter brightness-[0.75] transition-transform duration-700 group-hover/album:scale-105"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
-              </button>
+              </div>
             ))}
+            <div className="absolute inset-0 bg-black/0 group-hover/album:bg-black/30 transition-colors" />
 
             <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-              <div className="bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider px-8 py-3.5 rounded-none shadow-2xl border border-black/20 pointer-events-none">
+              <div className="bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider px-8 py-3.5 rounded-none shadow-2xl border border-black/20 flex items-center gap-2">
                 L'esprit NFL Courtier & Service
+                <span className="hidden sm:inline opacity-70">— Voir l'album complet</span>
               </div>
             </div>
-          </div>
-
-          {lightboxIndex !== null && (
-            <div
-              className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4"
-              onClick={() => setLightboxIndex(null)}
-            >
-              <button
-                className="absolute top-5 right-5 text-white/70 hover:text-white"
-                onClick={() => setLightboxIndex(null)}
-                aria-label="Fermer"
-              >
-                <XIcon className="w-7 h-7" />
-              </button>
-              <img
-                src={gallery[lightboxIndex]}
-                alt={`${eventTitle} — photo ${lightboxIndex + 1}`}
-                className="max-w-full max-h-full object-contain rounded-lg"
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
-          )}
+          </Link>
         </section>
       ) : throwbackEvents.length > 0 && (
         <section className="relative overflow-hidden bg-black py-2 sm:py-0">
