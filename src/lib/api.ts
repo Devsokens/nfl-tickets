@@ -62,6 +62,10 @@ export interface SiteSettings {
   privacy_policy_url?: string;
   footer_tagline?: string;
   copyright_text?: string;
+  notify_admin_email_enabled?: boolean;
+  notify_admin_push_enabled?: boolean;
+  admin_notification_email?: string | null;
+  reservations_paused?: boolean;
 }
 
 export interface HomeContent {

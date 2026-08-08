@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2, Save, Search, ScrollText, Info, Mail } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Loader2, Save, Search, ScrollText, Info, Mail, Bell, TicketX } from "lucide-react";
 
 const emptySettings: SiteSettings = {};
 
@@ -21,6 +22,18 @@ const Field = ({ label, value, onChange, placeholder }: { label: string; value?:
   <div className="space-y-2">
     <Label>{label}</Label>
     <Input value={value || ""} onChange={onChange} placeholder={placeholder} className="bg-card border-border/50" />
+  </div>
+);
+
+const Toggle = ({ label, description, checked, onChange, danger }: {
+  label: string; description?: string; checked: boolean; onChange: (v: boolean) => void; danger?: boolean;
+}) => (
+  <div className={`flex items-center justify-between gap-4 rounded-2xl border p-4 ${danger ? "border-destructive/30 bg-destructive/5" : "border-border/50 bg-card"}`}>
+    <div className="min-w-0">
+      <p className="font-semibold text-sm">{label}</p>
+      {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
+    </div>
+    <Switch checked={checked} onCheckedChange={onChange} className="shrink-0" />
   </div>
 );
 
@@ -124,6 +137,9 @@ const SiteSettingsTab = () => {
   const set = (key: keyof SiteSettings) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((p) => ({ ...p, [key]: e.target.value }));
 
+  const setBool = (key: keyof SiteSettings) => (checked: boolean) =>
+    setForm((p) => ({ ...p, [key]: checked }));
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -156,6 +172,42 @@ const SiteSettingsTab = () => {
       <div className="flex items-center gap-2 text-muted-foreground text-xs bg-secondary/30 border border-border/50 rounded-xl px-4 py-3">
         <Info className="w-4 h-4 text-gold shrink-0" />
         Le téléphone, l'email, l'adresse, les réseaux sociaux et tous les textes de page se modifient directement dans l'onglet <strong className="text-foreground">Éditeur visuel</strong>.
+      </div>
+
+      <div className="glass-card rounded-3xl p-8 border border-border/50 space-y-5">
+        <h3 className="font-bold text-lg flex items-center gap-2"><Bell className="h-5 w-5 text-gold" /> Notifications admin</h3>
+        <p className="text-sm text-muted-foreground -mt-3">Alertes envoyées à l'admin pour une nouvelle demande de contact (email + push).</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Toggle
+            label="Email de notification"
+            description="Un email t'est envoyé pour chaque nouvelle demande."
+            checked={form.notify_admin_email_enabled !== false}
+            onChange={setBool("notify_admin_email_enabled")}
+          />
+          <Toggle
+            label="Notification push"
+            description="Une notif push t'est envoyée (demande, réservation, témoignage)."
+            checked={form.notify_admin_push_enabled !== false}
+            onChange={setBool("notify_admin_push_enabled")}
+          />
+        </div>
+        <Field
+          label="Adresse de réception des notifications"
+          value={form.admin_notification_email}
+          onChange={set("admin_notification_email")}
+          placeholder="Laisser vide pour utiliser l'adresse Gmail par défaut"
+        />
+      </div>
+
+      <div className="glass-card rounded-3xl p-8 border border-border/50 space-y-5">
+        <h3 className="font-bold text-lg flex items-center gap-2"><TicketX className="h-5 w-5 text-gold" /> Disponibilité des réservations</h3>
+        <Toggle
+          danger
+          label="Suspendre toutes les réservations"
+          description="Bloque instantanément toute nouvelle réservation sur le site, tous événements confondus (ex. incident de paiement). Les événements restent visibles."
+          checked={!!form.reservations_paused}
+          onChange={setBool("reservations_paused")}
+        />
       </div>
 
       <Section icon={<Search className="h-5 w-5 text-gold" />} title="Identité technique">
