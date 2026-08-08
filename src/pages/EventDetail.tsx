@@ -3,9 +3,9 @@ import { useParams, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useQuery } from "@tanstack/react-query";
-import { EventsAPI, TicketsAPI, TestimonialsAPI, type Event, type Testimonial } from "@/lib/api";
+import { EventsAPI, TicketsAPI, TestimonialsAPI, SiteSettingsAPI, type Event, type Testimonial, type SiteSettings } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, MapPin, Clock, CheckCircle2, ArrowRight, ArrowLeft, UserCheck, Award, Users } from "lucide-react";
+import { Calendar, MapPin, Clock, CheckCircle2, ArrowRight, ArrowLeft, UserCheck, Award, Users, Images, X as XIcon } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 
 import nflImg1 from "@/assets/nfl img1.jpeg";
@@ -48,6 +48,11 @@ const EventDetail = () => {
     queryFn: () => EventsAPI.getAll(),
   });
 
+  const { data: siteSettings } = useQuery<SiteSettings>({
+    queryKey: ["siteSettings"],
+    queryFn: SiteSettingsAPI.get,
+  });
+
   // "Retour sur l'édition précédente" : les 3 derniers événements passés
   // (hors l'événement courant), triés du plus récent au plus ancien.
   const throwbackEvents = allEvents
@@ -65,6 +70,8 @@ const EventDetail = () => {
   const [nbPlaces, setNbPlaces] = useState("1 Place");
   const [selectedFormule, setSelectedFormule] = useState<"individuel" | "corporate">("individuel");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const gallery = event?.gallery || [];
 
   // Carousel states & refs for Intervenants and Testimonials
   const [activeSpeakerIndex, setActiveSpeakerIndex] = useState(0);
@@ -173,7 +180,9 @@ const EventDetail = () => {
                       `- *Formule choisie* : ${selectedFormule === "individuel" ? "Tarif individuel" : "Table Corporate (8 pers.)"} (${priceStr})\n\n` +
                       `Merci de valider ma réservation.`;
 
-      const whatsappUrl = `https://wa.me/24166692338?text=${encodeURIComponent(message)}`;
+      // Numéro dédié à l'événement s'il en a un, sinon celui configuré dans Paramètres.
+      const whatsappNumber = (event?.whatsapp_number || siteSettings?.whatsapp_number || "24166692338").replace(/[^\d]/g, "");
+      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
       setTimeout(() => {
         window.location.href = whatsappUrl;
       }, 1000);
@@ -391,6 +400,56 @@ const EventDetail = () => {
               )}
             </div>
           </div>
+        </section>
+      )}
+
+      {/* GALERIE PHOTOS (album de cet événement, alimenté depuis l'admin) */}
+      {gallery.length > 0 && (
+        <section className="section-y bg-[#0d0e11] border-b border-white/5">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <div className="flex items-center gap-3 mb-8">
+              <Images className="w-5 h-5 text-[#e3bd51]" />
+              <h2 className="text-white text-xl md:text-2xl font-bold">Galerie photos</h2>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {gallery.map((src, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setLightboxIndex(idx)}
+                  className="relative aspect-square rounded-xl overflow-hidden group"
+                >
+                  <img
+                    src={src}
+                    alt={`${eventTitle} — photo ${idx + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {lightboxIndex !== null && (
+            <div
+              className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4"
+              onClick={() => setLightboxIndex(null)}
+            >
+              <button
+                className="absolute top-5 right-5 text-white/70 hover:text-white"
+                onClick={() => setLightboxIndex(null)}
+                aria-label="Fermer"
+              >
+                <XIcon className="w-7 h-7" />
+              </button>
+              <img
+                src={gallery[lightboxIndex]}
+                alt={`${eventTitle} — photo ${lightboxIndex + 1}`}
+                className="max-w-full max-h-full object-contain rounded-lg"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          )}
         </section>
       )}
 

@@ -25,6 +25,8 @@ export interface Event {
   certificates_sent_at?: string;
   speakers?: EventSpeaker[];
   program?: EventProgramStep[];
+  /** Galerie photos (édition précédente, ambiance...), affichée sur la fiche événement. */
+  gallery?: string[];
 }
 
 export interface EventSpeaker {
@@ -138,6 +140,11 @@ export interface Formation {
   image_url?: string;
   bullets?: string[];
   program?: any[];
+  /** Galerie photos (cohortes précédentes), affichée sur la fiche formation. */
+  gallery?: string[];
+  level?: string;
+  duration?: string;
+  certification?: string;
   price?: number;
   currency?: string;
   category?: string;

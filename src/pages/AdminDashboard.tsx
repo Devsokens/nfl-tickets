@@ -43,7 +43,8 @@ import {
   ChevronDown,
   CircleUserRound,
   PartyPopper,
-  UserCog
+  UserCog,
+  Images
 } from "lucide-react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -99,6 +100,7 @@ import FormationsTab from "@/components/admin/FormationsTab";
 import VisualEditorTab from "@/components/admin/VisualEditorTab";
 import UsersTab from "@/components/admin/UsersTab";
 import ProfileSheet from "@/components/admin/ProfileSheet";
+import GalleryFieldEditor from "@/components/admin/GalleryFieldEditor";
 
 type Tab = "dashboard" | "events" | "formations" | "tickets" | "demandes" | "newsletter" | "testimonials" | "site-settings" | "visual-editor" | "users" | "scanner";
 
@@ -848,6 +850,7 @@ const AdminDashboard = () => {
         status: eventForm.status || "brouillon",
         speakers: eventForm.speakers || [],
         program: eventForm.program || [],
+        gallery: eventForm.gallery || [],
         sendNewsletter: false,
       };
 
@@ -875,7 +878,7 @@ const AdminDashboard = () => {
     return () => {
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     };
-  }, [eventForm.title, eventForm.description, eventForm.date, eventForm.time, eventForm.location, eventForm.price, eventForm.category, eventForm.capacity, eventForm.whatsapp_number, eventForm.status, eventForm.speakers, eventForm.program]);
+  }, [eventForm.title, eventForm.description, eventForm.date, eventForm.time, eventForm.location, eventForm.price, eventForm.category, eventForm.capacity, eventForm.whatsapp_number, eventForm.status, eventForm.speakers, eventForm.program, eventForm.gallery]);
 
   const handleSaveEvent = async () => {
     setIsSavingEvent(true);
@@ -895,6 +898,7 @@ const AdminDashboard = () => {
         status: "publié", // Manual save means Publish
         speakers: eventForm.speakers || [],
         program: eventForm.program || [],
+        gallery: eventForm.gallery || [],
         sendNewsletter: eventForm.send_newsletter === undefined ? true : eventForm.send_newsletter,
       };
 
@@ -1933,6 +1937,15 @@ const AdminDashboard = () => {
                   <div className="absolute top-2 right-2 bg-gold text-[#32140c] text-lvl-footer font-bold px-2 py-1 rounded-full uppercase">Prêt</div>
                 )}
               </div>
+            </FormSection>
+
+            <FormSection icon={<Images className="h-3.5 w-3.5" />} title="Galerie photos">
+              <GalleryFieldEditor
+                label=""
+                hint="Photos de l'édition précédente ou d'ambiance, affichées sur la fiche publique de l'événement."
+                images={eventForm.gallery || []}
+                onChange={(gallery) => setEventForm(p => ({ ...p, gallery }))}
+              />
             </FormSection>
 
             <FormSection icon={<Users className="h-3.5 w-3.5" />} title="Intervenants">

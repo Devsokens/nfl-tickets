@@ -14,6 +14,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Plus, Pencil, Trash2, Loader2, GraduationCap, ImageIcon, X } from "lucide-react";
+import GalleryFieldEditor from "./GalleryFieldEditor";
 
 const emptyForm: Partial<Formation> = { title: "", description: "", bullets: [], status: "brouillon", currency: "XAF" };
 
@@ -171,6 +172,12 @@ const FormationsTab = () => {
               <div className="space-y-2"><Label>Prix (XAF, optionnel)</Label><Input type="number" value={form.price ?? ""} onChange={(e) => setForm(p => ({ ...p, price: e.target.value ? Number(e.target.value) : undefined }))} /></div>
             </div>
 
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2"><Label>Niveau</Label><Input value={form.level || ""} onChange={(e) => setForm(p => ({ ...p, level: e.target.value }))} placeholder="Expert" /></div>
+              <div className="space-y-2"><Label>Durée</Label><Input value={form.duration || ""} onChange={(e) => setForm(p => ({ ...p, duration: e.target.value }))} placeholder="3 Jours" /></div>
+              <div className="space-y-2"><Label>Certification</Label><Input value={form.certification || ""} onChange={(e) => setForm(p => ({ ...p, certification: e.target.value }))} placeholder="NFL Élite" /></div>
+            </div>
+
             <div className="space-y-2">
               <Label>Points clés</Label>
               <div className="flex gap-2">
@@ -207,6 +214,13 @@ const FormationsTab = () => {
                 )}
               </div>
             </div>
+
+            <GalleryFieldEditor
+              label="Galerie photos (cohortes précédentes)"
+              hint="Affichée sur la fiche publique pour montrer les éditions passées."
+              images={form.gallery || []}
+              onChange={(gallery) => setForm(p => ({ ...p, gallery }))}
+            />
           </div>
           <SheetFooter className="px-6 sm:px-8 py-5 border-t border-border/50 shrink-0 bg-card/50 backdrop-blur-sm sm:justify-stretch gap-2">
             <Button variant="ghost" className="rounded-xl" onClick={() => setDialogOpen(false)}>Annuler</Button>
