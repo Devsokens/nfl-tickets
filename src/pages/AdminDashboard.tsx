@@ -119,7 +119,7 @@ const DemandeStatusBadge = ({ status }: { status: string }) => (
   </Badge>
 );
 
-const DemandesList = () => {
+const DemandesList = ({ searchTerm = "" }: { searchTerm?: string }) => {
   const queryClient = useQueryClient();
   const [selectedDemande, setSelectedDemande] = useState<ContactRequest | null>(null);
   const [action, setAction] = useState<"schedule" | "reject" | "">("");
@@ -128,10 +128,20 @@ const DemandesList = () => {
   const [rejectReason, setRejectReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: demandes = [], isLoading } = useQuery<ContactRequest[]>({
+  const { data: allDemandes = [], isLoading } = useQuery<ContactRequest[]>({
     queryKey: ["contacts"],
     queryFn: ContactAPI.getAll,
   });
+
+  const demandes = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return allDemandes;
+    return allDemandes.filter((d) =>
+      d.name.toLowerCase().includes(q) ||
+      d.email.toLowerCase().includes(q) ||
+      d.subject.toLowerCase().includes(q),
+    );
+  }, [allDemandes, searchTerm]);
 
   const openDemande = (d: ContactRequest) => {
     setSelectedDemande(d);
@@ -170,7 +180,13 @@ const DemandesList = () => {
   };
 
   if (isLoading) return <tr><td colSpan={4} className="text-center py-10 opacity-50">Chargement...</td></tr>;
-  if (demandes.length === 0) return <tr><td colSpan={4} className="text-center py-10 opacity-50">Aucune demande reçue.</td></tr>;
+  if (demandes.length === 0) {
+    return (
+      <tr><td colSpan={4} className="text-center py-10 opacity-50">
+        {searchTerm ? `Aucune demande ne correspond à "${searchTerm}".` : "Aucune demande reçue."}
+      </td></tr>
+    );
+  }
 
   return (
     <>
@@ -596,11 +612,12 @@ const AdminDashboard = () => {
       case "tickets": return "Rechercher un billet (nom, référence)...";
       case "events": return "Rechercher un événement...";
       case "newsletter": return "Rechercher un abonné...";
+      case "demandes": return "Rechercher une demande (nom, email, sujet)...";
       default: return "Recherche indisponible sur cet onglet";
     }
   })();
 
-  const isHeaderSearchDisabled = !["tickets", "events", "newsletter"].includes(activeTab);
+  const isHeaderSearchDisabled = !["tickets", "events", "newsletter", "demandes"].includes(activeTab);
 
   const totalTicketPages = Math.ceil(filteredTickets.length / itemsPerPage);
   const paginatedTickets = useMemo(() => {
@@ -1662,7 +1679,7 @@ const AdminDashboard = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/30">
-                      <DemandesList />
+                      <DemandesList searchTerm={headerSearch} />
                     </tbody>
                   </table>
                 </div>

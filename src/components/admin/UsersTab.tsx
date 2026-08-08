@@ -164,18 +164,18 @@ const UserFormSheet = ({ open, onOpenChange, modules, editingUser, onSaved }: Us
               <Label>Accès par module</Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {modules.map((mod) => (
-                  <div key={mod.key} className="glass-card rounded-2xl p-4 border border-border/50 flex items-center justify-between gap-3">
+                  <div key={mod.key} className="glass-card rounded-2xl p-4 border border-border/50 flex flex-col gap-3">
                     <div className="flex items-center gap-3 min-w-0">
                       <span className="w-8 h-8 rounded-lg bg-gold/10 text-gold flex items-center justify-center shrink-0">
                         {MODULE_ICONS[mod.key]}
                       </span>
-                      <span className="font-semibold text-lvl-footer truncate">{mod.label}</span>
+                      <span className="font-semibold text-lvl-footer">{mod.label}</span>
                     </div>
                     <Select
                       value={permissions[mod.key] || "aucun"}
                       onValueChange={(v: PermissionLevel) => setPermissions((p) => ({ ...p, [mod.key]: v }))}
                     >
-                      <SelectTrigger className="w-[150px] h-9 text-lvl-footer shrink-0"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="w-full h-9 text-lvl-footer"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {(["aucun", "voir", "editer"] as PermissionLevel[]).map((level) => (
                           <SelectItem key={level} value={level}>{PERMISSION_LABELS[level]}</SelectItem>

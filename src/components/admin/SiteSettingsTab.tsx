@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { SiteSettingsAPI, EmailTemplatesAPI, type SiteSettings, type EmailTemplate } from "@/lib/api";
+import { htmlToEditableText, textToHtml } from "@/lib/emailTemplateText";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,14 +47,15 @@ const TEMPLATE_PLACEHOLDERS: Record<string, string> = {
 
 const EmailTemplateCard = ({ template, onSaved }: { template: EmailTemplate; onSaved: (t: EmailTemplate) => void }) => {
   const [subject, setSubject] = useState(template.subject);
-  const [bodyHtml, setBodyHtml] = useState(template.body_html);
+  const [bodyText, setBodyText] = useState(() => htmlToEditableText(template.body_html));
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const updated = await EmailTemplatesAPI.update(template.key, { subject, body_html: bodyHtml });
+      const updated = await EmailTemplatesAPI.update(template.key, { subject, body_html: textToHtml(bodyText) });
       onSaved(updated);
+      setBodyText(htmlToEditableText(updated.body_html));
       toast.success("Template mis à jour !");
     } catch (err: any) {
       toast.error("Erreur : " + (err.response?.data?.message || err.message));
@@ -79,8 +81,14 @@ const EmailTemplateCard = ({ template, onSaved }: { template: EmailTemplate; onS
         <Input value={subject} onChange={(e) => setSubject(e.target.value)} className="bg-card border-border/50" />
       </div>
       <div className="space-y-2">
-        <Label className="text-xs text-muted-foreground uppercase tracking-wider">Corps du message (HTML)</Label>
-        <Textarea value={bodyHtml} onChange={(e) => setBodyHtml(e.target.value)} className="bg-card border-border/50 min-h-[140px] font-mono text-xs" />
+        <Label className="text-xs text-muted-foreground uppercase tracking-wider">Message</Label>
+        <Textarea
+          value={bodyText}
+          onChange={(e) => setBodyText(e.target.value)}
+          className="bg-card border-border/50 min-h-[140px]"
+          placeholder="Écris le message comme un email normal. Laisse une ligne vide entre deux paragraphes."
+        />
+        <p className="text-xs text-muted-foreground">Pas de code à écrire : la mise en forme (paragraphes, mise en page de l'email) est appliquée automatiquement.</p>
       </div>
     </div>
   );
