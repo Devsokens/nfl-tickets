@@ -31,9 +31,10 @@ const FormationsTab = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [bulletInput, setBulletInput] = useState("");
+  const [expertiseInput, setExpertiseInput] = useState("");
 
-  const openCreate = () => { setForm(emptyForm); setEditingId(null); setBulletInput(""); setDialogOpen(true); };
-  const openEdit = (f: Formation) => { setForm(f); setEditingId(f.id); setBulletInput(""); setDialogOpen(true); };
+  const openCreate = () => { setForm(emptyForm); setEditingId(null); setBulletInput(""); setExpertiseInput(""); setDialogOpen(true); };
+  const openEdit = (f: Formation) => { setForm(f); setEditingId(f.id); setBulletInput(""); setExpertiseInput(""); setDialogOpen(true); };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -60,6 +61,29 @@ const FormationsTab = () => {
 
   const removeBullet = (idx: number) => {
     setForm((p) => ({ ...p, bullets: (p.bullets || []).filter((_, i) => i !== idx) }));
+  };
+
+  const addExpertisePoint = () => {
+    if (!expertiseInput.trim()) return;
+    setForm((p) => ({ ...p, expertise_points: [...(p.expertise_points || []), expertiseInput.trim()] }));
+    setExpertiseInput("");
+  };
+
+  const removeExpertisePoint = (idx: number) => {
+    setForm((p) => ({ ...p, expertise_points: (p.expertise_points || []).filter((_, i) => i !== idx) }));
+  };
+
+  const addPillar = () => {
+    setForm((p) => ({ ...p, program: [...(p.program || []), { category: "", title: "", description: "" }] }));
+  };
+  const updatePillar = (idx: number, field: "category" | "title" | "description", value: string) => {
+    setForm((p) => ({
+      ...p,
+      program: (p.program || []).map((item: any, i: number) => (i === idx ? { ...item, [field]: value } : item)),
+    }));
+  };
+  const removePillar = (idx: number) => {
+    setForm((p) => ({ ...p, program: (p.program || []).filter((_: any, i: number) => i !== idx) }));
   };
 
   const handleSave = async () => {
@@ -221,6 +245,49 @@ const FormationsTab = () => {
               images={form.gallery || []}
               onChange={(gallery) => setForm(p => ({ ...p, gallery }))}
             />
+
+            <div className="space-y-3 pt-2 border-t border-border/50">
+              <div className="flex items-center justify-between">
+                <Label>Programme — 4 piliers (section "Architecture pédagogique")</Label>
+                {(form.program || []).length < 4 && (
+                  <Button type="button" variant="outline" size="sm" onClick={addPillar}>+ Ajouter un pilier</Button>
+                )}
+              </div>
+              <p className="text-lvl-footer text-muted-foreground -mt-2">Laisser vide pour garder le contenu générique par défaut.</p>
+              {(form.program || []).map((pillar: any, i: number) => (
+                <div key={i} className="border border-border/50 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-lvl-footer font-bold text-gold">Pilier {i + 1}</span>
+                    <button onClick={() => removePillar(i)} className="text-muted-foreground hover:text-destructive"><X className="h-4 w-4" /></button>
+                  </div>
+                  <Input value={pillar.category || ""} onChange={(e) => updatePillar(i, "category", e.target.value)} placeholder="Catégorie courte (ex : ANALYSE)" />
+                  <Input value={pillar.title || ""} onChange={(e) => updatePillar(i, "title", e.target.value)} placeholder="Titre (ex : Ingénierie de Marché)" />
+                  <Textarea className="min-h-[70px]" value={pillar.description || ""} onChange={(e) => updatePillar(i, "description", e.target.value)} placeholder="Description" />
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3 pt-2 border-t border-border/50">
+              <Label>Citation (section "Expertise & Parcours")</Label>
+              <p className="text-lvl-footer text-muted-foreground -mt-2">Laisser vide pour garder le contenu générique par défaut.</p>
+              <Textarea className="min-h-[80px]" value={form.quote || ""} onChange={(e) => setForm(p => ({ ...p, quote: e.target.value }))} placeholder="Citation mise en avant" />
+              <div className="grid grid-cols-2 gap-4">
+                <Input value={form.quote_author_name || ""} onChange={(e) => setForm(p => ({ ...p, quote_author_name: e.target.value }))} placeholder="Fonction (ex : Directrice du programme)" />
+                <Input value={form.quote_author_title || ""} onChange={(e) => setForm(p => ({ ...p, quote_author_title: e.target.value }))} placeholder="Titre complet (ex : Senior Investment Strategist)" />
+              </div>
+              <div className="flex gap-2">
+                <Input value={expertiseInput} onChange={(e) => setExpertiseInput(e.target.value)} placeholder="Ajouter un point d'expertise..." onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addExpertisePoint(); } }} />
+                <Button type="button" variant="outline" onClick={addExpertisePoint}>Ajouter</Button>
+              </div>
+              <div className="space-y-2">
+                {(form.expertise_points || []).map((point, i) => (
+                  <div key={i} className="flex items-center justify-between gap-2 border border-border/50 rounded-lg px-3 py-2">
+                    <span className="text-lvl-footer">{point}</span>
+                    <button onClick={() => removeExpertisePoint(i)} className="text-muted-foreground hover:text-destructive shrink-0"><X className="h-3.5 w-3.5" /></button>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
           <SheetFooter className="px-6 sm:px-8 py-5 border-t border-border/50 shrink-0 bg-card/50 backdrop-blur-sm sm:justify-stretch gap-2">
             <Button variant="ghost" className="rounded-xl" onClick={() => setDialogOpen(false)}>Annuler</Button>

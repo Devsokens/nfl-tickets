@@ -10,7 +10,7 @@ import {
   FileText, Sparkles, TrendingUp, Briefcase, Scale, Globe, Quote, Download, Images
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { FormationsAPI, TestimonialsAPI, type Formation, type Testimonial } from "@/lib/api";
+import { FormationsAPI, TestimonialsAPI, ContactAPI, type Formation, type Testimonial } from "@/lib/api";
 
 const FormationDetail = () => {
   const { id } = useParams();
@@ -39,7 +39,19 @@ const FormationDetail = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const gallery = formation?.gallery || [];
 
-  const handleBooking = (e: React.FormEvent) => {
+  // Repli générique tant que l'admin n'a pas renseigné la citation pour
+  // cette formation précise (voir FormationsTab.tsx).
+  const DEFAULT_EXPERTISE_POINTS = [
+    "Plus de 15 ans d'expérience dans les banques d'affaires internationales à Londres et Singapour.",
+    "Architecte de la structuration de dettes complexes pour des projets d'infrastructure majeurs.",
+    "Membre du Cercle d'Excellence Financière et conseillère stratégique auprès de fonds souverains.",
+  ];
+  const quoteText = formation?.quote || "L'excellence n'est pas un acte, c'est une habitude. En finance, c'est la différence entre le hasard et la maîtrise.";
+  const quoteAuthorName = formation?.quote_author_name || "Directrice du programme";
+  const quoteAuthorTitle = formation?.quote_author_title || "Senior Investment Strategist, NFL Courtier";
+  const expertisePoints = formation?.expertise_points?.length ? formation.expertise_points : DEFAULT_EXPERTISE_POINTS;
+
+  const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName || !email || !phone) {
       toast({
@@ -55,6 +67,18 @@ const FormationDetail = () => {
       title: "Demande d'inscription reçue !",
       description: "Redirection vers WhatsApp pour finaliser votre inscription...",
     });
+
+    // Trace la demande côté admin (module Demandes, type "formation") — avant,
+    // ce formulaire ne faisait qu'une redirection WhatsApp, sans laisser
+    // aucune trace exploitable côté admin (pas de suivi, pas de stats).
+    ContactAPI.send({
+      name: fullName,
+      email,
+      subject: `Inscription formation : ${formation?.title || "Formation"}`,
+      message: `Nombre de places : ${nbPlaces}\nTéléphone WhatsApp : ${phone}`,
+      type: "formation",
+      formation_id: formation?.id,
+    }).catch((err) => console.error("Échec de l'enregistrement de la demande formation :", err));
 
     const message = `Bonjour NFL Courtier & Service,\n\n` +
                     `Je souhaite m'inscrire à la formation *${formation?.title || "Formation"}*.\n\n` +
@@ -332,15 +356,15 @@ const FormationDetail = () => {
               </div>
 
               <blockquote className="italic text-lvl-title text-white/95 leading-snug">
-                "L'excellence n'est pas un acte, c'est une habitude. En finance, c'est la différence entre le hasard et la maîtrise."
+                "{quoteText}"
               </blockquote>
 
               <div className="pt-2">
                 <span className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-wider block">
-                  DIRECTRICE DU PROGRAMME
+                  {quoteAuthorName.toUpperCase()}
                 </span>
                 <span className="text-white/50 text-lvl-footer block mt-0.5">
-                  Senior Investment Strategist, NFL Courtier
+                  {quoteAuthorTitle}
                 </span>
               </div>
             </div>
@@ -353,24 +377,12 @@ const FormationDetail = () => {
                 </h3>
 
                 <div className="space-y-6">
-                  <div className="flex gap-4 items-start">
-                    <span className="text-[#e3bd51] font-bold text-lvl-body shrink-0">01</span>
-                    <p className="text-white/80 text-lvl-footer font-light">
-                      Plus de 15 ans d'expérience dans les banques d'affaires internationales à Londres et Singapour.
-                    </p>
-                  </div>
-                  <div className="flex gap-4 items-start">
-                    <span className="text-[#e3bd51] font-bold text-lvl-body shrink-0">02</span>
-                    <p className="text-white/80 text-lvl-footer font-light">
-                      Architecte de la structuration de dettes complexes pour des projets d'infrastructure majeurs.
-                    </p>
-                  </div>
-                  <div className="flex gap-4 items-start">
-                    <span className="text-[#e3bd51] font-bold text-lvl-body shrink-0">03</span>
-                    <p className="text-white/80 text-lvl-footer font-light">
-                      Membre du Cercle d'Excellence Financière et conseillère stratégique auprès de fonds souverains.
-                    </p>
-                  </div>
+                  {expertisePoints.map((point, idx) => (
+                    <div key={idx} className="flex gap-4 items-start">
+                      <span className="text-[#e3bd51] font-bold text-lvl-body shrink-0">{String(idx + 1).padStart(2, "0")}</span>
+                      <p className="text-white/80 text-lvl-footer font-light">{point}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

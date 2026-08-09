@@ -196,7 +196,12 @@ const DemandesList = ({ searchTerm = "" }: { searchTerm?: string }) => {
       {demandes.map((d) => (
         <tr key={d.id} className="hover:bg-muted/5 transition-colors group cursor-pointer" onClick={() => openDemande(d)}>
           <td className="px-6 py-5">
-            <div className="font-bold text-foreground">{d.name}</div>
+            <div className="flex items-center gap-2">
+              <div className="font-bold text-foreground">{d.name}</div>
+              {d.type === "formation" && (
+                <Badge variant="outline" className="text-blue-600 border-blue-500/20 text-[10px] uppercase shrink-0">Formation</Badge>
+              )}
+            </div>
             <div className="text-lvl-footer text-muted-foreground">{d.email}</div>
             <div className="mt-2 text-gold font-semibold text-lvl-footer uppercase tracking-wider">{d.subject}</div>
           </td>
@@ -226,7 +231,12 @@ const DemandesList = ({ searchTerm = "" }: { searchTerm?: string }) => {
         <SheetContent side="right" className="w-full sm:max-w-lg p-0 flex flex-col gap-0 border-gold/10">
           <SheetHeader className="px-6 sm:px-8 py-6 border-b border-border/50 shrink-0 space-y-2">
             <SheetTitle className="flex items-center justify-between pr-8">
-              <span>Demande de {selectedDemande?.name}</span>
+              <span className="flex items-center gap-2">
+                Demande de {selectedDemande?.name}
+                {selectedDemande?.type === "formation" && (
+                  <Badge variant="outline" className="text-blue-600 border-blue-500/20 text-[10px] uppercase">Formation</Badge>
+                )}
+              </span>
               {selectedDemande && <DemandeStatusBadge status={selectedDemande.status} />}
             </SheetTitle>
             <SheetDescription>{selectedDemande?.email}</SheetDescription>
@@ -584,6 +594,10 @@ const AdminDashboard = () => {
     [contactRequests]
   );
   const notificationsCount = pendingTicketsCount + pendingContactsCount;
+  const formationDemandesCount = useMemo(
+    () => (Array.isArray(contactRequests) ? contactRequests.filter(c => c.type === "formation").length : 0),
+    [contactRequests]
+  );
 
   // Notifications push (Web Push) : reflète si CET appareil est abonné.
   const [pushEnabled, setPushEnabled] = useState(false);
@@ -1385,7 +1399,7 @@ const AdminDashboard = () => {
         <div className="flex-1 overflow-y-auto p-4 md:p-10 scrollbar-hide text-foreground">
           {activeTab === "dashboard" && (
             <div className="space-y-8 animate-fade-in max-w-7xl mx-auto">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                 <div className="glass-card rounded-3xl p-8 border border-gold/10 relative overflow-hidden">
                   <div className="flex items-center justify-between mb-6">
                     <span className="text-lvl-footer font-semibold text-muted-foreground uppercase">Billets</span>
@@ -1406,6 +1420,16 @@ const AdminDashboard = () => {
                     <Calendar className="h-6 w-6 text-gold" />
                   </div>
                   <p className="text-lvl-hero font-bold">{activeEventsCount}</p>
+                </div>
+                <div
+                  className="glass-card rounded-3xl p-8 border border-gold/10 relative overflow-hidden cursor-pointer hover:border-gold/30 transition-colors"
+                  onClick={() => setActiveTab("demandes")}
+                >
+                  <div className="flex items-center justify-between mb-6">
+                    <span className="text-lvl-footer font-semibold text-muted-foreground uppercase">Demandes formation</span>
+                    <GraduationCap className="h-6 w-6 text-gold" />
+                  </div>
+                  <p className="text-lvl-hero font-bold">{formationDemandesCount}</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

@@ -147,6 +147,10 @@ export interface Formation {
   level?: string;
   duration?: string;
   certification?: string;
+  quote?: string;
+  quote_author_name?: string;
+  quote_author_title?: string;
+  expertise_points?: string[];
   price?: number;
   currency?: string;
   category?: string;
@@ -388,10 +392,13 @@ export interface ContactRequest {
   rejection_reason?: string | null;
   handled_at?: string | null;
   created_at?: string;
+  /** 'formation' pour une inscription envoyée depuis la fiche d'une formation — 'contact' (défaut) sinon. */
+  type?: 'contact' | 'formation';
+  formation_id?: string | null;
 }
 
 export const ContactAPI = {
-  send: async (contactData: { name: string; email: string; subject: string; message: string }) => {
+  send: async (contactData: { name: string; email: string; subject: string; message: string; type?: 'contact' | 'formation'; formation_id?: string }) => {
     const res = await api.post('/contact', contactData);
     return res.data;
   },
