@@ -5,7 +5,7 @@ import { Helmet } from "react-helmet-async";
 import { MapPin, Phone, Mail, ArrowRight, CheckCircle2, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { HomeContentAPI, SiteSettingsAPI, type HomeContent, type SiteSettings } from "@/lib/api";
+import { HomeContentAPI, SiteSettingsAPI, ContactAPI, type HomeContent, type SiteSettings } from "@/lib/api";
 import { useIsEditMode } from "@/lib/EditModeContext";
 import { EditableText } from "@/components/admin/editable/EditableText";
 import { EditableImage } from "@/components/admin/editable/EditableImage";
@@ -101,7 +101,7 @@ const Contact = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName || !email || !message) {
       toast({
@@ -113,24 +113,34 @@ const Contact = () => {
     }
 
     setIsSubmitting(true);
-    toast({
-      title: "Message envoyé !",
-      description: "Notre équipe vous répondra dans les plus brefs délais.",
-    });
-
-    const whatsappMsg = `Bonjour NFL Courtier & Service,\n\n` +
-                        `*Nouveau message via le site web :*\n` +
-                        `- *Nom* : ${fullName}\n` +
-                        `- *Email* : ${email}\n` +
-                        `- *Sujet* : ${subject || "Consultation"}\n` +
-                        `- *Message* : ${message}\n\n` +
-                        `Merci.`;
-
-    const whatsappUrl = `https://wa.me/24166692338?text=${encodeURIComponent(whatsappMsg)}`;
-    setTimeout(() => {
-      window.location.href = whatsappUrl;
+    try {
+      // Enregistre une vraie demande côté admin (module Demandes) + envoie
+      // l'accusé de réception configuré dans Paramètres. Contrairement aux
+      // formulaires de réservation (événement/formation), ce formulaire ne
+      // redirige plus vers WhatsApp — le message est déjà transmis.
+      await ContactAPI.send({
+        name: fullName,
+        email,
+        subject: subject || "Consultation",
+        message,
+      });
+      toast({
+        title: "Message envoyé !",
+        description: "Notre équipe vous répondra dans les plus brefs délais.",
+      });
+      setFullName("");
+      setEmail("");
+      setSubject("");
+      setMessage("");
+    } catch (err: any) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: err.response?.data?.message || "Impossible d'envoyer votre message. Veuillez réessayer.",
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
   return (
