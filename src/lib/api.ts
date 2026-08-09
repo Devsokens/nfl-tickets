@@ -27,6 +27,8 @@ export interface Event {
   program?: EventProgramStep[];
   /** Galerie photos (édition précédente, ambiance...), affichée sur la fiche événement. */
   gallery?: string[];
+  /** "Votre participation comprend" — liste de points inclus. */
+  includes?: string[];
 }
 
 export interface EventSpeaker {
@@ -336,6 +338,10 @@ export const NewsletterAPI = {
   },
   unsubscribe: async (email: string) => {
     const res = await api.delete(`/newsletter/${email}`);
+    return res.data;
+  },
+  unsubscribeSelf: async (email: string) => {
+    const res = await api.post('/newsletter/unsubscribe-request', { email });
     return res.data;
   }
 };

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowRight, ShieldCheck, CheckCircle2, Info, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -116,6 +116,7 @@ function isAnchor(link?: string) {
 
 const Index = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isEditMode = useIsEditMode();
   const queryClient = useQueryClient();
 
@@ -319,7 +320,7 @@ const Index = () => {
                 <Button
                   variant="gold-outline"
                   size="lg"
-                  className="uppercase text-lvl-footer font-bold tracking-widest px-8"
+                  className="uppercase text-lvl-footer font-bold tracking-widest px-8 text-white hover:text-accent-foreground"
                   onClick={isEditMode ? undefined : () => {
                     const link = content.hero.ctaSecondaryLink || "#evenements";
                     if (isAnchor(link)) document.getElementById(link.slice(1))?.scrollIntoView({ behavior: "smooth" });
@@ -694,7 +695,7 @@ const Index = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
-              onClick={isEditMode ? undefined : () => document.getElementById("footer-contact")?.scrollIntoView({ behavior: "smooth" })}
+              onClick={isEditMode ? undefined : () => navigate("/contact")}
               className="bg-[#655410] hover:bg-[#52440b] text-white font-bold text-lvl-footer uppercase tracking-wider py-3.5 px-8 rounded-none shadow-sm transition-colors"
             >
               {isEditMode ? (
@@ -702,7 +703,7 @@ const Index = () => {
               ) : content.ctaSection.primaryBtnText}
             </button>
             <button
-              onClick={isEditMode ? undefined : () => document.getElementById("footer-contact")?.scrollIntoView({ behavior: "smooth" })}
+              onClick={isEditMode ? undefined : () => navigate("/contact")}
               className="border border-black/30 bg-transparent hover:bg-black/5 text-[#1c1c1c] font-bold text-lvl-footer uppercase tracking-wider py-3.5 px-8 rounded-none transition-colors"
             >
               {isEditMode ? (

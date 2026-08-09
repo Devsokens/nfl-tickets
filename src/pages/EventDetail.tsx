@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useQuery } from "@tanstack/react-query";
-import { EventsAPI, TicketsAPI, TestimonialsAPI, SiteSettingsAPI, type Event, type Testimonial, type SiteSettings } from "@/lib/api";
+import { EventsAPI, TicketsAPI, TestimonialsAPI, SiteSettingsAPI, HomeContentAPI, type Event, type Testimonial, type SiteSettings, type HomeContent } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar, MapPin, Clock, CheckCircle2, ArrowRight, ArrowLeft, UserCheck, Award, Users } from "lucide-react";
 import { Helmet } from "react-helmet-async";
@@ -51,6 +51,11 @@ const EventDetail = () => {
   const { data: siteSettings } = useQuery<SiteSettings>({
     queryKey: ["siteSettings"],
     queryFn: SiteSettingsAPI.get,
+  });
+
+  const { data: homeContent } = useQuery<HomeContent>({
+    queryKey: ["homeContent"],
+    queryFn: HomeContentAPI.get,
   });
 
   // "Retour sur l'édition précédente" : les 3 derniers événements passés
@@ -130,6 +135,14 @@ const EventDetail = () => {
   const eventImage = event?.image_url || event?.image || nflImg1;
   const eventPrice = event?.price || 0;
   const corporatePrice = eventPrice * 8;
+
+  // Repli générique tant que l'admin n'a pas renseigné "Votre participation
+  // comprend" pour cet événement précis (voir AdminDashboard.tsx).
+  const DEFAULT_INCLUDES = ["Accueil et badge nominatif", "Networking", "Accès aux conférences", "Documentation", "Photos officielles"];
+  const eventIncludes = event?.includes?.length ? event.includes : DEFAULT_INCLUDES;
+
+  const DEFAULT_SPONSOR_WORDS = ["L'EXCELLENCE", "LA RIGUEUR", "LE PRESTIGE", "LA STRATÉGIE", "LA CONFIANCE"];
+  const sponsors = homeContent?.partners?.length ? homeContent.partners : DEFAULT_SPONSOR_WORDS.map((name) => ({ name }));
 
   // Statistiques réelles disponibles pour cet événement (on n'affiche que ce qui est vrai)
   const infoStats = [
@@ -536,13 +549,7 @@ const EventDetail = () => {
             <div className="lg:col-span-7">
               <div className="bg-white p-8 sm:p-10 rounded-none shadow-2xl border border-black/10">
                 <div className="space-y-4">
-                  {[
-                    "Accueil et badge nominatif",
-                    "Networking",
-                    "Accès aux conférences",
-                    "Documentation",
-                    "Photos officielles",
-                  ].map((item, idx) => (
+                  {eventIncludes.map((item, idx) => (
                     <div key={idx} className="flex items-center gap-3 text-lvl-body font-medium text-[#2c2c2c]">
                       <div className="w-5 h-5 rounded-full bg-[#d4af37]/20 flex items-center justify-center shrink-0">
                         <CheckCircle2 className="w-3.5 h-3.5 text-[#655410]" />
@@ -566,12 +573,18 @@ const EventDetail = () => {
           <div className="absolute top-0 bottom-0 left-0 w-16 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
           <div className="absolute top-0 bottom-0 right-0 w-16 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
           <div className="flex animate-marquee gap-10 items-center w-max">
-            {Array.from({ length: 3 }, () => ["L'EXCELLENCE", "LA RIGUEUR", "LE PRESTIGE", "LA STRATÉGIE", "LA CONFIANCE"]).flat().map((word, idx) => (
-              <span key={idx} className="flex items-center gap-10 shrink-0">
-                <span className="text-white/50 text-lvl-body font-bold uppercase tracking-wider whitespace-nowrap">{word}</span>
-                <span className="text-[#e3bd51]">✦</span>
-              </span>
-            ))}
+            {Array.from({ length: 3 }).flatMap((_, outerIdx) =>
+              sponsors.map((s, idx) => (
+                <span key={`${outerIdx}-${idx}`} className="flex items-center gap-10 shrink-0">
+                  {s.logo_url ? (
+                    <img src={s.logo_url} alt={s.name || "Partenaire"} className="h-10 w-auto max-w-[160px] object-contain opacity-80" />
+                  ) : (
+                    <span className="text-white/50 text-lvl-body font-bold uppercase tracking-wider whitespace-nowrap">{s.name}</span>
+                  )}
+                  <span className="text-[#e3bd51]">✦</span>
+                </span>
+              )),
+            )}
           </div>
         </div>
       </section>

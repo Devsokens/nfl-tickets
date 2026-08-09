@@ -44,7 +44,8 @@ import {
   CircleUserRound,
   PartyPopper,
   UserCog,
-  Images
+  Images,
+  Archive
 } from "lucide-react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -546,6 +547,22 @@ const AdminDashboard = () => {
     }).reverse() : [];
   }, [tickets, searchTicket, filterEvent, filterStatus]);
 
+  // Archives : une réservation est "archivée" dès que son événement est passé
+  // depuis plus d'un mois (mais reste consultable — le backend ne la
+  // supprime physiquement qu'après 3 mois d'archivage, voir sql/009 et le
+  // cron de purge). Calcul purement côté affichage : pas de colonne dédiée,
+  // juste une comparaison de dates à chaque rendu.
+  const ARCHIVE_THRESHOLD_MS = 30 * 24 * 60 * 60 * 1000; // ~1 mois
+  const isTicketArchived = (t: Ticket) => {
+    const ev = events.find((e) => e.id === (t.event_id || t.eventId));
+    if (!ev?.date) return false;
+    return new Date(ev.date).getTime() < Date.now() - ARCHIVE_THRESHOLD_MS;
+  };
+  const recentTickets = useMemo(() => filteredTickets.filter((t) => !isTicketArchived(t)), [filteredTickets, events]);
+  const archivedTickets = useMemo(() => filteredTickets.filter((t) => isTicketArchived(t)), [filteredTickets, events]);
+  const [showArchivedTickets, setShowArchivedTickets] = useState(false);
+  const displayedTickets = showArchivedTickets ? archivedTickets : recentTickets;
+
   // Événements filtrés par la recherche globale de la navbar (onglet "Événements")
   const filteredEventsHeader = useMemo(() => {
     if (!headerSearch) return events;
@@ -621,11 +638,11 @@ const AdminDashboard = () => {
 
   const isHeaderSearchDisabled = !["tickets", "events", "newsletter", "demandes"].includes(activeTab);
 
-  const totalTicketPages = Math.ceil(filteredTickets.length / itemsPerPage);
+  const totalTicketPages = Math.ceil(displayedTickets.length / itemsPerPage);
   const paginatedTickets = useMemo(() => {
     const start = (ticketPage - 1) * itemsPerPage;
-    return filteredTickets.slice(start, start + itemsPerPage);
-  }, [filteredTickets, ticketPage, itemsPerPage]);
+    return displayedTickets.slice(start, start + itemsPerPage);
+  }, [displayedTickets, ticketPage, itemsPerPage]);
 
   const handleToggleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -771,6 +788,16 @@ const AdminDashboard = () => {
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [includeInput, setIncludeInput] = useState("");
+
+  const addInclude = () => {
+    if (!includeInput.trim()) return;
+    setEventForm((p) => ({ ...p, includes: [...(p.includes || []), includeInput.trim()] }));
+    setIncludeInput("");
+  };
+  const removeInclude = (idx: number) => {
+    setEventForm((p) => ({ ...p, includes: (p.includes || []).filter((_, i) => i !== idx) }));
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -851,6 +878,7 @@ const AdminDashboard = () => {
         speakers: eventForm.speakers || [],
         program: eventForm.program || [],
         gallery: eventForm.gallery || [],
+        includes: eventForm.includes || [],
         sendNewsletter: false,
       };
 
@@ -878,7 +906,7 @@ const AdminDashboard = () => {
     return () => {
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     };
-  }, [eventForm.title, eventForm.description, eventForm.date, eventForm.time, eventForm.location, eventForm.price, eventForm.category, eventForm.capacity, eventForm.whatsapp_number, eventForm.status, eventForm.speakers, eventForm.program, eventForm.gallery]);
+  }, [eventForm.title, eventForm.description, eventForm.date, eventForm.time, eventForm.location, eventForm.price, eventForm.category, eventForm.capacity, eventForm.whatsapp_number, eventForm.status, eventForm.speakers, eventForm.program, eventForm.gallery, eventForm.includes]);
 
   const handleSaveEvent = async () => {
     setIsSavingEvent(true);
@@ -899,6 +927,7 @@ const AdminDashboard = () => {
         speakers: eventForm.speakers || [],
         program: eventForm.program || [],
         gallery: eventForm.gallery || [],
+        includes: eventForm.includes || [],
         sendNewsletter: eventForm.send_newsletter === undefined ? true : eventForm.send_newsletter,
       };
 
@@ -1540,13 +1569,34 @@ const AdminDashboard = () => {
             <div className="space-y-8 animate-fade-in max-w-7xl mx-auto pb-20">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                  <h2 className="text-lvl-title font-bold mb-2">Réservations</h2>
-                  <p className="text-muted-foreground">{filteredTickets.length} billets correspondants</p>
+                  <h2 className="text-lvl-title font-bold mb-2">
+                    {showArchivedTickets ? "Réservations archivées" : "Réservations"}
+                  </h2>
+                  <p className="text-muted-foreground">{displayedTickets.length} billets correspondants</p>
                 </div>
-                <Button variant="gold" className="rounded-2xl h-12 px-6 font-bold shadow-xl" onClick={() => setTicketDialogOpen(true)}>
-                  <Plus className="h-5 w-5 mr-2" /> Nouvelle inscription
-                </Button>
+                <div className="flex items-center gap-3">
+                  {archivedTickets.length > 0 && (
+                    <Button
+                      variant="outline"
+                      className="rounded-2xl h-12 px-5 font-bold border-border/50"
+                      onClick={() => { setShowArchivedTickets((v) => !v); setTicketPage(1); }}
+                    >
+                      <Archive className="h-4 w-4 mr-2" />
+                      {showArchivedTickets ? "Revenir aux réservations récentes" : `Voir les archives (${archivedTickets.length})`}
+                    </Button>
+                  )}
+                  <Button variant="gold" className="rounded-2xl h-12 px-6 font-bold shadow-xl" onClick={() => setTicketDialogOpen(true)}>
+                    <Plus className="h-5 w-5 mr-2" /> Nouvelle inscription
+                  </Button>
+                </div>
               </div>
+
+              {!showArchivedTickets && recentTickets.length === 0 && archivedTickets.length > 0 && (
+                <div className="flex items-center gap-3 text-muted-foreground text-lvl-footer bg-secondary/30 border border-border/50 rounded-xl px-4 py-3">
+                  <Archive className="w-4 h-4 text-gold shrink-0" />
+                  Aucune réservation récente. {archivedTickets.length} réservation(s) archivée(s) (événements passés depuis plus d'un mois) — clique sur "Voir les archives" pour les consulter.
+                </div>
+              )}
 
               {/* Filtres de recherche */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1936,6 +1986,28 @@ const AdminDashboard = () => {
                 {eventForm.image_url && !isUploading && (
                   <div className="absolute top-2 right-2 bg-gold text-[#32140c] text-lvl-footer font-bold px-2 py-1 rounded-full uppercase">Prêt</div>
                 )}
+              </div>
+            </FormSection>
+
+            <FormSection icon={<CheckCircle className="h-3.5 w-3.5" />} title="Votre participation comprend">
+              <div className="md:col-span-2 space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    value={includeInput}
+                    onChange={(e) => setIncludeInput(e.target.value)}
+                    placeholder="Ex : Accueil et badge nominatif"
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addInclude(); } }}
+                  />
+                  <Button type="button" variant="outline" onClick={addInclude}>Ajouter</Button>
+                </div>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {(eventForm.includes || []).map((item, i) => (
+                    <Badge key={i} variant="outline" className="pl-3 pr-1 py-1.5 gap-2">
+                      {item}
+                      <button onClick={() => removeInclude(i)} className="hover:text-destructive"><X className="h-3 w-3" /></button>
+                    </Badge>
+                  ))}
+                </div>
               </div>
             </FormSection>
 
