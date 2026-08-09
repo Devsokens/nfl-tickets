@@ -18,6 +18,16 @@ import GalleryFieldEditor from "./GalleryFieldEditor";
 
 const emptyForm: Partial<Formation> = { title: "", description: "", bullets: [], status: "brouillon", currency: "XAF" };
 
+// Reflète le contenu de repli affiché côté public (FormationDetail.tsx)
+// quand aucun programme n'est renseigné — pré-rempli ici pour que l'admin
+// parte d'un contenu à ajuster plutôt que d'une liste vide.
+const DEFAULT_PILLARS = [
+  { category: "ANALYSE", title: "Ingénierie de Marché", description: "Décryptage des flux de capitaux mondiaux et modélisation de volatilité avancée." },
+  { category: "GESTION", title: "Stratégie d'Actifs", description: "Optimisation de portefeuilles institutionnels sous contraintes de risque dynamique." },
+  { category: "NÉGOCIATION", title: "Closing de Prestige", description: "L'art de la négociation de haut niveau et protocoles de finalisation d'accords." },
+  { category: "GAINS", title: "Ingénierie Fiscale", description: "Cadre réglementaire international et optimisation des structures de financement." },
+];
+
 const FormationsTab = () => {
   const queryClient = useQueryClient();
   const { data: formations = [], isLoading, refetch } = useQuery<Formation[]>({
@@ -33,8 +43,20 @@ const FormationsTab = () => {
   const [bulletInput, setBulletInput] = useState("");
   const [expertiseInput, setExpertiseInput] = useState("");
 
-  const openCreate = () => { setForm(emptyForm); setEditingId(null); setBulletInput(""); setExpertiseInput(""); setDialogOpen(true); };
-  const openEdit = (f: Formation) => { setForm(f); setEditingId(f.id); setBulletInput(""); setExpertiseInput(""); setDialogOpen(true); };
+  const openCreate = () => {
+    setForm({ ...emptyForm, program: DEFAULT_PILLARS.map((p) => ({ ...p })) });
+    setEditingId(null);
+    setBulletInput("");
+    setExpertiseInput("");
+    setDialogOpen(true);
+  };
+  const openEdit = (f: Formation) => {
+    setForm({ ...f, program: f.program?.length ? f.program : DEFAULT_PILLARS.map((p) => ({ ...p })) });
+    setEditingId(f.id);
+    setBulletInput("");
+    setExpertiseInput("");
+    setDialogOpen(true);
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
