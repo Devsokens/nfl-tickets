@@ -1,101 +1,26 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Helmet } from "react-helmet-async";
-import { MapPin, Phone, Mail, ArrowRight, CheckCircle2, X } from "lucide-react";
+import { MapPin, Phone, Mail, ArrowUpRight, ArrowRight, ArrowLeft, Info, Facebook, Linkedin, Youtube, Instagram } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { HomeContentAPI, SiteSettingsAPI, ContactAPI, type HomeContent, type SiteSettings } from "@/lib/api";
-import { useIsEditMode } from "@/lib/EditModeContext";
-import { EditableText } from "@/components/admin/editable/EditableText";
-import { EditableImage } from "@/components/admin/editable/EditableImage";
-import { AddInlineButton } from "@/components/admin/editable/EditableListControls";
-
-import louisePhoto from "@/assets/louise photo.jpeg";
-import louisePhoto2 from "@/assets/louise2.jpeg";
-
-type ContactPageContent = Required<NonNullable<HomeContent["contactPage"]>>;
-
-const DEFAULT_CONTACT_CONTENT: ContactPageContent = {
-  hero: {
-    eyebrow: "NOUS CONTACTER",
-    title: "À votre service pour l'excellence & le prestige.",
-    description: "NFL Courtier & Service vous accompagne à Libreville dans vos projets de courtage, d'ingénierie financière et d'événementiel de luxe. Notre équipe est à votre disposition pour une consultation privée.",
-  },
-  about: {
-    title: "A propos de",
-    badgeNumber: "35 ans",
-    badgeLabel: "d'expérience",
-    bullets: [
-      "Première Directrice Pays africaine Air France Gabon",
-      "Experte en stratégie commerciale",
-      "Plusieurs centaines d'impactés",
-      "Directrice Commerciale Toyota",
-      "Fondatrice NFL Courtier et Service",
-      "Conférencière",
-    ],
-    photo: "",
-  },
-  info: {
-    businessHours: "Lundi - Vendredi : 08h30 - 18h00",
-    responseTime: "Réponse sous 24h ouvrées",
-  },
-  ctaSection: { title: "Votre succès mérite l'excellence." },
-};
-
-function mergeContactContent(fetched?: HomeContent["contactPage"]): ContactPageContent {
-  const f = fetched || {};
-  return {
-    hero: { ...DEFAULT_CONTACT_CONTENT.hero, ...f.hero },
-    about: { ...DEFAULT_CONTACT_CONTENT.about, ...f.about, bullets: f.about?.bullets?.length ? f.about.bullets : DEFAULT_CONTACT_CONTENT.about.bullets },
-    info: { ...DEFAULT_CONTACT_CONTENT.info, ...f.info },
-    ctaSection: { ...DEFAULT_CONTACT_CONTENT.ctaSection, ...f.ctaSection },
-  };
-}
+import { useQuery } from "@tanstack/react-query";
+import { SiteSettingsAPI, ContactAPI, type SiteSettings } from "@/lib/api";
 
 const Contact = () => {
   const { toast } = useToast();
-  const isEditMode = useIsEditMode();
-  const queryClient = useQueryClient();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: homeContentRaw } = useQuery<HomeContent>({
-    queryKey: ["homeContent"],
-    queryFn: HomeContentAPI.get,
-  });
   const { data: siteSettings } = useQuery<SiteSettings>({
     queryKey: ["siteSettings"],
     queryFn: SiteSettingsAPI.get,
   });
-  const merged = mergeContactContent(homeContentRaw?.contactPage);
-  const [override, setOverride] = useState<ContactPageContent | null>(null);
-  useEffect(() => setOverride(null), [homeContentRaw]);
-  const content = override || merged;
-
-  const saveContactSection = async (patch: Partial<ContactPageContent>) => {
-    const nextContactPage = { ...content, ...patch };
-    setOverride(nextContactPage);
-    const updated = await HomeContentAPI.update({ contactPage: nextContactPage });
-    queryClient.setQueryData(["homeContent"], (prev: HomeContent | undefined) => ({ ...(prev || {}), ...updated }));
-  };
-
-  const makeContactFieldSaver = <K extends keyof ContactPageContent>(sectionKey: K, fieldKey: string) =>
-    async (value: any) => {
-      await saveContactSection({ [sectionKey]: { ...(content as any)[sectionKey], [fieldKey]: value } } as any);
-    };
-
-  const bullets = content.about.bullets || [];
-  const updateBullet = (idx: number, value: string) => {
-    const list = [...bullets];
-    list[idx] = value;
-    return saveContactSection({ about: { ...content.about, bullets: list } });
-  };
-  const addBullet = () => saveContactSection({ about: { ...content.about, bullets: [...bullets, "Nouvel élément"] } });
-  const removeBullet = (idx: number) => saveContactSection({ about: { ...content.about, bullets: bullets.filter((_, i) => i !== idx) } });
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -114,15 +39,12 @@ const Contact = () => {
 
     setIsSubmitting(true);
     try {
-      // Enregistre une vraie demande côté admin (module Demandes) + envoie
-      // l'accusé de réception configuré dans Paramètres. Contrairement aux
-      // formulaires de réservation (événement/formation), ce formulaire ne
-      // redirige plus vers WhatsApp — le message est déjà transmis.
+      const fullMessage = phone ? `[Téléphone: ${phone}]\n\n${message}` : message;
       await ContactAPI.send({
         name: fullName,
         email,
-        subject: subject || "Consultation",
-        message,
+        subject: subject || "Demande de contact",
+        message: fullMessage,
       });
       toast({
         title: "Message envoyé !",
@@ -130,6 +52,7 @@ const Contact = () => {
       });
       setFullName("");
       setEmail("");
+      setPhone("");
       setSubject("");
       setMessage("");
     } catch (err: any) {
@@ -144,268 +67,297 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0e11] flex flex-col text-white">
+    <div className="min-h-screen bg-[#fdfbf7] flex flex-col text-[#100906] relative overflow-hidden">
       <Helmet>
-        <title>Contact & À Propos | NFL Courtier & Service</title>
-        <meta name="description" content="À votre service pour l'excellence & le prestige. Contactez l'équipe de NFL Courtier & Service à Libreville." />
+        <title>Contactez-nous | NFL Courtier & Service</title>
+        <meta name="description" content="Contactez l'équipe de NFL Courtier & Service pour vos accompagnements, formations et événements d'exception." />
       </Helmet>
+      
       <Navbar />
 
-      {/* 1. HERO HEADER */}
-      <section className="pt-24 pb-14 md:pt-28 md:pb-16 bg-[#0d0e11] border-b border-white/5">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="space-y-4 max-w-3xl">
-            <span className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-[0.25em] block">
-              <EditableText value={content.hero.eyebrow || ""} onSave={makeContactFieldSaver("hero", "eyebrow")} label="Eyebrow" />
-            </span>
-            <h1 className="text-lvl-hero text-white leading-tight">
-              <EditableText value={content.hero.title || ""} onSave={makeContactFieldSaver("hero", "title")} label="Titre" multiline />
-            </h1>
-            <p className="text-white/70 text-lvl-body font-light max-w-2xl pt-2">
-              <EditableText value={content.hero.description || ""} onSave={makeContactFieldSaver("hero", "description")} label="Description" multiline as="div" />
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* STRIPED GRID BACKGROUND OVERLAY */}
+      <div 
+        className="absolute inset-0 pointer-events-none" 
+        style={{
+          backgroundImage: `radial-gradient(#100906 0.75px, transparent 0.75px), radial-gradient(#100906 0.75px, #fdfbf7 0.75px)`,
+          backgroundSize: `32px 32px`,
+          backgroundPosition: `0 0, 16px 16px`,
+          opacity: 0.035
+        }}
+      />
 
-      {/* 2. SECTION A PROPOS DE */}
-      <section className="section-y bg-[#4a4e54] text-white border-b border-black/10">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid lg:grid-cols-12 gap-10 items-center">
-            {/* Left Photo with "35 ans d'expérience" overlay badge */}
-            <div className="lg:col-span-6 relative">
-              <div className="relative rounded-none overflow-hidden border border-white/10 shadow-2xl bg-black/40">
-                <EditableImage
-                  src={content.about.photo || louisePhoto}
-                  alt="LOUISE AUDYLL Ongoum — Fondatrice NFL Courtier"
-                  className="w-full h-[400px] sm:h-[480px] object-cover object-top"
-                  wrapperClassName="w-full h-[400px] sm:h-[480px]"
-                  onSave={(url) => saveContactSection({ about: { ...content.about, photo: url } })}
-                />
-                {/* Gold Overlay Badge */}
-                <div className="absolute bottom-6 right-6 bg-[#e3bd51] text-black p-5 shadow-2xl border border-black/10 text-center">
-                  <span className="text-lvl-subtitle font-bold block leading-none">
-                    <EditableText value={content.about.badgeNumber || ""} onSave={makeContactFieldSaver("about", "badgeNumber")} label="Chiffre" />
-                  </span>
-                  <span className="italic text-lvl-footer font-normal block mt-1">
-                    <EditableText value={content.about.badgeLabel || ""} onSave={makeContactFieldSaver("about", "badgeLabel")} label="Légende" />
-                  </span>
-                </div>
+      {/* MAIN CONTENT SECTION */}
+      <main className="flex-grow pt-24 lg:pt-28 pb-4 lg:pb-6 relative z-10 flex items-center">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            
+            {/* GAUCHE : TITRE, INFO CONTACT & RESEAUX RS */}
+            <div className="lg:col-span-5 space-y-5 lg:space-y-6">
+              
+              {/* BOUTON RETOUR À L'ACCUEIL */}
+              <div>
+                <Link
+                  to="/"
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-black/10 text-xs font-semibold text-[#100906] hover:text-[#8c591a] hover:border-[#8c591a] shadow-sm hover:shadow transition-all duration-300 group"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
+                  <span>Retour à l'accueil</span>
+                </Link>
               </div>
-            </div>
 
-            {/* Right Card: A propos de */}
-            <div className="lg:col-span-6">
-              <div className="bg-[#383b40]/90 border border-white/10 p-8 sm:p-12 rounded-none space-y-6 shadow-2xl">
-                <h2 className="text-lvl-title text-[#e3bd51]">
-                  <EditableText value={content.about.title || ""} onSave={makeContactFieldSaver("about", "title")} label="Titre" />
-                </h2>
+              {/* TITRE & SOUS-TITRE MAQUETTE */}
+              <div className="space-y-2 lg:space-y-3">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#100906] tracking-tight leading-[1.1]">
+                  Entrons en <br />
+                  <span className="bg-gradient-to-r from-[#8c591a] via-[#d4af37] to-[#8c591a] bg-clip-text text-transparent">
+                    contact
+                  </span>
+                </h1>
+                <p className="text-xs sm:text-sm lg:text-base text-ink/70 font-medium leading-relaxed max-w-md">
+                  N'hésitez pas à nous contacter pour toute question, formation ou accompagnement sur mesure !
+                </p>
+              </div>
 
-                <div className="space-y-4 pt-2">
-                  {bullets.map((item, idx) => (
-                    <div key={idx} className="group relative flex items-center gap-3.5 text-lvl-body text-white font-medium">
-                      <div className="w-5 h-5 rounded-full bg-[#e3bd51]/20 flex items-center justify-center shrink-0">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#e3bd51]" />
-                      </div>
-                      <span className="flex-1"><EditableText value={item} onSave={(v) => updateBullet(idx, v)} label="Élément" /></span>
-                      {isEditMode && bullets.length > 1 && (
-                        <button onClick={() => removeBullet(idx)} className="text-destructive opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+              {/* TROIS CARTES INTERACTIVES TYPE MAQUETTE */}
+              <div className="space-y-2.5 pt-1">
+                
+                {/* CARTE EMAIL */}
+                <a
+                  href={`mailto:${siteSettings?.contact_email || "contact@nflprestige.com"}`}
+                  className="group flex items-center justify-between bg-white/90 hover:bg-white border border-black/10 rounded-xl p-3 sm:p-3.5 shadow-sm hover:shadow-md transition-all duration-300"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-lg bg-[#8c591a]/10 text-[#8c591a] flex items-center justify-center shrink-0 group-hover:bg-[#8c591a] group-hover:text-white transition-colors">
+                      <Mail className="w-4 h-4" />
                     </div>
-                  ))}
-                </div>
-                {isEditMode && <AddInlineButton onClick={addBullet} label="Ajouter un élément" />}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. ENVOYEZ-NOUS UN MESSAGE & COORDONNÉES */}
-      <section className="section-y bg-[#0c0d0f]">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid lg:grid-cols-12 gap-12 items-start">
-            {/* Left Form Box */}
-            <div className="lg:col-span-7">
-              <div className="border-l-2 border-[#e3bd51] pl-6 mb-8">
-                <h2 className="text-lvl-subtitle text-white">
-                  Envoyez-nous un message
-                </h2>
-              </div>
-
-              <form onSubmit={handleSubmit} className="bg-[#17191d] border border-white/10 p-8 sm:p-10 rounded-none space-y-5 shadow-2xl">
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <label className="text-lvl-footer font-bold uppercase tracking-wider text-white/70">
-                      NOM COMPLET
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Ex : MOUSSAVOU ALEX"
-                      className="w-full bg-[#22252b] border border-white/10 text-lvl-footer text-white px-4 py-3.5 rounded-none placeholder:text-white/30 focus:outline-none focus:border-[#e3bd51]"
-                    />
+                    <div className="min-w-0">
+                      <span className="text-[11px] font-medium text-ink/50 block">Envoyez-nous un email</span>
+                      <span className="text-xs sm:text-sm font-bold text-[#100906] truncate block">
+                        {siteSettings?.contact_email || "contact@nflprestige.com"}
+                      </span>
+                    </div>
                   </div>
+                  <div className="w-8 h-8 rounded-full bg-black/5 group-hover:bg-[#100906] group-hover:text-white text-ink/70 flex items-center justify-center transition-colors shrink-0 ml-2">
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </div>
+                </a>
 
-                  <div className="space-y-1.5">
-                    <label className="text-lvl-footer font-bold uppercase tracking-wider text-white/70">
-                      ADRESSE EMAIL
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="moussavou@gmail.com"
-                      className="w-full bg-[#22252b] border border-white/10 text-lvl-footer text-white px-4 py-3.5 rounded-none placeholder:text-white/30 focus:outline-none focus:border-[#e3bd51]"
-                    />
+                {/* CARTE TÉLÉPHONE */}
+                <a
+                  href={`tel:${siteSettings?.phone || ""}`}
+                  className="group flex items-center justify-between bg-white/90 hover:bg-white border border-black/10 rounded-xl p-3 sm:p-3.5 shadow-sm hover:shadow-md transition-all duration-300"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-lg bg-[#8c591a]/10 text-[#8c591a] flex items-center justify-center shrink-0 group-hover:bg-[#8c591a] group-hover:text-white transition-colors">
+                      <Phone className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[11px] font-medium text-ink/50 block">Appelez-nous</span>
+                      <span className="text-xs sm:text-sm font-bold text-[#100906] truncate block">
+                        {siteSettings?.phone || "+241 00 00 00 00"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-black/5 group-hover:bg-[#100906] group-hover:text-white text-ink/70 flex items-center justify-center transition-colors shrink-0 ml-2">
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </div>
+                </a>
+
+                {/* CARTE SIÈGE SOCIAL */}
+                <div
+                  className="group flex items-center justify-between bg-white/90 hover:bg-white border border-black/10 rounded-xl p-3 sm:p-3.5 shadow-sm hover:shadow-md transition-all duration-300 cursor-default"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-10 h-10 rounded-lg bg-[#8c591a]/10 text-[#8c591a] flex items-center justify-center shrink-0 group-hover:bg-[#8c591a] group-hover:text-white transition-colors">
+                      <MapPin className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[11px] font-medium text-ink/50 block">Notre Siège Social</span>
+                      <span className="text-xs sm:text-sm font-bold text-[#100906] truncate block">
+                        {siteSettings?.address || "Libreville, Gabon"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-black/5 group-hover:bg-[#100906] group-hover:text-white text-ink/70 flex items-center justify-center transition-colors shrink-0 ml-2">
+                    <ArrowUpRight className="w-3.5 h-3.5" />
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-lvl-footer font-bold uppercase tracking-wider text-white/70">
-                    SUJET DE VOTRE DEMANDE
-                  </label>
-                  <input
-                    type="text"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    placeholder="Ex : Demande de consultation privée"
-                    className="w-full bg-[#22252b] border border-white/10 text-lvl-footer text-white px-4 py-3.5 rounded-none placeholder:text-white/30 focus:outline-none focus:border-[#e3bd51]"
-                  />
-                </div>
+              </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-lvl-footer font-bold uppercase tracking-wider text-white/70">
-                    VOTRE MESSAGE
-                  </label>
-                  <textarea
-                    rows={4}
-                    required
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Décrivez votre besoin..."
-                    className="w-full bg-[#22252b] border border-white/10 text-lvl-footer text-white px-4 py-3.5 rounded-none placeholder:text-white/30 focus:outline-none focus:border-[#e3bd51]"
-                  />
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-widest py-4 px-6 rounded-none transition-colors flex items-center justify-center gap-2 shadow-lg"
+              {/* SOCIAL LINKS (FOLLOW US ON) */}
+              <div className="space-y-2 pt-1">
+                <span className="text-[11px] font-bold text-ink/60 uppercase tracking-wider block">
+                  Suivez-nous sur
+                </span>
+                <div className="flex items-center gap-2">
+                  <a 
+                    href={siteSettings?.facebook_url || "#"} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    aria-label="Facebook"
+                    className="w-9 h-9 rounded-lg bg-white border border-black/10 flex items-center justify-center text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all"
                   >
-                    {isSubmitting ? "ENVOI..." : "ENVOYER LA DEMANDE"} <ArrowRight className="w-4 h-4" />
-                  </button>
+                    <Facebook className="w-3.5 h-3.5" />
+                  </a>
+                  <a 
+                    href={siteSettings?.linkedin_url || "#"} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    aria-label="LinkedIn"
+                    className="w-9 h-9 rounded-lg bg-white border border-black/10 flex items-center justify-center text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all"
+                  >
+                    <Linkedin className="w-3.5 h-3.5" />
+                  </a>
+                  <a 
+                    href={siteSettings?.twitter_url || "#"} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    aria-label="Twitter X"
+                    className="w-9 h-9 rounded-lg bg-white border border-black/10 flex items-center justify-center font-bold text-xs text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all"
+                  >
+                    X
+                  </a>
+                  <a 
+                    href={siteSettings?.youtube_url || "#"} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    aria-label="YouTube"
+                    className="w-9 h-9 rounded-lg bg-white border border-black/10 flex items-center justify-center text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all"
+                  >
+                    <Youtube className="w-3.5 h-3.5" />
+                  </a>
+                  <a 
+                    href={siteSettings?.instagram_url || "#"} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    aria-label="Instagram"
+                    className="w-9 h-9 rounded-lg bg-white border border-black/10 flex items-center justify-center text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all"
+                  >
+                    <Instagram className="w-3.5 h-3.5" />
+                  </a>
                 </div>
-              </form>
+              </div>
+
             </div>
 
-            {/* Right 3 Info Cards */}
-            <div className="lg:col-span-5 space-y-6">
-              {/* Card 1 */}
-              <div className="bg-[#17191d] border border-white/10 p-6 rounded-none flex items-start gap-4 shadow-xl">
-                <div className="w-12 h-12 bg-[#22252b] flex items-center justify-center rounded-none shrink-0 border border-white/5">
-                  <MapPin className="w-5 h-5 text-[#e3bd51]" />
-                </div>
-                <div>
-                  <h3 className="text-lvl-footer font-bold uppercase tracking-widest text-[#e3bd51] mb-1">
-                    SIÈGE SOCIAL
-                  </h3>
-                  <p className="text-white/80 text-lvl-footer">
-                    {isEditMode ? (
-                      <EditableText
-                        value={siteSettings?.address || "Libreville, Gabon"}
-                        onSave={async (v) => { await SiteSettingsAPI.update({ address: v }); queryClient.invalidateQueries({ queryKey: ["siteSettings"] }); }}
-                        label="Adresse (réglages du site)"
-                        multiline
-                      />
-                    ) : (siteSettings?.address || "Libreville, Gabon")}
-                  </p>
-                </div>
-              </div>
+            {/* DROITE : GRAND FORMULAIRE DANS UNE CARTE DE LUXE BLANCHE */}
+            <div className="lg:col-span-7">
+              <div className="bg-white rounded-[2.5rem] p-6 sm:p-8 lg:p-10 border border-black/10 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.06)] relative overflow-hidden">
+                
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-[#100906] mb-6 tracking-tight">
+                  Contactez-nous
+                </h2>
 
-              {/* Card 2 */}
-              <div className="bg-[#17191d] border border-white/10 p-6 rounded-none flex items-start gap-4 shadow-xl">
-                <div className="w-12 h-12 bg-[#22252b] flex items-center justify-center rounded-none shrink-0 border border-white/5">
-                  <Phone className="w-5 h-5 text-[#e3bd51]" />
-                </div>
-                <div>
-                  <h3 className="text-lvl-footer font-bold uppercase tracking-widest text-[#e3bd51] mb-1">
-                    LIGNE DIRECTE
-                  </h3>
-                  <p className="text-white/90 text-lvl-footer font-bold">
-                    {isEditMode ? (
-                      <EditableText
-                        value={siteSettings?.phone || ""}
-                        onSave={async (v) => { await SiteSettingsAPI.update({ phone: v }); queryClient.invalidateQueries({ queryKey: ["siteSettings"] }); }}
-                        label="Téléphone (réglages du site)"
+                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+                  
+                  {/* NOM COMPLET & EMAIL */}
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-ink/80 block">
+                        Nom complet
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="Ex: Jean Dupont"
+                        className="w-full bg-[#f8f7f4] border border-black/5 text-sm text-[#100906] px-4 py-3 rounded-xl placeholder:text-ink/30 focus:outline-none focus:bg-white focus:border-[#8c591a] focus:ring-2 focus:ring-[#8c591a]/15 transition-all"
                       />
-                    ) : siteSettings?.phone}
-                  </p>
-                  <p className="text-white/50 text-lvl-footer mt-0.5">
-                    <EditableText value={content.info.businessHours || ""} onSave={makeContactFieldSaver("info", "businessHours")} label="Horaires" />
-                  </p>
-                </div>
-              </div>
+                    </div>
 
-              {/* Card 3 */}
-              <div className="bg-[#17191d] border border-white/10 p-6 rounded-none flex items-start gap-4 shadow-xl">
-                <div className="w-12 h-12 bg-[#22252b] flex items-center justify-center rounded-none shrink-0 border border-white/5">
-                  <Mail className="w-5 h-5 text-[#e3bd51]" />
-                </div>
-                <div>
-                  <h3 className="text-lvl-footer font-bold uppercase tracking-widest text-[#e3bd51] mb-1">
-                    EMAIL DE CONTACT
-                  </h3>
-                  {isEditMode ? (
-                    <EditableText
-                      value={siteSettings?.contact_email || ""}
-                      onSave={async (v) => { await SiteSettingsAPI.update({ contact_email: v }); queryClient.invalidateQueries({ queryKey: ["siteSettings"] }); }}
-                      label="Email (réglages du site)"
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-ink/80 block">
+                        Adresse Email
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="jean.dupont@example.com"
+                        className="w-full bg-[#f8f7f4] border border-black/5 text-sm text-[#100906] px-4 py-3 rounded-xl placeholder:text-ink/30 focus:outline-none focus:bg-white focus:border-[#8c591a] focus:ring-2 focus:ring-[#8c591a]/15 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* NUMÉRO DE TÉLÉPHONE & SUJET */}
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-ink/80 block">
+                        Numéro de téléphone
+                      </label>
+                      <div className="relative flex items-center">
+                        <div className="absolute left-3.5 flex items-center gap-1.5 text-xs text-ink/60 font-semibold pointer-events-none">
+                          <span>🇬🇦 +241</span>
+                          <span className="text-ink/20">|</span>
+                        </div>
+                        <input
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          placeholder="06 00 00 00"
+                          className="w-full bg-[#f8f7f4] border border-black/5 text-sm text-[#100906] pl-[88px] pr-4 py-3 rounded-xl placeholder:text-ink/30 focus:outline-none focus:bg-white focus:border-[#8c591a] focus:ring-2 focus:ring-[#8c591a]/15 transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-ink/80 block">
+                        Sujet
+                      </label>
+                      <input
+                        type="text"
+                        value={subject}
+                        onChange={(e) => setSubject(e.target.value)}
+                        placeholder="Entrez votre sujet"
+                        className="w-full bg-[#f8f7f4] border border-black/5 text-sm text-[#100906] px-4 py-3 rounded-xl placeholder:text-ink/30 focus:outline-none focus:bg-white focus:border-[#8c591a] focus:ring-2 focus:ring-[#8c591a]/15 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* MESSAGE */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-ink/80 block">
+                      Message
+                    </label>
+                    <textarea
+                      rows={4}
+                      required
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="Écrivez votre texte ici..."
+                      className="w-full bg-[#f8f7f4] border border-black/5 text-sm text-[#100906] px-4 py-3 rounded-xl placeholder:text-ink/30 focus:outline-none focus:bg-[#fdfbf7]/50 focus:border-[#8c591a] focus:ring-2 focus:ring-[#8c591a]/15 transition-all resize-none"
                     />
-                  ) : (
-                    <a href={`mailto:${siteSettings?.contact_email || ""}`} className="text-white/90 text-lvl-footer font-bold hover:text-[#e3bd51] transition-colors">
-                      {siteSettings?.contact_email}
-                    </a>
-                  )}
-                  <p className="text-white/50 text-lvl-footer mt-0.5">
-                    <EditableText value={content.info.responseTime || ""} onSave={makeContactFieldSaver("info", "responseTime")} label="Délai de réponse" />
-                  </p>
-                </div>
+                  </div>
+
+                  {/* BOUTON SOUMETTRE */}
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full bg-gradient-to-r from-[#100906] via-[#8c591a] to-[#100906] hover:opacity-95 text-white font-bold text-sm sm:text-base uppercase tracking-wider py-4 px-6 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2.5 group disabled:opacity-50"
+                    >
+                      {isSubmitting ? (
+                        "Envoi en cours..."
+                      ) : (
+                        <>
+                          <span>Envoyer le message</span>
+                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                </form>
+
               </div>
             </div>
+
           </div>
         </div>
-      </section>
-
-      {/* 4. VOTRE SUCCÈS MÉRITE L'EXCELLENCE. */}
-      <section className="section-y bg-[#090a0c] text-center border-t border-white/5">
-        <div className="container mx-auto px-4 max-w-3xl space-y-6">
-          <h2 className="text-lvl-title text-white">
-            <EditableText value={content.ctaSection.title || ""} onSave={makeContactFieldSaver("ctaSection", "title")} label="Titre" />
-          </h2>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
-            <button
-              onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
-              className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-widest py-4 px-8 rounded-none transition-colors shadow-lg"
-            >
-              PRENDRE RENDEZ-VOUS
-            </button>
-            <button
-              onClick={isEditMode ? undefined : () => window.location.href = "/catalogue-formations"}
-              className="border border-white/30 bg-transparent hover:bg-white/10 text-white font-bold text-lvl-footer uppercase tracking-widest py-4 px-8 rounded-none transition-colors"
-            >
-              NOS SERVICES
-            </button>
-          </div>
-        </div>
-      </section>
+      </main>
 
       <Footer />
     </div>

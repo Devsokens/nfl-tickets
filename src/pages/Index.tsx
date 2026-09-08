@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowRight, ShieldCheck, CheckCircle2, Info, X } from "lucide-react";
+import { motion, type Variants } from "framer-motion";
+import { ArrowRight, ShieldCheck, CheckCircle2, Info, X, Sparkles, Award, GraduationCap, Calendar, Briefcase, TrendingUp, Users, Crown } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HighlightEventCard from "@/components/HighlightEventCard";
@@ -17,8 +18,12 @@ import { cn } from "@/lib/utils";
 import heroImage1 from "@/assets/nfl img 4.jpeg";
 import nflImg1 from "@/assets/nfl img1.jpeg";
 import nflImg2 from "@/assets/nfl img2.jpeg";
+import nflImg3 from "@/assets/nfl img3.jpeg";
 import nflImg5 from "@/assets/nfl img 5.jpeg";
+import nflImg6 from "@/assets/nfl img 6.jpeg";
 import louisePhoto from "@/assets/louise2.jpeg";
+import louisePhotoFull from "@/assets/louise photo.jpeg";
+import nflTourisme from "@/assets/nfl-tourisme.jpg";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { EventsAPI, HomeContentAPI, SiteSettingsAPI, TestimonialsAPI, type Event, type HomeContent, type SiteSettings, type Testimonial } from "@/lib/api";
@@ -29,6 +34,11 @@ import { EditableImage } from "@/components/admin/editable/EditableImage";
 import { EditableIcon } from "@/components/admin/editable/EditableIcon";
 import { RemoveItemButton, AddCardButton, AddInlineButton } from "@/components/admin/editable/EditableListControls";
 import { HeroImagesManager } from "@/components/admin/editable/HeroImagesManager";
+import GrevyHeroSection from "@/components/GrevyHeroSection";
+import ExpertisePillarsSection from "@/components/ExpertisePillarsSection";
+import KeyStatsSection from "@/components/KeyStatsSection";
+import EventsCarousel from "@/components/EventsCarousel";
+import { InfiniteSlider } from "@/components/core/infinite-slider";
 
 const HERO_IMAGES = [heroImage1, nflImg1, nflImg5, nflImg2];
 
@@ -36,13 +46,13 @@ const HERO_IMAGES = [heroImage1, nflImg1, nflImg5, nflImg2];
 // Tant que l'admin n'a rien modifié dans "Contenu Accueil", le site affiche exactement ceci.
 const DEFAULT_HOME_CONTENT: HomeContent = {
   hero: {
-    badge: "Expérience Exclusive",
-    titleLine1: "L'Excellence au service de vos ambitions",
-    titleLine2: "& le Prestige Événementiel",
+    badge: "",
+    titleLine1: "L'Excellence au service",
+    titleLine2: "de vos ambitions",
     subtitle: "Nous accompagnons les entreprises, institutions, dirigeants et personnels dans leurs projets les plus ambitieux grâce à une expertise reconnue et une satisfaction client au coeur de notre activité.",
     ctaPrimaryText: "Découvrir nos services",
     ctaPrimaryLink: "/catalogue-formations",
-    ctaSecondaryText: "Prochains événements",
+    ctaSecondaryText: "& le Prestige Événementiel",
     ctaSecondaryLink: "#evenements",
     badgeCardTitle: "Agréé & certifié",
     badgeCardSubtitle: "Standard International",
@@ -95,6 +105,57 @@ const DEFAULT_HOME_CONTENT: HomeContent = {
   },
 };
 
+const DEFAULT_TESTIMONIALS: Testimonial[] = [
+  {
+    id: "1",
+    author_name: "Isabella Rodriguez",
+    author_role: "Directrice Commerciale",
+    author_company: "BGFIBank Gabon",
+    quote: "Un accompagnement d'exception. La rigueur et le professionnalisme de l'équipe NFL ont permis de transformer la dynamique commerciale de nos équipes.",
+    is_approved: true,
+  },
+  {
+    id: "2",
+    author_name: "Gabrielle Williams",
+    author_role: "Responsable Formation",
+    author_company: "Airtel Gabon",
+    quote: "Le séminaire sur le closing haut de gamme dispensé par Louise Ongoum est d'une valeur inestimable. Résultats concrets et immédiats sur le terrain.",
+    is_approved: true,
+  },
+  {
+    id: "3",
+    author_name: "Samantha Johnson",
+    author_role: "Directrice des Ressources Humaines",
+    author_company: "TotalEnergies",
+    quote: "Un partenaire stratégique incontournable à Libreville. Une expertise fine, une réactivité exemplaire et un sens du détail remarquable.",
+    is_approved: true,
+  },
+  {
+    id: "4",
+    author_name: "Victoria Thompson",
+    author_role: "Fondatrice & Dirigeante",
+    author_company: "Prestige Group",
+    quote: "Grâce aux modules de l'Académie NFL, nos managers ont développé un leadership affirmé et une culture de la haute performance durable.",
+    is_approved: true,
+  },
+  {
+    id: "5",
+    author_name: "John Peter",
+    author_role: "Directeur Général",
+    author_company: "Gabon Telecom",
+    quote: "L'organisation clé en main de notre séminaire exécutif était tout simplement parfaite. Du prestige, de la précision et un contenu sur mesure.",
+    is_approved: true,
+  },
+  {
+    id: "6",
+    author_name: "Natalie Martinez",
+    author_role: "Cadre Supérieur",
+    author_company: "Secteur Bancaire",
+    quote: "Une expérience d'apprentissage enrichissante, immersive et stimulante. Je recommande vivement les formations NFL à toute organisation ambitieuse.",
+    is_approved: true,
+  },
+];
+
 function mergeHomeContent(fetched?: HomeContent): Required<HomeContent> {
   const f = fetched || {};
   return {
@@ -113,6 +174,22 @@ function mergeHomeContent(fetched?: HomeContent): Required<HomeContent> {
 function isAnchor(link?: string) {
   return !!link && link.startsWith("#");
 }
+
+// Motion design — variants réutilisés pour les animations d'apparition au scroll.
+// `once: true` évite de rejouer l'animation à chaque passage, pour rester discret.
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 28 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.65, ease: EASE } },
+};
+
+const staggerContainer: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } },
+};
+
+const viewportOnce = { once: true, margin: "-80px" };
 
 const Index = () => {
   const location = useLocation();
@@ -192,15 +269,15 @@ const Index = () => {
     queryFn: SiteSettingsAPI.get,
   });
 
-  const { data: testimonials = [] } = useQuery<Testimonial[]>({
+  const { data: fetchedTestimonials = [] } = useQuery<Testimonial[]>({
     queryKey: ["testimonials"],
     queryFn: () => TestimonialsAPI.getAll(false),
   });
-  // Le marquee a besoin de plusieurs cartes pour tourner en continu :
-  // on répète les témoignages disponibles jusqu'à un minimum visuel de 6.
-  const marqueeTestimonials = testimonials.length
-    ? Array.from({ length: Math.max(6, testimonials.length) }, (_, i) => testimonials[i % testimonials.length])
-    : [];
+
+  const allTestimonialsList = fetchedTestimonials.length > 0 ? fetchedTestimonials : DEFAULT_TESTIMONIALS;
+  const halfTestimonials = Math.ceil(allTestimonialsList.length / 2);
+  const row1Testimonials = allTestimonialsList.slice(0, halfTestimonials);
+  const row2Testimonials = allTestimonialsList.slice(halfTestimonials);
 
   const heroImages = content.hero.images?.length ? content.hero.images : HERO_IMAGES;
 
@@ -281,520 +358,553 @@ const Index = () => {
 
       <Navbar />
 
-      {/* 1. HERO SECTION */}
-      <section className="relative overflow-hidden bg-[#0c0705] pt-24 pb-14 lg:pt-32 lg:pb-16">
-        {/* Rich gold lighting gradients */}
-        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-gold/10 rounded-full blur-[120px] pointer-events-none -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-[#32140c]/40 rounded-full blur-[150px] pointer-events-none translate-x-1/3 translate-y-1/3" />
+      {/* 1. HERO SECTION (Template Grevy exact) */}
+      <GrevyHeroSection
+        content={content.hero}
+        onSaveField={async (field, val) => {
+          await makeFieldSaver("hero", field)(val);
+        }}
+      />
 
-        <div className="relative z-10 container mx-auto px-4">
-          <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
 
-            {/* Column Left: Headline & CTAs */}
-            <div className="lg:col-span-6 space-y-5 text-left">
-              <div className="inline-flex px-4 py-1.5 border border-gold/40 rounded-full text-lvl-footer font-bold uppercase tracking-[0.2em] text-gold">
-                <EditableText value={content.hero.badge || ""} onSave={makeFieldSaver("hero", "badge")} label="Badge du hero" />
-              </div>
 
-              <h1 className="text-lvl-hero text-balance">
-                <span className="block text-white">
-                  <EditableText value={content.hero.titleLine1 || ""} onSave={makeFieldSaver("hero", "titleLine1")} label="Titre — ligne 1" multiline />
-                </span>
-                <span className="block italic text-gold mt-1">
-                  <EditableText value={content.hero.titleLine2 || ""} onSave={makeFieldSaver("hero", "titleLine2")} label="Titre — ligne 2 (accent)" multiline />
-                </span>
-              </h1>
+      {/* 2. NOS PILIERS D'ACCOMPAGNEMENT (Présentation interactive par onglets) */}
+      <ExpertisePillarsSection
+        pillars={content.pillars}
+        onSaveItemField={makeArrayItemFieldSaver.bind(null, "pillars")}
+        onAddPillar={async () => {
+          await addListItem("pillars", {
+            icon: "Star",
+            title: "Nouveau pilier",
+            description: "Description de votre nouveau programme d'accompagnement...",
+            ctaText: "En savoir plus",
+            link: "/catalogue-formations",
+          });
+        }}
+        onRemovePillar={async (idx) => {
+          await removeListItem("pillars", idx);
+        }}
+      />
 
-              <p className="text-white/70 text-lvl-body max-w-xl font-light">
-                <EditableText value={content.hero.subtitle || ""} onSave={makeFieldSaver("hero", "subtitle")} label="Sous-titre" multiline as="div" />
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-4 pt-1">
-                <Button variant="gold" size="lg" className="uppercase text-lvl-footer font-bold tracking-widest px-8" asChild={!isEditMode}>
-                  {isEditMode ? (
-                    <EditableText value={content.hero.ctaPrimaryText || ""} onSave={makeFieldSaver("hero", "ctaPrimaryText")} label="Texte du bouton principal" />
-                  ) : (
-                    <Link to={content.hero.ctaPrimaryLink || "/catalogue-formations"}>{content.hero.ctaPrimaryText}</Link>
-                  )}
-                </Button>
-                <Button
-                  variant="gold-outline"
-                  size="lg"
-                  className="uppercase text-lvl-footer font-bold tracking-widest px-8 text-white hover:text-accent-foreground"
-                  onClick={isEditMode ? undefined : () => {
-                    const link = content.hero.ctaSecondaryLink || "#evenements";
-                    if (isAnchor(link)) document.getElementById(link.slice(1))?.scrollIntoView({ behavior: "smooth" });
-                    else window.location.href = link;
-                  }}
-                >
-                  {isEditMode ? (
-                    <EditableText value={content.hero.ctaSecondaryText || ""} onSave={makeFieldSaver("hero", "ctaSecondaryText")} label="Texte du bouton secondaire" />
-                  ) : content.hero.ctaSecondaryText}
-                </Button>
-              </div>
-            </div>
-
-            {/* Column Right: Auto-Animated Image Slideshow */}
-            <div className="lg:col-span-6 relative mb-8 lg:mb-6">
-              <div className="relative rounded-[2rem] overflow-hidden border border-gold/20 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)]">
-                {/* Crossfade Slides */}
-                {heroImages.map((img, idx) => (
-                  <img
-                    key={idx}
-                    src={img}
-                    alt={`NFL Courtier & Service — image ${idx + 1}`}
-                    className={`w-full h-[320px] sm:h-[420px] lg:h-[480px] object-cover absolute inset-0 transition-opacity duration-1000 ${
-                      idx === heroSlideIndex ? "opacity-100 z-10" : "opacity-0 z-0"
-                    } ${idx === 0 ? "static" : "absolute"}`}
-                    style={{ position: idx === 0 ? "relative" : "absolute" }}
-                  />
-                ))}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0c0705]/50 via-transparent to-transparent z-20" />
-
-                {/* Dot Indicators */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
-                  {heroImages.map((_, idx) => (
-                    <button
-                      key={idx}
-                      aria-label={`Image ${idx + 1}`}
-                      onClick={() => setHeroSlideIndex(idx)}
-                      className={`transition-all duration-300 rounded-full ${
-                        idx === heroSlideIndex
-                          ? "w-5 h-2 bg-[#e3bd51]"
-                          : "w-2 h-2 bg-white/40 hover:bg-white/60"
-                      }`}
-                    />
-                  ))}
-                </div>
-
-                {isEditMode && (
-                  <HeroImagesManager
-                    images={heroImages}
-                    onSave={(images) => saveHomeSection({ hero: { ...content.hero, images } })}
-                  />
-                )}
-              </div>
-
-              <div className="absolute -bottom-6 left-6 bg-[#150805] border border-gold/20 rounded-2xl px-5 py-4 shadow-2xl flex items-center gap-3 max-w-[280px] z-30">
-                <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-5 h-5 text-gold" />
-                </div>
-                <div>
-                  <p className="text-lvl-footer uppercase tracking-widest text-white/50 font-bold">
-                    <EditableText value={content.hero.badgeCardTitle || ""} onSave={makeFieldSaver("hero", "badgeCardTitle")} label="Encart — titre" />
-                  </p>
-                  <p className="text-white font-semibold text-lvl-body">
-                    <EditableText value={content.hero.badgeCardSubtitle || ""} onSave={makeFieldSaver("hero", "badgeCardSubtitle")} label="Encart — sous-titre" />
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Feature strip (Static centered on Desktop) */}
-          <div className="border-t border-white/10 mt-10 lg:mt-14 pt-8 w-full pointer-events-auto">
-            <div className="flex flex-wrap justify-center gap-6 lg:gap-10 py-2">
-              {content.featureStrip.map(({ icon, title, subtitle }, idx) => (
-                <div key={idx} className="group relative flex items-center gap-4 shrink-0">
-                  {isEditMode && content.featureStrip.length > 1 && (
-                    <RemoveItemButton onClick={() => removeListItem("featureStrip", idx)} label="Retirer cet item" />
-                  )}
-                  <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
-                    <EditableIcon value={icon} onSave={makeArrayItemFieldSaver("featureStrip", idx, "icon")} className="w-4.5 h-4.5 text-gold" />
-                  </div>
-                  <div>
-                    <p className="text-white font-bold text-lvl-footer whitespace-nowrap">
-                      <EditableText value={title || ""} onSave={makeArrayItemFieldSaver("featureStrip", idx, "title")} label="Titre" />
-                    </p>
-                    <p className="text-white/50 text-lvl-footer whitespace-nowrap">
-                      <EditableText value={subtitle || ""} onSave={makeArrayItemFieldSaver("featureStrip", idx, "subtitle")} label="Sous-titre" />
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {isEditMode && (
-              <div className="flex items-center pt-8 justify-center w-full">
-                <button
-                  onClick={() => addListItem("featureStrip", { icon: "Star", title: "Nouvel item", subtitle: "Sous-titre" })}
-                  className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-wider hover:text-[#d4af37] transition-colors"
-                >
-                  + Ajouter un item
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
- 
-      {/* 2. NOS PILIERS D'ACCOMPAGNEMENT */}
-      <section className="section-y bg-[#E5E2E1]">
-        <div className="container mx-auto px-4">
-          <div className="text-center max-w-2xl mx-auto mb-10 md:mb-14">
-            <span className="text-gold-dark text-lvl-footer font-bold uppercase tracking-[0.2em]">Expertise</span>
-            <h2 className="text-lvl-title text-foreground mt-3">
-              Nos Piliers d'Accompagnement
-            </h2>
-            <div className="w-16 h-[3px] gradient-gold mx-auto mt-5 rounded-full" />
-          </div>
-
-          {/* Stacked on Mobile & Grid on Desktop */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            {content.pillars.map((pillar, idx) => {
-              const link = pillar.link || "";
-              return (
-                <div
-                  key={idx}
-                  className="group relative bg-[#DEDAD7] rounded-md p-6 sm:p-7 md:p-9 flex flex-col justify-between shadow-sm border border-black/5 min-h-[220px] sm:min-h-[360px] md:min-h-[400px]"
-                >
-                  {isEditMode && content.pillars.length > 1 && (
-                    <RemoveItemButton onClick={() => removeListItem("pillars", idx)} label="Retirer ce pilier" />
-                  )}
-                  <div>
-                    <EditableIcon value={pillar.icon} onSave={makeArrayItemFieldSaver("pillars", idx, "icon")} className="w-4 h-4 sm:w-8 sm:h-8 text-gold-dark mb-1 sm:mb-5 shrink-0" />
-                    <h3 className="text-lvl-subtitle text-[#1c1c1c] mb-1 sm:mb-3">
-                      <EditableText value={pillar.title || ""} onSave={makeArrayItemFieldSaver("pillars", idx, "title")} label="Titre" />
-                    </h3>
-                    <p className="text-[#555] text-lvl-body mb-2 sm:mb-6 font-normal">
-                      <EditableText value={pillar.description || ""} onSave={makeArrayItemFieldSaver("pillars", idx, "description")} label="Description" multiline as="div" />
-                    </p>
-                  </div>
-                  {isEditMode ? (
-                    <span className="text-lvl-footer font-bold uppercase tracking-wider text-gold-dark inline-flex items-center gap-2 mt-auto pt-1">
-                      <EditableText value={pillar.ctaText || ""} onSave={makeArrayItemFieldSaver("pillars", idx, "ctaText")} label="Texte du bouton" /> <ArrowRight className="w-3.5 h-3.5 shrink-0" />
-                    </span>
-                  ) : !isAnchor(link) ? (
-                    <Link
-                      to={link}
-                      className="text-lvl-footer font-bold uppercase tracking-wider text-gold-dark hover:text-gold inline-flex items-center gap-2 transition-colors mt-auto pt-1"
-                    >
-                      <span>{pillar.ctaText}</span> <ArrowRight className="w-3.5 h-3.5 shrink-0" />
-                    </Link>
-                  ) : (
-                    <button
-                      onClick={() => document.getElementById(link.slice(1))?.scrollIntoView({ behavior: "smooth" })}
-                      className="text-lvl-footer font-bold uppercase tracking-wider text-gold-dark hover:text-gold inline-flex items-center gap-2 transition-colors w-fit text-left mt-auto pt-1"
-                    >
-                      <span>{pillar.ctaText}</span> <ArrowRight className="w-3.5 h-3.5 shrink-0" />
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-            {isEditMode && (
-              <AddCardButton
-                onClick={() => addListItem("pillars", { icon: "Star", title: "Nouveau pilier", description: "Description...", ctaText: "En savoir plus", link: "/" })}
-                label="Ajouter un pilier"
-              />
-            )}
-          </div>
-        </div>
-      </section>
+      {/* 2.5 CHIFFRES CLÉS & VITRINE VIDÉO */}
+      <KeyStatsSection />
 
       {/* 3. EVENEMENTS D'EXCEPTION */}
-      <section id="evenements" className="section-y bg-[#4c5462] relative overflow-hidden">
-        <div className="container mx-auto px-4 max-w-6xl relative z-10">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
-            <div>
-              <span className="text-[#c29c38] text-lvl-footer font-bold uppercase tracking-[0.2em]">
-                <EditableText value={content.eventsSection.eyebrow || ""} onSave={makeFieldSaver("eventsSection", "eyebrow")} label="Eyebrow" />
-              </span>
-              <h2 className="text-lvl-title text-white mt-1">
-                <EditableText value={content.eventsSection.title || ""} onSave={makeFieldSaver("eventsSection", "title")} label="Titre de section" />
-              </h2>
-            </div>
-            <Link
-              to={content.eventsSection.ctaLink || "/events"}
-              className="inline-flex items-center gap-2 bg-white text-black text-lvl-footer font-bold uppercase tracking-wider px-5 py-2.5 rounded-none hover:bg-white/90 transition-colors w-fit shadow-sm"
-              onClick={isEditMode ? (e) => e.preventDefault() : undefined}
-            >
-              {isEditMode ? (
-                <EditableText value={content.eventsSection.ctaText || ""} onSave={makeFieldSaver("eventsSection", "ctaText")} label="Texte du bouton" />
-              ) : content.eventsSection.ctaText}
-            </Link>
-          </div>
+      <section id="evenements" className="section-y bg-[#fdfbf7] relative overflow-hidden">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl relative z-10">
+          <motion.div
+            className="text-left mb-10"
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+            variants={fadeUp}
+          >
+            <span className="text-[#8c591a] text-xs font-bold uppercase tracking-[0.2em] block mb-2">
+              <EditableText value={content.eventsSection.eyebrow || ""} onSave={makeFieldSaver("eventsSection", "eyebrow")} label="Eyebrow" />
+            </span>
+            <h2 className="font-sans text-3xl sm:text-4xl font-extrabold text-[#100906] tracking-tight">
+              <EditableText value={content.eventsSection.title || ""} onSave={makeFieldSaver("eventsSection", "title")} label="Titre de section" />
+            </h2>
+          </motion.div>
 
           <div className="relative">
             {isEditMode && (
-              <div className="flex items-center gap-2 text-white/50 text-lvl-footer mb-4 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 w-fit">
-                <Info className="w-3.5 h-3.5 text-[#e3bd51] shrink-0" />
-                Les événements affichés ici sont gérés depuis l'onglet <strong className="text-white/80">Événements</strong>.
+              <div className="flex items-center gap-2 text-ink/60 text-lvl-footer mb-4 bg-black/5 border border-black/10 rounded-lg px-4 py-2.5 w-fit">
+                <Info className="w-3.5 h-3.5 text-gold-dark shrink-0" />
+                Les événements affichés ici sont gérés depuis l'onglet <strong className="text-ink/80">Événements</strong>.
               </div>
             )}
             {featuredEvents.length === 0 ? (
-              <div className="text-center py-16 text-white/50 border border-white/10">
+              <div className="text-center py-16 text-ink/50 border border-black/10 rounded-2xl">
                 Aucun événement à afficher pour le moment.
               </div>
             ) : (
-              <div className={`flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 md:grid md:grid-cols-3 md:gap-6 scrollbar-none -mx-4 px-4 md:mx-0 md:px-0 ${isEditMode ? "pointer-events-none" : ""}`}>
-                {featuredEvents.map((event) => (
-                  <div key={event.id} className="w-[85vw] max-w-[320px] md:w-auto shrink-0 snap-center">
-                    <HighlightEventCard event={event} />
-                  </div>
-                ))}
-              </div>
+              <EventsCarousel events={featuredEvents} isEditMode={isEditMode} />
             )}
           </div>
         </div>
       </section>
 
-      {/* 4. SPOTLIGHT - ACADÉMIE NFL */}
-      <section className="section-y bg-[#e6e4e0] relative overflow-hidden">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="flex flex-col lg:flex-row items-center justify-center relative">
-            {/* Left Composition (3 Layers: Wireframe, White Mat, Photo) */}
-            <div className="relative shrink-0 z-0">
-              {/* Layer 1: Top-Left Wireframe Box */}
-              <div className="hidden lg:block absolute -top-12 -left-12 w-[320px] h-[340px] border border-[#a8a59e] pointer-events-none" />
+      {/* 5. TEMOIGNAGES - DUAL-ROW MARQUEE (EXACTEMENT COMME LA MAQUETTE RÉFÉRENCE) */}
+      <section className="section-y bg-[#fcfbfa] overflow-hidden relative border-t border-black/5">
+        <motion.div
+          className="container mx-auto px-4 mb-12 sm:mb-16 text-center max-w-3xl"
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          variants={fadeUp}
+        >
+          <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[#8c591a] mb-3">
+            <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-pulse" />
+            Impact & Témoignages
+          </span>
+          <h2 className="font-sans text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#100906] tracking-tight leading-tight">
+            Ce que disent nos clients &amp; partenaires
+          </h2>
+          <div className="w-20 h-[3px] bg-gradient-to-r from-[#8a4216] via-[#d4af37] to-[#8a4216] mx-auto mt-5 rounded-full" />
+        </motion.div>
 
-              {/* Layer 2 & 3: White Frame Mat + Photo */}
-              <div className="relative bg-[#f5f3ef] p-4 sm:p-6 shadow-md rounded-none border border-black/5 w-full max-w-[480px] sm:w-[480px]">
-                <div className="relative overflow-hidden shadow-sm w-full h-[360px] sm:h-[480px]">
-                  <EditableImage
-                    src={content.spotlight.image || heroImage1}
-                    alt="Séminaire commercial NFL Courtier & Service"
-                    className="w-full h-full object-cover block"
-                    wrapperClassName="w-full h-full"
-                    onSave={(url) => saveHomeSection({ spotlight: { ...content.spotlight, image: url } })}
-                  />
-                </div>
+        <div className="w-full relative space-y-6">
+          {/* Dégradés latéraux fluides pour l'effet de transition */}
+          <div className="absolute top-0 bottom-0 left-0 w-24 sm:w-40 bg-gradient-to-r from-[#fcfbfa] via-[#fcfbfa]/80 to-transparent z-10 pointer-events-none" />
+          <div className="absolute top-0 bottom-0 right-0 w-24 sm:w-40 bg-gradient-to-l from-[#fcfbfa] via-[#fcfbfa]/80 to-transparent z-10 pointer-events-none" />
+
+          {isEditMode && (
+            <div className="container mx-auto px-4">
+              <div className="flex items-center gap-2 text-ink/60 text-lvl-footer mb-4 bg-black/5 border border-black/10 rounded-lg px-4 py-2.5 w-fit relative z-20">
+                <Info className="w-3.5 h-3.5 text-gold-dark shrink-0" />
+                Les témoignages affichés ici sont gérés depuis l'onglet <strong className="text-ink/80">Témoignages</strong>.
               </div>
             </div>
+          )}
 
-            {/* Right Floating Content Card (Side-by-side horizontally overlapping photo) */}
-            <div className="relative z-10 -mt-16 lg:mt-0 lg:-ml-24 w-full max-w-[500px]">
-              <div className="bg-white text-[#1c1c1c] p-8 sm:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.15)] rounded-none border border-black/5">
-                <span className="text-[#a28229] text-lvl-footer font-bold uppercase tracking-[0.25em] block text-right mb-3">
-                  <EditableText value={content.spotlight.badge || ""} onSave={makeFieldSaver("spotlight", "badge")} label="Badge" />
-                </span>
-                <h2 className="text-lvl-title text-[#1c1c1c] mb-4">
-                  {isEditMode ? (
-                    [0, 1, 2].map((i) => (
-                      <span key={i} className="block">
-                        <EditableText
-                          value={(content.spotlight.titleLines || [])[i] || ""}
-                          onSave={async (v) => {
-                            const lines = [...(content.spotlight.titleLines || ["", "", ""])];
-                            lines[i] = v;
-                            await saveHomeSection({ spotlight: { ...content.spotlight, titleLines: lines } });
-                          }}
-                          label={`Titre — ligne ${i + 1}`}
-                        />
-                      </span>
-                    ))
-                  ) : (
-                    (content.spotlight.titleLines || []).map((line, i, arr) => (
-                      <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
-                    ))
-                  )}
+          {/* RANGÉE 1 (DÉFILEMENT VERS LA GAUCHE) */}
+          <div className={`flex animate-marquee gap-6 w-max ${isEditMode ? "pointer-events-none" : ""}`}>
+            {[...row1Testimonials, ...row1Testimonials, ...row1Testimonials].map((t, index) => {
+              const initials = t.author_name
+                ? t.author_name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
+                : "NFL";
+              return (
+                <div
+                  key={`r1-${t.id || index}-${index}`}
+                  className="w-[300px] sm:w-[380px] bg-[#f6f4ef] border border-[#e6e1d4] p-6 sm:p-7 rounded-[1.8rem] flex flex-col justify-between shrink-0 shadow-sm hover:shadow-md transition-all duration-300 h-full"
+                >
+                  <div>
+                    <div className="text-[#8c591a] text-3xl font-serif font-black leading-none mb-3 opacity-80">
+                      “
+                    </div>
+                    <p className="text-[#121212] font-medium text-sm sm:text-base leading-relaxed mb-6 font-normal">
+                      "{t.quote}"
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3.5 pt-4 border-t border-black/5 mt-auto">
+                    {t.avatar_url ? (
+                      <img src={t.avatar_url} alt={t.author_name} className="w-11 h-11 rounded-full object-cover shrink-0 border border-[#d4af37]/40 shadow-sm" />
+                    ) : (
+                      <div className="w-11 h-11 bg-[#100906] text-[#d4af37] font-bold text-xs flex items-center justify-center rounded-full shrink-0 border border-white/20 shadow-sm">
+                        {initials}
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-[#100906] font-bold text-sm sm:text-base leading-tight">{t.author_name}</p>
+                      <p className="text-[#666] text-xs font-medium mt-0.5">
+                        {[t.author_role, t.author_company].filter(Boolean).join(", ")}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* RANGÉE 2 (DÉFILEMENT INVERSE VERS LA DROITE) */}
+          <div className={`flex animate-marquee-reverse gap-6 w-max ${isEditMode ? "pointer-events-none" : ""}`}>
+            {[...row2Testimonials, ...row2Testimonials, ...row2Testimonials].map((t, index) => {
+              const initials = t.author_name
+                ? t.author_name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
+                : "NFL";
+              return (
+                <div
+                  key={`r2-${t.id || index}-${index}`}
+                  className="w-[300px] sm:w-[380px] bg-[#f6f4ef] border border-[#e6e1d4] p-6 sm:p-7 rounded-[1.8rem] flex flex-col justify-between shrink-0 shadow-sm hover:shadow-md transition-all duration-300 h-full"
+                >
+                  <div>
+                    <div className="text-[#8c591a] text-3xl font-serif font-black leading-none mb-3 opacity-80">
+                      “
+                    </div>
+                    <p className="text-[#121212] font-medium text-sm sm:text-base leading-relaxed mb-6 font-normal">
+                      "{t.quote}"
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3.5 pt-4 border-t border-black/5 mt-auto">
+                    {t.avatar_url ? (
+                      <img src={t.avatar_url} alt={t.author_name} className="w-11 h-11 rounded-full object-cover shrink-0 border border-[#d4af37]/40 shadow-sm" />
+                    ) : (
+                      <div className="w-11 h-11 bg-[#100906] text-[#d4af37] font-bold text-xs flex items-center justify-center rounded-full shrink-0 border border-white/20 shadow-sm">
+                        {initials}
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-[#100906] font-bold text-sm sm:text-base leading-tight">{t.author_name}</p>
+                      <p className="text-[#666] text-xs font-medium mt-0.5">
+                        {[t.author_role, t.author_company].filter(Boolean).join(", ")}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+        </div>
+      </section>
+
+      {/* 6. PRÊT À ÉLEVER VOS STANDARDS ? (TEMPLATE ORBITE - ACCENT SOMBRE DE LUXE) */}
+      <section id="contact" className="section-y bg-[#100906] text-white relative overflow-hidden py-16 sm:py-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl relative z-10">
+          <motion.div
+            className="bg-[#18110d] rounded-[2.5rem] p-8 sm:p-12 lg:p-16 border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] relative overflow-hidden"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={viewportOnce}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {/* GLOW DE FOND DANS LA CARTE SOMBRE */}
+            <div className="absolute -right-20 -top-20 w-[400px] h-[400px] bg-[#d4af37]/15 rounded-full blur-[140px] pointer-events-none" />
+            <div className="absolute -left-20 -bottom-20 w-[400px] h-[400px] bg-[#8c591a]/15 rounded-full blur-[140px] pointer-events-none" />
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center relative z-10">
+              
+              {/* GAUCHE : TEXTE & BOUTONS D'ACTION */}
+              <div className="lg:col-span-6 space-y-6 text-left">
+                
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-bold text-[#e3bd51] uppercase tracking-widest">
+                  <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-pulse" />
+                  <span>Excellence & Accompagnement</span>
+                </div>
+
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.15]">
+                  <EditableText value={content.ctaSection.title || "Prêt à élever vos standards ?"} onSave={makeFieldSaver("ctaSection", "title")} label="Titre" />
                 </h2>
-                <p className="text-[#666666] text-lvl-body mb-6">
-                  <EditableText value={content.spotlight.description || ""} onSave={makeFieldSaver("spotlight", "description")} label="Description" multiline as="div" />
+
+                <p className="text-base sm:text-lg text-white/70 font-normal leading-relaxed max-w-xl">
+                  <EditableText 
+                    value={content.ctaSection.description || "Qu'il s'agisse de sécuriser vos actifs ou d'orchestrer votre prochain grand événement, notre équipe est prête à relever le défi de l'excellence."} 
+                    onSave={makeFieldSaver("ctaSection", "description")} 
+                    label="Description" 
+                    multiline 
+                    as="div" 
+                  />
                 </p>
-                <ul className="space-y-3 mb-8">
-                  {(content.spotlight.bullets || []).map((item, idx) => (
-                    <li key={idx} className="group relative flex items-start gap-3 text-lvl-body text-[#333333] font-medium">
-                      <CheckCircle2 className="w-4.5 h-4.5 text-[#655410] shrink-0 mt-0.5" />
-                      <span className="flex-1">
-                        <EditableText value={item} onSave={makeStringListItemSaver("spotlight", "bullets", idx)} label="Point clé" as="div" />
+
+                <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                  <button
+                    onClick={isEditMode ? undefined : () => navigate("/contact")}
+                    className="gradient-gold text-accent-foreground font-bold text-xs uppercase tracking-wider py-4 px-8 rounded-full shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all inline-flex items-center justify-center gap-2 group"
+                  >
+                    <span>
+                      {isEditMode ? (
+                        <EditableText value={content.ctaSection.primaryBtnText || "PRENDRE RENDEZ-VOUS"} onSave={makeFieldSaver("ctaSection", "primaryBtnText")} label="Bouton principal" />
+                      ) : (content.ctaSection.primaryBtnText || "PRENDRE RENDEZ-VOUS")}
+                    </span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </button>
+
+                  <button
+                    onClick={isEditMode ? undefined : () => navigate("/contact")}
+                    className="border border-white/30 hover:border-white bg-transparent text-white font-bold text-xs uppercase tracking-wider py-4 px-8 rounded-full transition-all duration-300 inline-flex items-center justify-center gap-2"
+                  >
+                    <span>
+                      {isEditMode ? (
+                        <EditableText value={content.ctaSection.secondaryBtnText || "NOUS CONTACTER"} onSave={makeFieldSaver("ctaSection", "secondaryBtnText")} label="Bouton secondaire" />
+                      ) : (content.ctaSection.secondaryBtnText || "NOUS CONTACTER")}
+                    </span>
+                  </button>
+                </div>
+
+              </div>
+
+              {/* DROITE : ANIMATION DE CERCLES CONCENTRIQUES & ICÔNES EN ORBITE */}
+              <div className="lg:col-span-6 flex justify-center items-center relative min-h-[340px] sm:min-h-[400px]">
+                
+                {/* LOGO NFL AU CENTRE AVEC PULSATION */}
+                <motion.div 
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md shadow-2xl flex items-center justify-center p-3.5 z-20 relative"
+                >
+                  <img 
+                    src="/assets/Logo_NFL_fond_marron__écrits_jaune_-removebg-preview.png" 
+                    alt="NFL Logo Center" 
+                    className="w-full h-full object-contain" 
+                  />
+                </motion.div>
+
+                {/* ANNEAU D'ORBITE 1 (PETIT - ROTATION HORAIRE) */}
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 30, ease: "linear" }}
+                  className="absolute w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] rounded-full border border-dashed border-white/25 pointer-events-none"
+                >
+                  <div className="absolute -top-5 left-1/2 -translate-x-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#201611] border border-white/20 shadow-lg flex items-center justify-center text-[#e3bd51] pointer-events-auto hover:scale-110 transition-transform">
+                    <ShieldCheck className="w-5 h-5 text-[#e3bd51]" />
+                  </div>
+                  <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#e3bd51] text-[#100906] font-bold text-xs flex items-center justify-center pointer-events-auto hover:scale-110 transition-transform shadow-lg">
+                    <Crown className="w-5 h-5 text-[#100906]" />
+                  </div>
+                </motion.div>
+
+                {/* ANNEAU D'ORBITE 2 (MOYEN - ROTATION ANTI-HORAIRE) */}
+                <motion.div
+                  animate={{ rotate: -360 }}
+                  transition={{ repeat: Infinity, duration: 45, ease: "linear" }}
+                  className="absolute w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] rounded-full border border-dashed border-white/20 pointer-events-none"
+                >
+                  <div className="absolute top-1/2 -right-5 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#201611] border border-white/20 shadow-lg flex items-center justify-center text-[#e3bd51] pointer-events-auto hover:scale-110 transition-transform">
+                    <GraduationCap className="w-5 h-5 text-[#e3bd51]" />
+                  </div>
+                  <div className="absolute top-1/2 -left-5 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#201611] border border-white/20 shadow-lg flex items-center justify-center text-[#e3bd51] pointer-events-auto hover:scale-110 transition-transform">
+                    <Calendar className="w-5 h-5 text-[#e3bd51]" />
+                  </div>
+                </motion.div>
+
+                {/* ANNEAU D'ORBITE 3 (GRAND - ROTATION DOUCE HORAIRE) */}
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 60, ease: "linear" }}
+                  className="absolute w-[370px] h-[370px] sm:w-[420px] sm:h-[420px] rounded-full border border-dashed border-white/15 pointer-events-none hidden sm:block"
+                >
+                  <div className="absolute -top-5 left-1/4 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#201611] border border-white/20 shadow-lg flex items-center justify-center text-[#e3bd51] pointer-events-auto hover:scale-110 transition-transform">
+                    <TrendingUp className="w-5 h-5 text-[#e3bd51]" />
+                  </div>
+                  <div className="absolute -bottom-5 right-1/4 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#201611] border border-white/20 shadow-lg flex items-center justify-center text-[#e3bd51] pointer-events-auto hover:scale-110 transition-transform">
+                    <Users className="w-5 h-5 text-[#e3bd51]" />
+                  </div>
+                </motion.div>
+
+              </div>
+
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* 7. NOTRE HISTOIRE - C'EST QUOI NFL ? (AVEC SLIDER VERTICAL INFINI À DROITE) */}
+      <section className="section-y bg-[#fdfbf7] border-t border-black/5 relative overflow-hidden">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
+            
+            {/* COLONNE GAUCHE : TEXTE CENTRÉ ET ÉLÉGANT */}
+            <motion.div
+              className="lg:col-span-7 space-y-6"
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+              variants={fadeUp}
+            >
+              <div>
+                <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[#8c591a] mb-3">
+                  <Sparkles className="w-3.5 h-3.5 text-[#d4af37]" />
+                  Notre Histoire
+                </span>
+                <h2 className="text-lvl-title text-[#100906] mb-2">
+                  <EditableText value={content.about.title || "C'est quoi NFL?"} onSave={makeFieldSaver("about", "title")} label="Titre" />
+                </h2>
+                <p className="text-lvl-subtitle text-[#8c591a] font-semibold mb-4">
+                  <EditableText value={content.about.subtitle || "Une vision née de l'exigence"} onSave={makeFieldSaver("about", "subtitle")} label="Sous-titre" />
+                </p>
+              </div>
+
+              <p className="text-[#444] text-base sm:text-lg leading-relaxed font-normal">
+                <EditableText value={content.about.paragraph || ""} onSave={makeFieldSaver("about", "paragraph")} label="Paragraphe" multiline as="div" />
+              </p>
+
+              {/* VALEURS ET ENGAGEMENTS */}
+              <div className="pt-2 border-t border-black/5">
+                <p className="text-[#100906] text-xs font-bold uppercase tracking-wider mb-3">
+                  <EditableText value={content.about.valuesIntro || "Notre approche repose sur trois principes :"} onSave={makeFieldSaver("about", "valuesIntro")} label="Intro des valeurs" />
+                </p>
+                <div className="flex flex-wrap items-center gap-3">
+                  {(content.about.values || []).map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="group relative flex items-center gap-2 text-[#100906] font-semibold text-xs uppercase tracking-wider bg-white rounded-full px-4 py-2 shadow-sm border border-black/10"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#8c591a] shrink-0" />
+                      <span>
+                        <EditableText value={item} onSave={makeStringListItemSaver("about", "values", idx)} label="Valeur" />
                       </span>
-                      {isEditMode && (content.spotlight.bullets || []).length > 1 && (
-                        <button onClick={() => removeStringListItem("spotlight", "bullets", idx)} className="text-destructive opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      {isEditMode && (content.about.values || []).length > 1 && (
+                        <button onClick={() => removeStringListItem("about", "values", idx)} className="text-destructive opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                           <X className="w-3.5 h-3.5" />
                         </button>
                       )}
-                    </li>
+                    </div>
                   ))}
-                </ul>
-                {isEditMode && (
-                  <AddInlineButton onClick={() => addStringListItem("spotlight", "bullets", "Nouveau point clé")} label="Ajouter un point clé" />
-                )}
+                  {isEditMode && (
+                    <AddInlineButton onClick={() => addStringListItem("about", "values", "Nouvelle valeur")} label="Ajouter une valeur" />
+                  )}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* COLONNE DROITE : SLIDER VERTICAL INFINI (EXACTEMENT SELON LE CODE DU CLIENT) */}
+            {/* COLONNE DROITE : SLIDER VERTICAL INFINI (DÉFILEMENT LIBRE SANS BOÎTE CONTENEUR) */}
+            <motion.div
+              className="lg:col-span-5 flex justify-center"
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={viewportOnce}
+              transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {/* ZONE DE DÉFILEMENT LIBRE */}
+              <div className="flex h-[360px] sm:h-[400px] space-x-4 sm:space-x-5 justify-center relative overflow-hidden w-full max-w-[320px] sm:max-w-[350px]">
+                {/* DÉGRADÉS HAUT ET BAS POUR EFFET DE FONDU TRANSPARENT ET FLUIDE */}
+                <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-[#fdfbf7] via-[#fdfbf7]/80 to-transparent z-10 pointer-events-none" />
+                <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-[#fdfbf7] via-[#fdfbf7]/80 to-transparent z-10 pointer-events-none" />
+
+                {/* COLONNE SLIDER 1 (DESCENDANTE) */}
+                <InfiniteSlider direction="vertical" duration={22}>
+                  <img
+                    src={heroImage1}
+                    alt="NFL Séminaire 1"
+                    className="aspect-square w-[120px] sm:w-[130px] rounded-[1.25rem] object-cover shadow-md hover:scale-105 transition-transform duration-300 border border-black/5"
+                  />
+                  <img
+                    src={nflImg1}
+                    alt="NFL Formation 1"
+                    className="aspect-square w-[120px] sm:w-[130px] rounded-[1.25rem] object-cover shadow-md hover:scale-105 transition-transform duration-300 border border-black/5"
+                  />
+                  <img
+                    src={nflImg5}
+                    alt="NFL Événement"
+                    className="aspect-square w-[120px] sm:w-[130px] rounded-[1.25rem] object-cover shadow-md hover:scale-105 transition-transform duration-300 border border-black/5"
+                  />
+                  <img
+                    src={louisePhoto}
+                    alt="Louise Ongoum"
+                    className="aspect-square w-[120px] sm:w-[130px] rounded-[1.25rem] object-cover shadow-md hover:scale-105 transition-transform duration-300 border border-black/5"
+                  />
+                  <img
+                    src={nflImg3}
+                    alt="Atelier NFL"
+                    className="aspect-square w-[120px] sm:w-[130px] rounded-[1.25rem] object-cover shadow-md hover:scale-105 transition-transform duration-300 border border-black/5"
+                  />
+                  <img
+                    src={nflTourisme}
+                    alt="Tourisme NFL"
+                    className="aspect-square w-[120px] sm:w-[130px] rounded-[1.25rem] object-cover shadow-md hover:scale-105 transition-transform duration-300 border border-black/5"
+                  />
+                </InfiniteSlider>
+
+                {/* COLONNE SLIDER 2 (MONTANTE / INVERSE) */}
+                <InfiniteSlider direction="vertical" reverse duration={26}>
+                  <img
+                    src={louisePhotoFull}
+                    alt="Louise Ongoum portrait"
+                    className="aspect-square w-[120px] sm:w-[130px] rounded-[1.25rem] object-cover shadow-md hover:scale-105 transition-transform duration-300 border border-black/5"
+                  />
+                  <img
+                    src={nflImg2}
+                    alt="Conférence NFL"
+                    className="aspect-square w-[120px] sm:w-[130px] rounded-[1.25rem] object-cover shadow-md hover:scale-105 transition-transform duration-300 border border-black/5"
+                  />
+                  <img
+                    src={nflImg6}
+                    alt="Formation NFL"
+                    className="aspect-square w-[120px] sm:w-[130px] rounded-[1.25rem] object-cover shadow-md hover:scale-105 transition-transform duration-300 border border-black/5"
+                  />
+                  <img
+                    src={heroImage1}
+                    alt="Masterclass"
+                    className="aspect-square w-[120px] sm:w-[130px] rounded-[1.25rem] object-cover shadow-md hover:scale-105 transition-transform duration-300 border border-black/5"
+                  />
+                  <img
+                    src={nflImg1}
+                    alt="Accompagnement NFL"
+                    className="aspect-square w-[120px] sm:w-[130px] rounded-[1.25rem] object-cover shadow-md hover:scale-105 transition-transform duration-300 border border-black/5"
+                  />
+                  <img
+                    src={nflImg5}
+                    alt="Séminaire d'élite"
+                    className="aspect-square w-[120px] sm:w-[130px] rounded-[1.25rem] object-cover shadow-md hover:scale-105 transition-transform duration-300 border border-black/5"
+                  />
+                </InfiniteSlider>
+              </div>
+            </motion.div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 8. FAQ - DESIGN INSPIRÉ DE LA SECONDE MAQUETTE RÉFÉRENCE */}
+      <section id="faq" className="section-y bg-[#fcfbfa] border-t border-black/5 relative overflow-hidden">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+            
+            {/* GAUCHE : TITRE + CARTE DE CONTACT SUPPORT (STYLE MAQUETTE 2) */}
+            <motion.div
+              className="lg:col-span-5 space-y-8"
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+              variants={fadeUp}
+            >
+              <div>
+                <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[#8c591a] mb-2">
+                  <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-pulse" />
+                  FAQs
+                </span>
+                <h2 className="font-sans text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#100906] tracking-tight leading-tight">
+                  Foire aux questions
+                </h2>
+              </div>
+
+              {/* CARTE BOOK CALL / CONTACT DIRECT (STYLE MAQUETTE 2) */}
+              <div className="bg-white rounded-[2.2rem] p-7 sm:p-8 border border-black/10 shadow-[0_20px_50px_rgba(0,0,0,0.06)] relative overflow-hidden">
+                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#d4af37] mb-5 shadow-md">
+                  <img src={louisePhoto} alt="Louise Ongoum" className="w-full h-full object-cover" />
+                </div>
+                <h3 className="font-sans text-xl sm:text-2xl font-bold text-[#100906] mb-2">
+                  Une question spécifique ?
+                </h3>
+                <p className="text-[#666] text-xs sm:text-sm leading-relaxed mb-6 font-normal">
+                  Échangez directement avec notre équipe pour discuter de vos besoins en formation ou accompagnement.
+                </p>
                 <Link
-                  to={content.spotlight.ctaLink || "/catalogue-formations"}
-                  className="block text-center bg-[#655410] hover:bg-[#52440b] text-white font-bold text-lvl-footer uppercase tracking-wider py-3.5 px-6 rounded-none transition-colors shadow-sm mt-4"
-                  onClick={isEditMode ? (e) => e.preventDefault() : undefined}
+                  to="/contact"
+                  className="block w-full text-center bg-[#100906] hover:bg-[#8c591a] text-white font-bold text-xs uppercase tracking-wider py-3.5 px-6 rounded-full transition-colors shadow-sm"
                 >
-                  {isEditMode ? (
-                    <EditableText value={content.spotlight.ctaText || ""} onSave={makeFieldSaver("spotlight", "ctaText")} label="Texte du bouton" />
-                  ) : content.spotlight.ctaText}
+                  Prendre Rendez-vous
                 </Link>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
+            </motion.div>
 
-      {/* 5. TEMOIGNAGES - Linear Infinite Marquee */}
-      <section className="section-y bg-[#0a0b0d] overflow-hidden relative">
-        <div className="container mx-auto px-4 mb-10 md:mb-14 text-center">
-          <span className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-[0.2em] block">NFL Impact</span>
-          <h2 className="text-lvl-title text-white mt-3">
-            Témoignages
-          </h2>
-          <div className="w-16 h-[3px] bg-gradient-to-r from-[#b89535] via-[#e3bd51] to-[#b89535] mx-auto mt-5 rounded-full" />
-        </div>
-
-        <div className="w-full relative">
-          {/* Subtle edge fade overlays for smooth scrolling transition */}
-          <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
-          <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
-
-          {isEditMode && (
-            <div className="flex items-center gap-2 text-white/50 text-lvl-footer mb-4 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 w-fit relative z-20">
-              <Info className="w-3.5 h-3.5 text-[#e3bd51] shrink-0" />
-              Les témoignages affichés ici sont gérés depuis l'onglet <strong className="text-white/80">Témoignages</strong>.
-            </div>
-          )}
-          {/* Marquee Track */}
-          {marqueeTestimonials.length > 0 && (
-            <div className={`flex animate-marquee gap-6 w-max ${isEditMode ? "pointer-events-none" : ""}`}>
-              {marqueeTestimonials.map((t, index) => {
-                const initials = t.author_name
-                  ? t.author_name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
-                  : "NFL";
-                return (
-                  <div
-                    key={`${t.id}-${index}`}
-                    className="w-[280px] sm:w-[320px] min-h-[300px] bg-[#282a2e] border border-white/5 p-6 sm:p-7 rounded-none flex flex-col justify-between shrink-0 shadow-2xl h-auto"
-                  >
-                    <p className="italic text-white/90 text-lvl-body tracking-wide">
-                      "{t.quote}"
-                    </p>
-
-                    <div className="flex items-end gap-3.5 mt-auto pt-6">
-                      {t.avatar_url ? (
-                        <img src={t.avatar_url} alt={t.author_name} className="w-10 h-10 rounded-none object-cover shrink-0" />
-                      ) : (
-                        <div className="w-10 h-10 bg-[#e3bd51] text-black font-bold text-lvl-footer flex items-center justify-center rounded-none shrink-0">
-                          {initials}
-                        </div>
-                      )}
-                      <div>
-                        <p className="text-white font-bold text-lvl-body leading-tight">{t.author_name}</p>
-                        <p className="text-[#e3bd51] text-lvl-footer font-semibold uppercase tracking-wider mt-0.5">
-                          {[t.author_role, t.author_company].filter(Boolean).join(", ").toUpperCase()}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* 6. PRÊT À ÉLEVER VOS STANDARDS ? (CTA) */}
-      <section id="contact" className="section-y bg-[#e2dfdb] text-center border-t border-black/10">
-        <div className="container mx-auto px-4 max-w-2xl">
-          <h2 className="text-lvl-title text-[#1c1c1c] mb-4">
-            <EditableText value={content.ctaSection.title || ""} onSave={makeFieldSaver("ctaSection", "title")} label="Titre" />
-          </h2>
-          <p className="text-[#555] text-lvl-body mb-8 max-w-xl mx-auto font-normal">
-            <EditableText value={content.ctaSection.description || ""} onSave={makeFieldSaver("ctaSection", "description")} label="Description" multiline as="div" />
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
-              onClick={isEditMode ? undefined : () => navigate("/contact")}
-              className="bg-[#655410] hover:bg-[#52440b] text-white font-bold text-lvl-footer uppercase tracking-wider py-3.5 px-8 rounded-none shadow-sm transition-colors"
+            {/* DROITE : ACCORDÉON PILLULES (STYLE MAQUETTE 2) */}
+            <motion.div
+              className="lg:col-span-7"
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+              variants={fadeUp}
             >
-              {isEditMode ? (
-                <EditableText value={content.ctaSection.primaryBtnText || ""} onSave={makeFieldSaver("ctaSection", "primaryBtnText")} label="Bouton principal" />
-              ) : content.ctaSection.primaryBtnText}
-            </button>
-            <button
-              onClick={isEditMode ? undefined : () => navigate("/contact")}
-              className="border border-black/30 bg-transparent hover:bg-black/5 text-[#1c1c1c] font-bold text-lvl-footer uppercase tracking-wider py-3.5 px-8 rounded-none transition-colors"
-            >
-              {isEditMode ? (
-                <EditableText value={content.ctaSection.secondaryBtnText || ""} onSave={makeFieldSaver("ctaSection", "secondaryBtnText")} label="Bouton secondaire" />
-              ) : content.ctaSection.secondaryBtnText}
-            </button>
-          </div>
-        </div>
-      </section>
+              <Accordion type="single" collapsible className="w-full space-y-3.5">
+                {[
+                  { q: "Quels types de formations proposez-vous ?", a: "Nous proposons des masterclass intensives (publiques), des séminaires d'entreprise intra et inter, ainsi que des formations privées sur-mesure axées sur le leadership, le management et le closing commercial." },
+                  { q: "Comment puis-je réserver ma place pour un événement ?", a: "Vous pouvez réserver directement en ligne via la section 'Prochaines dates' de notre site. Une fois le paiement validé, vous recevrez votre billet sécurisé par email avec un QR code." },
+                  { q: "Avez-vous des programmes d'accompagnement spécifiques pour les cadres dirigeants ?", a: "Tout à fait. LOUISE AUDYLL Ongoum accompagne personnellement des cadres dirigeants en One-to-One pour débloquer leur potentiel de leadership et affiner leur vision stratégique." },
+                  { q: "Intervenez-vous en dehors du Gabon ?", a: "Oui, nous pouvons concevoir et délivrer des formations dans toute l'Afrique francophone et à l'international, selon la demande des entreprises." },
+                  { q: "Quels sont les modes de paiement acceptés pour vos formations ?", a: "Pour les séminaires publics, vous pouvez payer via Mobile Money (Airtel Money, Moov Africa) ou par carte bancaire. Pour les formations privées en entreprise, un virement bancaire classique est mis en place." },
+                ].map((item, idx) => (
+                  <AccordionItem key={idx} value={`item-${idx}`} className="bg-white border border-black/10 rounded-[1.5rem] px-6 shadow-sm data-[state=open]:shadow-md data-[state=open]:border-[#d4af37]/50 transition-all duration-300 overflow-hidden">
+                    <AccordionTrigger className="text-base sm:text-lg font-bold text-[#100906] hover:text-[#8c591a] hover:no-underline py-5 text-left">
+                      <span>{item.q}</span>
+                    </AccordionTrigger>
+                    <AccordionContent className="text-[#555] text-sm sm:text-base leading-relaxed pb-6 pt-1 font-normal">
+                      {item.a}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </motion.div>
 
-      {/* 7. C'EST QUOI NFL ? */}
-      <section className="section-y bg-[#e8e6e2] border-t-8 border-black text-center">
-        <div className="container mx-auto px-4 max-w-3xl">
-          <h2 className="text-lvl-title text-[#1c1c1c] mb-6">
-            <EditableText value={content.about.title || ""} onSave={makeFieldSaver("about", "title")} label="Titre" />
-          </h2>
-          <p className="text-[#444] text-lvl-subtitle font-normal mb-6">
-            <EditableText value={content.about.subtitle || ""} onSave={makeFieldSaver("about", "subtitle")} label="Sous-titre" />
-          </p>
-          <p className="text-[#555] text-lvl-body mb-8 max-w-2xl mx-auto font-normal">
-            <EditableText value={content.about.paragraph || ""} onSave={makeFieldSaver("about", "paragraph")} label="Paragraphe" multiline as="div" />
-          </p>
-          <p className="text-[#333] text-lvl-body font-medium mb-4">
-            <EditableText value={content.about.valuesIntro || ""} onSave={makeFieldSaver("about", "valuesIntro")} label="Intro des valeurs" />
-          </p>
-          <div className="flex flex-col items-start gap-3 max-w-xs mx-auto">
-            {(content.about.values || []).map((item, idx) => (
-              <div
-                key={idx}
-                className="group relative flex items-center gap-3 text-[#333] font-medium text-lvl-body w-full"
-              >
-                <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#655410]/10 border border-[#655410]/30 flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-4 h-4 sm:w-[18px] sm:h-[18px] text-[#655410] shrink-0" />
-                </span>
-                <span className="font-semibold tracking-wide">
-                  <EditableText value={item} onSave={makeStringListItemSaver("about", "values", idx)} label="Valeur" />
-                </span>
-                {isEditMode && (content.about.values || []).length > 1 && (
-                  <button onClick={() => removeStringListItem("about", "values", idx)} className="text-destructive opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-auto">
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-            ))}
-            {isEditMode && (
-              <AddInlineButton onClick={() => addStringListItem("about", "values", "Nouvelle valeur")} label="Ajouter une valeur" />
-            )}
           </div>
         </div>
       </section>
-
-      {/* 6. FAQ 
-      <section id="faq" className="py-20 bg-card border-t border-border">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="font-display text-4xl font-bold text-foreground mb-4">Foire aux <span className="text-gradient-gold">questions</span></h2>
-              <p className="text-muted-foreground text-lg">Tout ce que vous devez savoir sur nos services d'accompagnement.</p>
-            </div>
-            <Accordion type="single" collapsible className="w-full space-y-4">
-              {[
-                { q: "Quels types de formations proposez-vous ?", a: "Nous proposons des masterclass intensives (publiques), des séminaires d'entreprise intra et inter, ainsi que des formations privées sur-mesure axées sur le leadership, le management et le closing commercial." },
-                { q: "Comment puis-je réserver ma place pour un événement ?", a: "Vous pouvez réserver directement en ligne via la section 'Prochaines dates' de notre site. Une fois le paiement validé, vous recevrez votre billet sécurisé par email avec un QR code." },
-                { q: "Avez-vous des programmes d'accompagnement spécifiques pour les cadres dirigeants ?", a: "Tout à fait. LOUISE AUDYLL Ongoum accompagne personnellement des cadres dirigeants en One-to-One pour débloquer leur potentiel de leadership et affiner leur vision stratégique." },
-                { q: "Intervenez-vous en dehors du Gabon ?", a: "Oui, nous pouvons concevoir et délivrer des formations dans toute l'Afrique francophone et à l'international, selon la demande des entreprises." },
-                { q: "Quels sont les modes de paiement acceptés pour vos formations ?", a: "Pour les séminaires publics, vous pouvez payer via Mobile Money (Airtel Money, Moov Africa) ou par carte bancaire. Pour les formations privées en entreprise, un virement bancaire classique est mis en place." }
-              ].map((item, idx) => (
-                <AccordionItem key={idx} value={`item-${idx}`} className="glass-card border border-border bg-background rounded-2xl px-6 data-[state=open]:border-gold/40 transition-colors">
-                  <AccordionTrigger className="text-lg font-semibold hover:text-gold hover:no-underline py-5 text-left">{item.q}</AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-6">
-                    {item.a}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
-        </div>
-      </section>
-      */}
 
       {/* PARTENAIRES & SPONSORS — logos gérés depuis l'éditeur visuel */}
-      <section className="py-10 bg-[#0a0b0d] border-y border-white/5 overflow-hidden relative">
+      <section className="py-10 bg-sand border-y border-black/5 overflow-hidden relative">
         {isEditMode ? (
           <div className="container mx-auto px-4">
-            <div className="flex items-center gap-2 text-white/50 text-lvl-footer mb-5 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 w-fit">
-              <Info className="w-3.5 h-3.5 text-[#e3bd51] shrink-0" />
+            <div className="flex items-center gap-2 text-ink/60 text-lvl-footer mb-5 bg-black/5 border border-black/10 rounded-lg px-4 py-2.5 w-fit">
+              <Info className="w-3.5 h-3.5 text-gold-dark shrink-0" />
               Logos partenaires &amp; sponsors, affichés en boucle sur l'accueil et le catalogue formations.
             </div>
             <div className="flex flex-wrap gap-4">
               {content.partners.map((p, idx) => (
-                <div key={idx} className="group relative w-40 h-24 bg-white/5 border border-white/10 rounded-lg flex flex-col items-center justify-center gap-2 p-3">
+                <div key={idx} className="group relative w-40 h-24 bg-white border border-black/10 rounded-xl flex flex-col items-center justify-center gap-2 p-3">
                   {content.partners.length > 1 && (
                     <RemoveItemButton onClick={() => removeListItem("partners", idx)} label="Retirer ce partenaire" />
                   )}
@@ -804,11 +914,11 @@ const Index = () => {
                     className="max-w-full max-h-12 object-contain"
                     wrapperClassName={cn(
                       "w-full h-12 flex items-center justify-center",
-                      !p.logo_url && "border border-dashed border-white/20 rounded"
+                      !p.logo_url && "border border-dashed border-black/15 rounded"
                     )}
                     onSave={(url) => makeArrayItemFieldSaver("partners", idx, "logo_url")(url)}
                   />
-                  <span className="text-white/60 text-lvl-footer font-semibold text-center w-full truncate">
+                  <span className="text-ink/60 text-lvl-footer font-semibold text-center w-full truncate">
                     <EditableText value={p.name || ""} onSave={makeArrayItemFieldSaver("partners", idx, "name")} label="Nom du partenaire" />
                   </span>
                 </div>
@@ -822,8 +932,8 @@ const Index = () => {
           </div>
         ) : (
           <div className="w-full relative">
-            <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
-            <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-[#0a0b0d] to-transparent z-10 pointer-events-none" />
+            <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-sand to-transparent z-10 pointer-events-none" />
+            <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-sand to-transparent z-10 pointer-events-none" />
 
             <div className="flex gap-8 sm:gap-12 w-max py-1 animate-marquee items-center">
               {Array.from({ length: 3 }).map((_, outerIdx) => (
@@ -834,12 +944,12 @@ const Index = () => {
                         key={idx}
                         src={p.logo_url}
                         alt={p.name || "Partenaire NFL Courtier & Service"}
-                        className="h-16 sm:h-20 w-auto max-w-[180px] sm:max-w-[240px] object-contain opacity-90 hover:opacity-100 transition-all shrink-0"
+                        className="h-16 sm:h-20 w-auto max-w-[180px] sm:max-w-[240px] object-contain opacity-90 hover:opacity-100 hover:scale-105 transition-all shrink-0"
                       />
                     ) : (
                       <span
                         key={idx}
-                        className="text-white/40 hover:text-white/70 transition-colors text-lvl-subtitle tracking-[0.2em] uppercase font-bold shrink-0 whitespace-nowrap"
+                        className="text-ink/35 hover:text-ink/70 transition-colors text-lvl-subtitle tracking-[0.2em] uppercase font-bold shrink-0 whitespace-nowrap"
                       >
                         {p.name}
                       </span>

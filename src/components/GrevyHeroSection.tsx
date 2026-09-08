@@ -1,0 +1,217 @@
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { ArrowRight, Menu } from "lucide-react";
+import { EditableText } from "@/components/admin/editable/EditableText";
+import { useIsEditMode } from "@/lib/EditModeContext";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetDescription } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+
+// Assets locaux de NFL
+import nflLogoWhite from "@/assets/Logo_NFL_fond_blanc-removebg-preview.png";
+import nflLogoMark from "@/assets/LOGO_NFL-removebg-preview.png";
+import heroImage3 from "@/assets/louise2.jpeg";
+
+interface GrevyHeroSectionProps {
+  content: {
+    badge?: string;
+    titleLine1?: string;
+    titleLine2?: string;
+    subtitle?: string;
+    ctaPrimaryText?: string;
+    ctaPrimaryLink?: string;
+    ctaSecondaryText?: string;
+    ctaSecondaryLink?: string;
+    badgeCardTitle?: string;
+    badgeCardSubtitle?: string;
+  };
+  onSaveField: (field: string, value: string) => Promise<void>;
+}
+
+// Avatars professionnels pour le collage de squircles (style Grevy exact)
+const AVATARS = [
+  {
+    id: 1,
+    url: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80",
+    alt: "Expert NFL 1",
+  },
+  {
+    id: 2,
+    url: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80",
+    alt: "Expert NFL 2",
+  },
+  {
+    id: 3,
+    url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+    alt: "Expert NFL 3",
+  },
+  {
+    id: 4,
+    url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+    alt: "Expert NFL 4",
+  },
+  {
+    id: 5,
+    url: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=400&q=80",
+    alt: "Expert NFL 5",
+  },
+  {
+    id: 6,
+    url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
+    alt: "Expert NFL 6",
+  },
+];
+
+export const GrevyHeroSection = ({ content, onSaveField }: GrevyHeroSectionProps) => {
+  const isEditMode = useIsEditMode();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("accueil");
+
+  const guardNav = (path: string, fallback?: () => void) => (e: React.MouseEvent) => {
+    if (isEditMode) {
+      e.preventDefault();
+      return;
+    }
+    if (fallback) {
+      fallback();
+    } else {
+      navigate(path);
+    }
+  };
+
+  return (
+    <section className="relative w-full lg:h-screen lg:max-h-screen overflow-hidden bg-[#100906] text-white flex flex-col justify-between pt-20 sm:pt-24 lg:pt-24 pb-6 lg:pb-8 px-4 sm:px-6 lg:px-10 font-sans selection:bg-[#d4af37] selection:text-black">
+      {/* 1. ARRIÈRE-PLAN GRADIENT MESH DYNAMIQUE (COULEURS NFL: BRUN, OR, AMBRE, TERRACOTTA) */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Soft Mesh Gradient Orbs */}
+        <div className="absolute top-[-10%] left-[-10%] w-[65vw] h-[65vw] max-w-[750px] max-h-[750px] rounded-full bg-gradient-to-br from-[#8a4216] via-[#d4af37]/35 to-transparent blur-[140px] opacity-75 animate-pulse" />
+        <div className="absolute bottom-[-15%] right-[-10%] w-[70vw] h-[70vw] max-w-[850px] max-h-[850px] rounded-full bg-gradient-to-tl from-[#54210a] via-[#8c4b1a]/45 to-transparent blur-[160px] opacity-80" />
+        <div className="absolute top-[30%] left-[22%] w-[45vw] h-[45vw] max-w-[500px] max-h-[500px] rounded-full bg-[#d4af37]/20 blur-[130px] pointer-events-none" />
+        {/* Fine Noise overlay for high-end realistic texture */}
+        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] [background-size:24px_24px] opacity-60" />
+      </div>
+
+      {/* 2. HERO CONTENT GRID (FIT 100VH VIEWPORT) */}
+      <div className="relative z-20 w-full max-w-7xl mx-auto my-auto py-2 sm:py-4 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center">
+        
+        {/* --- COLONNE GAUCHE: TEXTE & CTAS --- */}
+        <motion.div
+          className="lg:col-span-6 space-y-4 sm:space-y-5 text-left"
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {/* Grand Titre Typographique (Fraunces Serif) : 2 Lignes L'Excellence au service de vos ambitions + 1 Ligne Accent */}
+          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-semibold tracking-tight text-white leading-[1.08] text-balance">
+            <span className="block">
+              <EditableText
+                value={content.titleLine1 || "L'Excellence au service"}
+                onSave={(v) => onSaveField("titleLine1", v)}
+                label="Titre ligne 1"
+                multiline
+              />
+            </span>
+            <span className="block mt-0.5">
+              <EditableText
+                value={content.titleLine2 || "de vos ambitions"}
+                onSave={(v) => onSaveField("titleLine2", v)}
+                label="Titre ligne 2"
+                multiline
+              />
+            </span>
+            <span className="block italic text-[#e3bd51] mt-1.5 font-normal">
+              <EditableText
+                value={content.ctaSecondaryText || "& le Prestige Événementiel"}
+                onSave={(v) => onSaveField("ctaSecondaryText", v)}
+                label="Titre ligne 3 (accent)"
+                multiline
+              />
+            </span>
+          </h1>
+
+          {/* Description & Corps de texte */}
+          <p className="text-white/80 text-sm sm:text-base max-w-lg font-light leading-relaxed">
+            <EditableText
+              value={
+                content.subtitle ||
+                "Nous accompagnons les entreprises, institutions, dirigeants et personnels dans leurs projets les plus ambitieux grâce à une expertise reconnue et une satisfaction client au cœur de notre activité."
+              }
+              onSave={(v) => onSaveField("subtitle", v)}
+              label="Sous-titre"
+              multiline
+              as="div"
+            />
+          </p>
+
+          {/* Bouton CTA Pilule Verre dépoli style Grevy */}
+          <div className="pt-1 flex items-center gap-4">
+            <Button
+              onClick={isEditMode ? undefined : () => navigate(content.ctaPrimaryLink || "/catalogue-formations")}
+              className="group relative h-12 sm:h-14 px-7 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-xl border border-white/30 text-white font-semibold text-xs sm:text-sm transition-all duration-300 shadow-[0_10px_40px_rgba(0,0,0,0.3)] hover:scale-105 active:scale-95 flex items-center gap-3.5"
+            >
+              <span>
+                {isEditMode ? (
+                  <EditableText
+                    value={content.ctaPrimaryText || "Découvrir nos services"}
+                    onSave={(v) => onSaveField("ctaPrimaryText", v)}
+                    label="Bouton principal"
+                  />
+                ) : (
+                  content.ctaPrimaryText || "Découvrir nos services"
+                )}
+              </span>
+              <div className="w-8 h-8 rounded-full bg-white/20 group-hover:bg-[#d4af37] group-hover:text-black transition-colors duration-300 flex items-center justify-center border border-white/30 shrink-0">
+                <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+              </div>
+            </Button>
+          </div>
+        </motion.div>
+
+        {/* --- COLONNE DROITE: DISPOSITION DES SQUIRCLES EN ESCALIER (STAIRCASE - CARTE AGRANDIES) --- */}
+        <motion.div
+          className="lg:col-span-6 relative flex items-center justify-center min-h-[420px] sm:min-h-[480px]"
+          initial={{ opacity: 0, scale: 0.94 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+        >
+          {/* SQUIRCLE GRID IN ESCALIER (STAIRCASE) FORMATION — TOUTES LES CARTES UNIFORMES */}
+          <div className="relative w-full max-w-[540px] h-[380px] sm:h-[440px] mx-auto lg:mr-0">
+
+            {/* MARCHE 1 (HAUT DROITE) */}
+            <div className="absolute top-[0%] left-[68%] -translate-x-1/2 w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] overflow-hidden border-2 border-white/30 shadow-2xl transition-transform hover:scale-105 hover:z-30 duration-300 bg-[#2a221e]">
+              <img src={AVATARS[0].url} alt={AVATARS[0].alt} className="w-full h-full object-cover" />
+            </div>
+
+            {/* MARCHE 2 (HAUT MILIEU & EXTRÊME DROITE) */}
+            <div className="absolute top-[22%] left-[44%] -translate-x-1/2 w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] overflow-hidden border-2 border-white/30 shadow-2xl transition-transform hover:scale-105 hover:z-30 duration-300 bg-[#7a482b]">
+              <img src={AVATARS[1].url} alt={AVATARS[1].alt} className="w-full h-full object-cover" />
+            </div>
+            <div className="absolute top-[18%] left-[88%] -translate-x-1/2 w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] overflow-hidden border-2 border-white/30 shadow-xl transition-transform hover:scale-105 hover:z-30 duration-300 bg-[#553b26]">
+              <img src={AVATARS[5].url} alt={AVATARS[5].alt} className="w-full h-full object-cover" />
+            </div>
+
+            {/* MARCHE 3 (MILIEU - BADGE SQUIRCLE LOGO NFL CENTRAL + AVATAR DROITE) */}
+            <div className="absolute top-[44%] left-[22%] -translate-x-1/2 w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] bg-white flex items-center justify-center p-3.5 border-2 border-white shadow-[0_25px_60px_rgba(0,0,0,0.6)] z-20 transition-transform hover:scale-105 duration-300">
+              <img src={nflLogoMark} alt="NFL Mark" className="w-full h-full object-contain filter drop-shadow-md" />
+            </div>
+            <div className="absolute top-[44%] left-[62%] -translate-x-1/2 w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] overflow-hidden border-2 border-white/30 shadow-2xl transition-transform hover:scale-105 hover:z-30 duration-300 bg-[#d4af37]">
+              <img src={AVATARS[2].url} alt={AVATARS[2].alt} className="w-full h-full object-cover" />
+            </div>
+
+            {/* MARCHE 4 (BAS GAUCHE & BAS MILIEU) */}
+            <div className="absolute top-[66%] left-[0%] w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] overflow-hidden border-2 border-white/30 shadow-2xl transition-transform hover:scale-105 hover:z-30 duration-300 bg-[#438a5e]">
+              <img src={AVATARS[3].url} alt={AVATARS[3].alt} className="w-full h-full object-cover" />
+            </div>
+            <div className="absolute top-[66%] left-[40%] -translate-x-1/2 w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] overflow-hidden border-2 border-white/30 shadow-2xl transition-transform hover:scale-105 hover:z-30 duration-300 bg-[#336688]">
+              <img src={AVATARS[4].url} alt={AVATARS[4].alt} className="w-full h-full object-cover" />
+            </div>
+
+          </div>
+        </motion.div>
+
+      </div>
+    </section>
+  );
+};
+
+export default GrevyHeroSection;

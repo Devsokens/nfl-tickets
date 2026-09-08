@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { NewsletterAPI } from "@/lib/api";
 import { useIsEditMode } from "@/lib/EditModeContext";
+import nflLogoWhite from "@/assets/Logo_NFL_fond_blanc-removebg-preview.png";
 
 const Navbar = () => {
   const location = useLocation();
@@ -17,7 +18,7 @@ const Navbar = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Scroll state for morphing navbar (floating pill when scrolled down)
+  // Scroll state for morphing navbar (shrinks into floating pill when scrolled)
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -56,17 +57,14 @@ const Navbar = () => {
     }
   };
 
+  // Active link: simple soulignement or, plutôt qu'un cadre/pilule.
   const navLinkClass = (active: boolean) =>
-    `text-lvl-footer font-bold uppercase tracking-wider transition-all duration-200 pb-1 border-b-2 ${
+    `text-xs sm:text-sm font-medium tracking-wide transition-all duration-300 px-4 py-2 flex items-center justify-center border-b-2 ${
       active
-        ? "text-[#e3bd51] border-[#e3bd51]"
-        : "text-white/80 border-transparent hover:text-[#e3bd51]"
+        ? "text-white font-semibold border-[#e3bd51]"
+        : "text-white/70 hover:text-white border-transparent"
     }`;
 
-  // Dans l'éditeur visuel de l'admin, ces liens pointent vers de vraies
-  // routes du site : les laisser actifs ferait quitter l'aperçu (et l'admin
-  // entier, puisque c'est la même appli). On neutralise donc la navigation
-  // ici tout en gardant l'apparence identique au site public.
   const guardNav = (fallback?: () => void) => (e: React.MouseEvent) => {
     if (isEditMode) {
       e.preventDefault();
@@ -76,38 +74,36 @@ const Navbar = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out pointer-events-none">
-      {/* Top Gold Accent Line */}
-      <div
-        className={`h-[3px] w-full bg-gradient-to-r from-[#b89535] via-[#e3bd51] to-[#b89535] transition-opacity duration-300 ${
-          isScrolled ? "opacity-0 h-0" : "opacity-100"
-        }`}
-      />
-
+    <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out">
       <div className={`transition-all duration-500 ease-in-out ${isScrolled ? "px-4 sm:px-8 pt-3" : "px-0 pt-0"}`}>
         <nav
-          className={`pointer-events-auto transition-all duration-500 ease-in-out flex items-center justify-between ${
+          className={`transition-all duration-500 ease-in-out flex items-center justify-between ${
             isScrolled
-              ? "max-w-5xl mx-auto h-14 sm:h-20 rounded-full bg-[#0c0d0f]/90 backdrop-blur-xl border border-[#e3bd51]/30 shadow-[0_15px_40px_rgba(0,0,0,0.8)] px-5 sm:px-8"
-              : "w-full h-20 sm:h-28 rounded-none bg-[#0c0d0f]/95 backdrop-blur-md border-b border-white/10 px-4 sm:px-8"
+              ? "max-w-xl sm:max-w-2xl mx-auto h-11 sm:h-12 rounded-full bg-[#100906]/90 backdrop-blur-xl border border-white/20 shadow-[0_15px_35px_rgba(0,0,0,0.8)] px-4 sm:px-6"
+              : isHome
+              ? "w-full h-20 sm:h-24 rounded-none bg-transparent border-none px-4 sm:px-10"
+              : "w-full h-20 sm:h-24 rounded-none bg-[#100906]/95 backdrop-blur-md border-b border-white/10 px-4 sm:px-10"
           }`}
         >
-          <div className="container mx-auto px-0 h-full flex items-center justify-between">
-            <Link
-              to="/"
-              onClick={guardNav(() => window.scrollTo({ top: 0, behavior: "smooth" }))}
-              className="shrink-0"
-            >
-              <img
-                src="/assets/Logo_NFL_fond_marron__écrits_jaune_-removebg-preview.png"
-                alt="NFL Courtier & Service"
-                className="nfl-logo transition-all duration-500"
-                style={{ height: isScrolled ? "clamp(2.5rem, 8vw, 4rem)" : "clamp(3.5rem, 14vw, 5.5rem)" }}
-              />
-            </Link>
+          <div className={`w-full mx-auto h-full flex items-center ${isScrolled ? "justify-center sm:justify-between" : "justify-between"}`}>
+            {/* Logo (Left) — Masqué au scroll selon la demande */}
+            {!isScrolled && (
+              <Link
+                to="/"
+                onClick={guardNav(() => window.scrollTo({ top: 0, behavior: "smooth" }))}
+                className="shrink-0 flex items-center gap-3 group"
+              >
+                <img
+                  src="/assets/Logo_NFL_fond_marron__écrits_jaune_-removebg-preview.png"
+                  alt="NFL Courtier & Service"
+                  className="nfl-logo transition-all duration-500 object-contain drop-shadow"
+                  style={{ height: "clamp(3.25rem, 8vw, 4.25rem)" }}
+                />
+              </Link>
+            )}
 
-            {/* Centered navigation links on desktop */}
-            <div className="hidden lg:flex items-center gap-8 xl:gap-10">
+            {/* Centered Navigation Links */}
+            <div className={`hidden lg:flex items-center ${isScrolled ? "gap-1 mx-auto" : "gap-2"}`}>
               <Link
                 to="/"
                 onClick={guardNav(() => window.scrollTo({ top: 0, behavior: "smooth" }))}
@@ -130,28 +126,29 @@ const Navbar = () => {
               </Link>
             </div>
 
-            {/* Right action button on desktop */}
+            {/* Right Action Button (Audivoxa Pill CTA) */}
             <div className="hidden lg:block shrink-0">
               <Button
-                variant="gold"
+                variant="outline"
                 size="sm"
-                className={`px-6 text-lvl-footer font-bold uppercase tracking-widest bg-[#e3bd51] hover:bg-[#d4af37] text-black transition-all ${
-                  isScrolled ? "rounded-full py-2" : "rounded-none py-2.5"
+                className={`text-xs font-semibold uppercase tracking-wider border-white/30 text-white bg-transparent hover:bg-white hover:text-black transition-all duration-300 shadow-md ${
+                  isScrolled ? "rounded-full px-3.5 py-1 text-[11px]" : "rounded-full px-5 py-2"
                 }`}
                 asChild
               >
-                <Link to="/events" onClick={guardNav()}>RÉSERVER</Link>
+                <Link to="/contact" onClick={guardNav()}>RÉSERVER</Link>
               </Button>
             </div>
 
+            {/* Mobile Sheet Navigation */}
             <div className="lg:hidden">
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+                  <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-full">
                     <Menu className="h-6 w-6" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="bg-[#0c0d0f]/98 backdrop-blur-md border-l-white/10 flex flex-col pt-16 gap-5 text-white">
+                <SheetContent side="right" className="bg-[#0a0a0c]/98 backdrop-blur-2xl border-l-white/10 flex flex-col pt-16 gap-5 text-white">
                   <SheetHeader>
                     <SheetDescription className="sr-only text-left">Menu de navigation mobile pour NFL Courtier & Service</SheetDescription>
                   </SheetHeader>
@@ -161,8 +158,8 @@ const Navbar = () => {
                   <Link to="/catalogue-formations" onClick={guardNav()} className="text-lvl-subtitle font-bold uppercase tracking-wide text-white hover:text-[#e3bd51] transition-colors">Catalogue Formation</Link>
                   <Link to="/contact" onClick={guardNav()} className="text-lvl-subtitle font-bold uppercase tracking-wide text-white hover:text-[#e3bd51] transition-colors">Contact</Link>
 
-                  <Button variant="gold" className="w-full mt-2 bg-[#e3bd51] text-black rounded-none" asChild>
-                    <Link to="/events" onClick={guardNav()}>RÉSERVER</Link>
+                  <Button variant="outline" className="w-full mt-2 border-white/30 text-white rounded-full py-3 hover:bg-white hover:text-black" asChild>
+                    <Link to="/contact" onClick={guardNav()}>RÉSERVER</Link>
                   </Button>
 
                   <div className="mt-8 pt-8 border-t border-white/10 space-y-4">
@@ -175,9 +172,9 @@ const Navbar = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="bg-white/10 text-white placeholder:text-white/50 border border-white/20 rounded-none px-4 py-3 text-lvl-footer focus:outline-none focus:ring-2 focus:ring-[#e3bd51]/50"
+                        className="bg-white/10 text-white placeholder:text-white/50 border border-white/20 rounded-xl px-4 py-3 text-lvl-footer focus:outline-none focus:ring-2 focus:ring-[#e3bd51]/50"
                       />
-                      <Button variant="gold" className="w-full bg-[#e3bd51] text-black rounded-none" disabled={isLoading}>
+                      <Button variant="gold" className="w-full bg-[#e3bd51] text-black rounded-xl" disabled={isLoading}>
                         {isLoading ? "En cours..." : "S'abonner"}
                       </Button>
                     </form>

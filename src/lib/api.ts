@@ -59,6 +59,7 @@ export interface SiteSettings {
   instagram_url?: string;
   linkedin_url?: string;
   twitter_url?: string;
+  youtube_url?: string;
   meta_title_suffix?: string;
   meta_description_default?: string;
   og_image_url?: string | null;

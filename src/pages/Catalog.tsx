@@ -253,52 +253,7 @@ const Catalog = () => {
         </div>
       </section>
 
-      {/* 2. NFL EN QUELQUES CHIFFRES - INFINITE MARQUEE SCROLL */}
-      <section className="py-10 sm:py-14 bg-[#090a0c] border-b border-white/10 overflow-hidden">
-        <div className="container mx-auto px-4 max-w-6xl text-center mb-8">
-          <h2 className="text-[#c29c38] text-lvl-title uppercase tracking-[0.1em]">
-            NFL EN QUELQUES CHIFFRES
-          </h2>
-        </div>
 
-        {isEditMode ? (
-          <div className="container mx-auto px-4 max-w-4xl space-y-3">
-            {content.stats.map((stat, idx) => (
-              <div key={idx} className="flex items-center gap-3 border border-white/10 rounded-xl p-3">
-                <input
-                  value={stat.number || ""}
-                  onChange={(e) => updateStat(idx, { number: e.target.value })}
-                  className="w-20 bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-center text-lvl-body text-[#e3bd51] font-bold"
-                />
-                <input
-                  value={stat.label || ""}
-                  onChange={(e) => updateStat(idx, { label: e.target.value })}
-                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-lvl-body text-white"
-                />
-                {content.stats.length > 1 && (
-                  <button onClick={() => removeStat(idx)} className="text-destructive shrink-0"><X className="w-4 h-4" /></button>
-                )}
-              </div>
-            ))}
-            <AddInlineButton onClick={addStat} label="Ajouter un chiffre" />
-          </div>
-        ) : (
-          <div className="relative w-full overflow-hidden">
-            <div className="flex animate-marquee gap-16 sm:gap-24 items-center w-max py-2">
-              {[...content.stats, ...content.stats, ...content.stats].map((stat, idx) => (
-                <div key={idx} className="flex flex-col items-center text-center shrink-0">
-                  <span className="text-lvl-hero text-[#e3bd51] leading-none">
-                    {stat.number}
-                  </span>
-                  <span className="text-white/80 text-lvl-footer font-medium uppercase tracking-widest mt-2.5 whitespace-nowrap">
-                    {stat.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </section>
 
       {/* 3. NOS ÉVÉNEMENTS D'ÉLITE */}
       <section id="events-grid">

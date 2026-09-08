@@ -8,7 +8,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { HelmetProvider } from 'react-helmet-async';
 import { mockEvents } from "@/lib/mockData";
-import FloatingContact from "@/components/FloatingContact";
 
 // Lazy loading for optimized bundle size
 const Index = lazy(() => import("./pages/Index.tsx"));
@@ -102,7 +101,6 @@ const App = () => (
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <AnalyticsTracker />
-          <FloatingContactWrapper />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<Index />} />
@@ -125,12 +123,5 @@ const App = () => (
     </QueryClientProvider>
   </HelmetProvider>
 );
-
-const FloatingContactWrapper = () => {
-  const location = useLocation();
-  // Hide on admin pages
-  if (location.pathname.startsWith('/admin')) return null;
-  return <FloatingContact />;
-};
 
 export default App;

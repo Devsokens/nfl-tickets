@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Manrope:wght@300..800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,44 +6,46 @@
 
 @layer base {
   :root {
-    /* NFL Brand: Brown + Gold */
-    --background: 26 38% 96%;
-    --foreground: 16 58% 14%;
+    /* NFL Brand: Brown + Gold — palette or champagne / brun / ivoire / encre */
+    --background: 35 30% 96%;
+    --foreground: 22 42% 12%;
 
-    --card: 26 28% 92%;
-    --card-foreground: 16 58% 14%;
+    --card: 34 26% 93%;
+    --card-foreground: 22 42% 12%;
 
-    --popover: 26 38% 96%;
-    --popover-foreground: 16 58% 14%;
+    --popover: 35 30% 96%;
+    --popover-foreground: 22 42% 12%;
 
-    --primary: 16 61% 13%;
-    --primary-foreground: 42 70% 96%;
+    --primary: 20 48% 12%;
+    --primary-foreground: 43 60% 96%;
 
-    --secondary: 26 22% 88%;
-    --secondary-foreground: 16 42% 17%;
+    --secondary: 34 22% 92%;
+    --secondary-foreground: 22 38% 16%;
 
-    --muted: 26 18% 88%;
-    --muted-foreground: 18 18% 42%;
+    --muted: 33 20% 90%;
+    --muted-foreground: 22 12% 38%;
 
-    --accent: 43 61% 53%;
-    --accent-foreground: 16 58% 14%;
+    --accent: 43 56% 55%;
+    --accent-foreground: 22 45% 10%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 26 16% 80%;
-    --input: 26 16% 80%;
-    --ring: 43 61% 53%;
+    --border: 30 16% 82%;
+    --input: 30 16% 82%;
+    --ring: 43 56% 55%;
 
     --radius: 0.75rem;
 
     /* NFL color tokens */
-    --gold: 43 61% 53%;
-    --gold-light: 44 58% 66%;
-    --gold-dark: 38 72% 41%;
-    --brown: 16 61% 13%;
-    --brown-light: 16 47% 23%;
-    --cream: 26 38% 96%;
+    --ink: 22 42% 8%;
+    --sand: 33 26% 90%;
+    --gold: 43 56% 55%;
+    --gold-light: 45 60% 68%;
+    --gold-dark: 39 60% 38%;
+    --brown: 20 48% 12%;
+    --brown-light: 20 40% 22%;
+    --cream: 35 30% 96%;
 
     --sidebar-background: 60 80% 10%;
     --sidebar-foreground: 40 50% 90%;
@@ -56,25 +58,25 @@
   }
 
   .dark {
-    --background: 60 80% 6%;
-    --foreground: 40 40% 92%;
-    --card: 60 70% 10%;
-    --card-foreground: 40 40% 92%;
-    --popover: 60 70% 10%;
-    --popover-foreground: 40 40% 92%;
-    --primary: 32 90% 56%;
-    --primary-foreground: 60 80% 8%;
-    --secondary: 60 40% 16%;
-    --secondary-foreground: 40 40% 90%;
-    --muted: 60 30% 13%;
-    --muted-foreground: 40 20% 55%;
-    --accent: 32 90% 56%;
-    --accent-foreground: 60 80% 8%;
+    --background: 22 42% 8%;
+    --foreground: 35 30% 92%;
+    --card: 22 32% 12%;
+    --card-foreground: 35 30% 92%;
+    --popover: 22 32% 12%;
+    --popover-foreground: 35 30% 92%;
+    --primary: 43 56% 55%;
+    --primary-foreground: 22 45% 10%;
+    --secondary: 22 25% 16%;
+    --secondary-foreground: 35 25% 88%;
+    --muted: 22 22% 14%;
+    --muted-foreground: 33 12% 62%;
+    --accent: 43 56% 55%;
+    --accent-foreground: 22 45% 10%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 60 30% 18%;
-    --input: 60 30% 18%;
-    --ring: 32 90% 56%;
+    --border: 25 18% 22%;
+    --input: 25 18% 22%;
+    --ring: 43 56% 55%;
     --sidebar-background: 60 80% 6%;
     --sidebar-foreground: 40 40% 90%;
     --sidebar-primary: 32 90% 56%;
@@ -89,7 +91,6 @@
 @layer base {
   * {
     @apply border-border;
-    font-family: 'EB Garamond', serif !important;
   }
 
   html {
@@ -99,37 +100,39 @@
 
   body {
     @apply bg-background text-foreground font-sans;
-    font-size: clamp(1rem, 2vw, 1.125rem); /* Niveau 3 : Texte Lambda */
-    line-height: 1.6;
+    font-size: clamp(1rem, 1.6vw, 1.0625rem); /* Niveau 3 : Texte Lambda */
+    line-height: 1.7;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
   }
 
+  /* Titres en Fraunces ; tout le reste de l'UI en Manrope (font-sans). */
+
   /* ------------------------------------------------------------- */
-  /* SYSTEME TYPOGRAPHIQUE STRICT - 4 NIVEAUX DE TAILLE MOBILE-FIRST */
+  /* SYSTEME TYPOGRAPHIQUE STRICT — 5 NIVEAUX MOBILE-FIRST          */
   /* ------------------------------------------------------------- */
 
   /* Niveau 1 : TITRES MAJEURS (H1, H2, Grands Titres) */
   h1, h2, .app-title, .text-level-1 {
-    font-family: 'EB Garamond', serif;
-    font-size: clamp(1.625rem, 4vw, 2rem);
-    font-weight: 700;
-    line-height: 1.25;
+    font-family: "Fraunces", Georgia, serif;
+    font-size: clamp(1.875rem, 4vw, 2.75rem);
+    font-weight: 600;
+    line-height: 1.15;
     letter-spacing: -0.01em;
   }
 
   /* Niveau 2 : SOUS-TITRES & PASSAGES IMPORTANTS (H3, H4, Mises en avant) */
   h3, h4, h5, h6, .app-subtitle, .text-important, .text-level-2 {
-    font-family: 'EB Garamond', serif;
-    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+    font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+    font-size: clamp(1.2rem, 2.2vw, 1.4rem);
     font-weight: 600;
-    line-height: 1.35;
+    line-height: 1.3;
   }
 
   /* Niveau 3 : TEXTE LAMBDA / CORPS DE TEXTE (Paragraphes, Boutons, Inputs) */
   p, label, button, input, select, textarea, .app-body, .text-level-3 {
-    font-size: clamp(1rem, 2vw, 1.125rem);
-    line-height: 1.6;
+    font-size: clamp(1rem, 1.6vw, 1.0625rem);
+    line-height: 1.7;
   }
 
   /* Niveau 4 : FOOTER, CAPTIONS & MENTIONS SECONDAIRES */
@@ -141,7 +144,24 @@
 
 @layer utilities {
   .font-display {
-    font-family: 'EB Garamond', serif;
+    font-family: 'Fraunces', Georgia, serif;
+  }
+
+  /* Raccord doux en haut d'une section sombre qui suit une section claire :
+     évite la rupture nette de contraste au scroll. */
+  .fade-from-light {
+    position: relative;
+  }
+  .fade-from-light::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: clamp(3rem, 8vw, 6rem);
+    background: linear-gradient(to bottom, hsl(var(--cream) / 0.5), transparent);
+    pointer-events: none;
+    z-index: 1;
   }
 
   /* Niveau 0 : HERO — réservé au H1 principal de chaque page (un seul par page) */
@@ -263,6 +283,19 @@
     animation: marquee 35s linear infinite;
   }
   .animate-marquee:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes marquee-reverse {
+    0% { transform: translateX(-50%); }
+    100% { transform: translateX(0%); }
+  }
+  .animate-marquee-reverse {
+    display: flex;
+    width: max-content;
+    animation: marquee-reverse 35s linear infinite;
+  }
+  .animate-marquee-reverse:hover {
     animation-play-state: paused;
   }
 

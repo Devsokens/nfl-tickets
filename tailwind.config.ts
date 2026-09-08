@@ -15,8 +15,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["EB Garamond", "serif"],
-        display: ["EB Garamond", "serif"],
+        sans: ["Manrope", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ["Fraunces", "Georgia", "serif"],
       },
       fontSize: {
         title: ["clamp(1.625rem, 4vw, 2rem)", { lineHeight: "1.25", fontWeight: "700" }],
@@ -68,6 +68,8 @@ export default {
           light: "hsl(var(--brown-light))",
         },
         cream: "hsl(var(--cream))",
+        sand: "hsl(var(--sand))",
+        ink: "hsl(var(--ink))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
