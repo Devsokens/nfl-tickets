@@ -156,13 +156,13 @@ const Contact = () => {
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="space-y-4 max-w-3xl">
             <span className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-[0.25em] block">
-              <EditableText value={content.hero.eyebrow} onSave={makeContactFieldSaver("hero", "eyebrow")} label="Eyebrow" />
+              <EditableText value={content.hero.eyebrow || ""} onSave={makeContactFieldSaver("hero", "eyebrow")} label="Eyebrow" />
             </span>
             <h1 className="text-lvl-hero text-white leading-tight">
-              <EditableText value={content.hero.title} onSave={makeContactFieldSaver("hero", "title")} label="Titre" multiline />
+              <EditableText value={content.hero.title || ""} onSave={makeContactFieldSaver("hero", "title")} label="Titre" multiline />
             </h1>
             <p className="text-white/70 text-lvl-body font-light max-w-2xl pt-2">
-              <EditableText value={content.hero.description} onSave={makeContactFieldSaver("hero", "description")} label="Description" multiline as="div" />
+              <EditableText value={content.hero.description || ""} onSave={makeContactFieldSaver("hero", "description")} label="Description" multiline as="div" />
             </p>
           </div>
         </div>
@@ -185,10 +185,10 @@ const Contact = () => {
                 {/* Gold Overlay Badge */}
                 <div className="absolute bottom-6 right-6 bg-[#e3bd51] text-black p-5 shadow-2xl border border-black/10 text-center">
                   <span className="text-lvl-subtitle font-bold block leading-none">
-                    <EditableText value={content.about.badgeNumber} onSave={makeContactFieldSaver("about", "badgeNumber")} label="Chiffre" />
+                    <EditableText value={content.about.badgeNumber || ""} onSave={makeContactFieldSaver("about", "badgeNumber")} label="Chiffre" />
                   </span>
                   <span className="italic text-lvl-footer font-normal block mt-1">
-                    <EditableText value={content.about.badgeLabel} onSave={makeContactFieldSaver("about", "badgeLabel")} label="Légende" />
+                    <EditableText value={content.about.badgeLabel || ""} onSave={makeContactFieldSaver("about", "badgeLabel")} label="Légende" />
                   </span>
                 </div>
               </div>
@@ -198,7 +198,7 @@ const Contact = () => {
             <div className="lg:col-span-6">
               <div className="bg-[#383b40]/90 border border-white/10 p-8 sm:p-12 rounded-none space-y-6 shadow-2xl">
                 <h2 className="text-lvl-title text-[#e3bd51]">
-                  <EditableText value={content.about.title} onSave={makeContactFieldSaver("about", "title")} label="Titre" />
+                  <EditableText value={content.about.title || ""} onSave={makeContactFieldSaver("about", "title")} label="Titre" />
                 </h2>
 
                 <div className="space-y-4 pt-2">
@@ -348,7 +348,7 @@ const Contact = () => {
                     ) : siteSettings?.phone}
                   </p>
                   <p className="text-white/50 text-lvl-footer mt-0.5">
-                    <EditableText value={content.info.businessHours} onSave={makeContactFieldSaver("info", "businessHours")} label="Horaires" />
+                    <EditableText value={content.info.businessHours || ""} onSave={makeContactFieldSaver("info", "businessHours")} label="Horaires" />
                   </p>
                 </div>
               </div>
@@ -374,7 +374,7 @@ const Contact = () => {
                     </a>
                   )}
                   <p className="text-white/50 text-lvl-footer mt-0.5">
-                    <EditableText value={content.info.responseTime} onSave={makeContactFieldSaver("info", "responseTime")} label="Délai de réponse" />
+                    <EditableText value={content.info.responseTime || ""} onSave={makeContactFieldSaver("info", "responseTime")} label="Délai de réponse" />
                   </p>
                 </div>
               </div>
@@ -387,7 +387,7 @@ const Contact = () => {
       <section className="section-y bg-[#090a0c] text-center border-t border-white/5">
         <div className="container mx-auto px-4 max-w-3xl space-y-6">
           <h2 className="text-lvl-title text-white">
-            <EditableText value={content.ctaSection.title} onSave={makeContactFieldSaver("ctaSection", "title")} label="Titre" />
+            <EditableText value={content.ctaSection.title || ""} onSave={makeContactFieldSaver("ctaSection", "title")} label="Titre" />
           </h2>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
