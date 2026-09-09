@@ -118,124 +118,104 @@ const Contact = () => {
                 </p>
               </div>
 
-              {/* TROIS CARTES INTERACTIVES TYPE MAQUETTE */}
-              <div className="space-y-2.5 pt-1">
-                
+              {/* CARTES EMAIL & TÉLÉPHONE — côte à côte pour gagner de l'espace sur mobile */}
+              <div className="grid grid-cols-2 gap-2 sm:gap-2.5 pt-1">
+
                 {/* CARTE EMAIL */}
                 <a
                   href={`mailto:${siteSettings?.contact_email || "contact@nflprestige.com"}`}
-                  className="group flex items-center justify-between bg-white/90 hover:bg-white border border-black/10 rounded-xl p-3 sm:p-3.5 shadow-sm hover:shadow-md transition-all duration-300"
+                  className="group flex flex-col bg-white/90 hover:bg-white border border-black/10 rounded-xl p-2.5 sm:p-3.5 shadow-sm hover:shadow-md transition-all duration-300 min-w-0"
                 >
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-lg bg-[#8c591a]/10 text-[#8c591a] flex items-center justify-center shrink-0 group-hover:bg-[#8c591a] group-hover:text-white transition-colors">
-                      <Mail className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-[11px] font-medium text-ink/50 block">Envoyez-nous un email</span>
-                      <span className="text-xs sm:text-sm font-bold text-[#100906] truncate block">
-                        {siteSettings?.contact_email || "contact@nflprestige.com"}
-                      </span>
-                    </div>
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-[#8c591a]/10 text-[#8c591a] flex items-center justify-center shrink-0 group-hover:bg-[#8c591a] group-hover:text-white transition-colors mb-2">
+                    <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-black/5 group-hover:bg-[#100906] group-hover:text-white text-ink/70 flex items-center justify-center transition-colors shrink-0 ml-2">
-                    <ArrowUpRight className="w-3.5 h-3.5" />
-                  </div>
+                  <span className="text-[10px] sm:text-[11px] font-medium text-ink/50 block">Email</span>
+                  <span className="text-[11px] sm:text-sm font-bold text-[#100906] truncate block">
+                    {siteSettings?.contact_email || "contact@nflprestige.com"}
+                  </span>
                 </a>
 
                 {/* CARTE TÉLÉPHONE */}
                 <a
                   href={`tel:${siteSettings?.phone || ""}`}
-                  className="group flex items-center justify-between bg-white/90 hover:bg-white border border-black/10 rounded-xl p-3 sm:p-3.5 shadow-sm hover:shadow-md transition-all duration-300"
+                  className="group flex flex-col bg-white/90 hover:bg-white border border-black/10 rounded-xl p-2.5 sm:p-3.5 shadow-sm hover:shadow-md transition-all duration-300 min-w-0"
                 >
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-lg bg-[#8c591a]/10 text-[#8c591a] flex items-center justify-center shrink-0 group-hover:bg-[#8c591a] group-hover:text-white transition-colors">
-                      <Phone className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-[11px] font-medium text-ink/50 block">Appelez-nous</span>
-                      <span className="text-xs sm:text-sm font-bold text-[#100906] truncate block">
-                        {siteSettings?.phone || "+241 00 00 00 00"}
-                      </span>
-                    </div>
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-[#8c591a]/10 text-[#8c591a] flex items-center justify-center shrink-0 group-hover:bg-[#8c591a] group-hover:text-white transition-colors mb-2">
+                    <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-black/5 group-hover:bg-[#100906] group-hover:text-white text-ink/70 flex items-center justify-center transition-colors shrink-0 ml-2">
-                    <ArrowUpRight className="w-3.5 h-3.5" />
-                  </div>
+                  <span className="text-[10px] sm:text-[11px] font-medium text-ink/50 block">Téléphone</span>
+                  <span className="text-[11px] sm:text-sm font-bold text-[#100906] truncate block">
+                    {siteSettings?.phone || "+241 00 00 00 00"}
+                  </span>
                 </a>
-
-                {/* CARTE SIÈGE SOCIAL */}
-                <div
-                  className="group flex items-center justify-between bg-white/90 hover:bg-white border border-black/10 rounded-xl p-3 sm:p-3.5 shadow-sm hover:shadow-md transition-all duration-300 cursor-default"
-                >
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-10 h-10 rounded-lg bg-[#8c591a]/10 text-[#8c591a] flex items-center justify-center shrink-0 group-hover:bg-[#8c591a] group-hover:text-white transition-colors">
-                      <MapPin className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-[11px] font-medium text-ink/50 block">Notre Siège Social</span>
-                      <span className="text-xs sm:text-sm font-bold text-[#100906] truncate block">
-                        {siteSettings?.address || "Libreville, Gabon"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-black/5 group-hover:bg-[#100906] group-hover:text-white text-ink/70 flex items-center justify-center transition-colors shrink-0 ml-2">
-                    <ArrowUpRight className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-
               </div>
 
-              {/* SOCIAL LINKS (FOLLOW US ON) */}
-              <div className="space-y-2 pt-1">
-                <span className="text-[11px] font-bold text-ink/60 uppercase tracking-wider block">
-                  Suivez-nous sur
-                </span>
-                <div className="flex items-center gap-2">
-                  <a 
-                    href={siteSettings?.facebook_url || "#"} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    aria-label="Facebook"
-                    className="w-9 h-9 rounded-lg bg-white border border-black/10 flex items-center justify-center text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all"
-                  >
-                    <Facebook className="w-3.5 h-3.5" />
-                  </a>
-                  <a 
-                    href={siteSettings?.linkedin_url || "#"} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    aria-label="LinkedIn"
-                    className="w-9 h-9 rounded-lg bg-white border border-black/10 flex items-center justify-center text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all"
-                  >
-                    <Linkedin className="w-3.5 h-3.5" />
-                  </a>
-                  <a 
-                    href={siteSettings?.twitter_url || "#"} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    aria-label="Twitter X"
-                    className="w-9 h-9 rounded-lg bg-white border border-black/10 flex items-center justify-center font-bold text-xs text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all"
-                  >
-                    X
-                  </a>
-                  <a 
-                    href={siteSettings?.youtube_url || "#"} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    aria-label="YouTube"
-                    className="w-9 h-9 rounded-lg bg-white border border-black/10 flex items-center justify-center text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all"
-                  >
-                    <Youtube className="w-3.5 h-3.5" />
-                  </a>
-                  <a 
-                    href={siteSettings?.instagram_url || "#"} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    aria-label="Instagram"
-                    className="w-9 h-9 rounded-lg bg-white border border-black/10 flex items-center justify-center text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all"
-                  >
-                    <Instagram className="w-3.5 h-3.5" />
-                  </a>
+              {/* CARTE SIÈGE & RÉSEAUX SOCIAUX — côte à côte pour gagner de l'espace sur mobile */}
+              <div className="grid grid-cols-2 gap-2 sm:gap-2.5 pt-2.5">
+
+                {/* CARTE SIÈGE SOCIAL */}
+                <div className="group flex flex-col bg-white/90 hover:bg-white border border-black/10 rounded-xl p-2.5 sm:p-3.5 shadow-sm hover:shadow-md transition-all duration-300 cursor-default min-w-0">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-[#8c591a]/10 text-[#8c591a] flex items-center justify-center shrink-0 group-hover:bg-[#8c591a] group-hover:text-white transition-colors mb-2">
+                    <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </div>
+                  <span className="text-[10px] sm:text-[11px] font-medium text-ink/50 block">Siège Social</span>
+                  <span className="text-[11px] sm:text-sm font-bold text-[#100906] truncate block">
+                    {siteSettings?.address || "Libreville, Gabon"}
+                  </span>
+                </div>
+
+                {/* SOCIAL LINKS (FOLLOW US ON) */}
+                <div className="bg-white/90 border border-black/10 rounded-xl p-2.5 sm:p-3.5 shadow-sm flex flex-col justify-center min-w-0">
+                  <span className="text-[10px] sm:text-[11px] font-bold text-ink/60 uppercase tracking-wider block mb-2">
+                    Suivez-nous
+                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <a
+                      href={siteSettings?.facebook_url || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Facebook"
+                      className="w-7 h-7 rounded-md bg-white border border-black/10 flex items-center justify-center text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all shrink-0"
+                    >
+                      <Facebook className="w-3 h-3" />
+                    </a>
+                    <a
+                      href={siteSettings?.linkedin_url || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="LinkedIn"
+                      className="w-7 h-7 rounded-md bg-white border border-black/10 flex items-center justify-center text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all shrink-0"
+                    >
+                      <Linkedin className="w-3 h-3" />
+                    </a>
+                    <a
+                      href={siteSettings?.twitter_url || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Twitter X"
+                      className="w-7 h-7 rounded-md bg-white border border-black/10 flex items-center justify-center font-bold text-[10px] text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all shrink-0"
+                    >
+                      X
+                    </a>
+                    <a
+                      href={siteSettings?.youtube_url || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="YouTube"
+                      className="w-7 h-7 rounded-md bg-white border border-black/10 flex items-center justify-center text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all shrink-0"
+                    >
+                      <Youtube className="w-3 h-3" />
+                    </a>
+                    <a
+                      href={siteSettings?.instagram_url || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Instagram"
+                      className="w-7 h-7 rounded-md bg-white border border-black/10 flex items-center justify-center text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all shrink-0"
+                    >
+                      <Instagram className="w-3 h-3" />
+                    </a>
+                  </div>
                 </div>
               </div>
 
@@ -288,19 +268,13 @@ const Contact = () => {
                       <label className="text-xs font-semibold text-ink/80 block">
                         Numéro de téléphone
                       </label>
-                      <div className="relative flex items-center">
-                        <div className="absolute left-3.5 flex items-center gap-1.5 text-xs text-ink/60 font-semibold pointer-events-none">
-                          <span>🇬🇦 +241</span>
-                          <span className="text-ink/20">|</span>
-                        </div>
-                        <input
-                          type="tel"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          placeholder="06 00 00 00"
-                          className="w-full bg-[#f8f7f4] border border-black/5 text-sm text-[#100906] pl-[88px] pr-4 py-3 rounded-xl placeholder:text-ink/30 focus:outline-none focus:bg-white focus:border-[#8c591a] focus:ring-2 focus:ring-[#8c591a]/15 transition-all"
-                        />
-                      </div>
+                      <input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+241 06 00 00 00"
+                        className="w-full bg-[#f8f7f4] border border-black/5 text-sm text-[#100906] px-4 py-3 rounded-xl placeholder:text-ink/30 focus:outline-none focus:bg-white focus:border-[#8c591a] focus:ring-2 focus:ring-[#8c591a]/15 transition-all"
+                      />
                     </div>
 
                     <div className="space-y-1.5">

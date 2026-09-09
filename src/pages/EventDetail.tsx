@@ -1,11 +1,11 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useQuery } from "@tanstack/react-query";
-import { EventsAPI, TicketsAPI, TestimonialsAPI, SiteSettingsAPI, HomeContentAPI, type Event, type Testimonial, type SiteSettings, type HomeContent } from "@/lib/api";
+import { EventsAPI, TicketsAPI, SiteSettingsAPI, type Event, type SiteSettings } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, MapPin, Clock, CheckCircle2, ArrowRight, ArrowLeft, UserCheck, Award, Users } from "lucide-react";
+import { Calendar, MapPin, Clock, CheckCircle2, ArrowRight, ChevronLeft, ShieldCheck, Ticket, Users } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 
 import nflImg1 from "@/assets/nfl img1.jpeg";
@@ -14,14 +14,38 @@ function formatEventDate(dateStr?: string) {
   if (!dateStr) return "";
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  return d.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
 }
 
-// Fait défiler un carrousel horizontal snap vers l'item `index` et notifie `onIndexChange`.
-function scrollCarouselTo(container: HTMLDivElement | null, index: number) {
-  if (!container) return;
-  const scrollAmount = container.clientWidth * 0.85;
-  container.scrollTo({ left: index * scrollAmount, behavior: "smooth" });
+function useCountdown(targetDateStr?: string) {
+  const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
+
+  useEffect(() => {
+    if (!targetDateStr) return;
+    const target = new Date(targetDateStr).getTime();
+    if (isNaN(target)) return;
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const diff = target - now;
+
+      if (diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      } else {
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        setTimeLeft({ days, hours, minutes, seconds });
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [targetDateStr]);
+
+  return timeLeft;
 }
 
 const EventDetail = () => {
@@ -38,35 +62,14 @@ const EventDetail = () => {
     enabled: !!id,
   });
 
-  const { data: testimonials = [] } = useQuery<Testimonial[]>({
-    queryKey: ["testimonials"],
-    queryFn: () => TestimonialsAPI.getAll(false),
-  });
-
-  const { data: allEvents = [] } = useQuery<Event[]>({
-    queryKey: ["allEvents"],
-    queryFn: () => EventsAPI.getAll(),
-  });
-
   const { data: siteSettings } = useQuery<SiteSettings>({
     queryKey: ["siteSettings"],
     queryFn: SiteSettingsAPI.get,
   });
 
-  const { data: homeContent } = useQuery<HomeContent>({
-    queryKey: ["homeContent"],
-    queryFn: HomeContentAPI.get,
-  });
-
-  // "Retour sur l'édition précédente" : les 3 derniers événements passés
-  // (hors l'événement courant), triés du plus récent au plus ancien.
-  const throwbackEvents = allEvents
-    .filter((e) => e.id !== event?.id && (e.image_url || e.image) && new Date(e.date).getTime() < Date.now())
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 3);
-
   const speakers = event?.speakers || [];
   const program = event?.program || [];
+  const timeLeft = useCountdown(event?.date);
 
   // Form state
   const [fullName, setFullName] = useState("");
@@ -75,81 +78,22 @@ const EventDetail = () => {
   const [nbPlaces, setNbPlaces] = useState("1 Place");
   const [selectedFormule, setSelectedFormule] = useState<"individuel" | "corporate">("individuel");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const gallery = event?.gallery || [];
-
-  // Carousel states & refs for Intervenants and Testimonials
-  const [activeSpeakerIndex, setActiveSpeakerIndex] = useState(0);
-  const speakersRef = useRef<HTMLDivElement>(null);
-
-  const [activeTestimonialIndex, setActiveTestimonialIndex] = useState(0);
-  const testimonialsRef = useRef<HTMLDivElement>(null);
-
-  // Autoscroll intervenants (seulement s'il y en a plus d'un)
-  useEffect(() => {
-    if (speakers.length <= 1) return;
-    const timer = setInterval(() => {
-      setActiveSpeakerIndex((prev) => {
-        const nextIndex = (prev + 1) % speakers.length;
-        scrollCarouselTo(speakersRef.current, nextIndex);
-        return nextIndex;
-      });
-    }, 3500);
-    return () => clearInterval(timer);
-  }, [speakers.length]);
-
-  const handleSpeakersScroll = () => {
-    if (!speakersRef.current || speakers.length === 0) return;
-    const container = speakersRef.current;
-    const scrollAmount = container.clientWidth * 0.85;
-    if (scrollAmount > 0) {
-      const newIndex = Math.round(container.scrollLeft / scrollAmount);
-      setActiveSpeakerIndex(Math.min(speakers.length - 1, Math.max(0, newIndex)));
-    }
-  };
-
-  // Autoscroll témoignages (seulement s'il y en a plus d'un)
-  useEffect(() => {
-    if (testimonials.length <= 1) return;
-    const timer = setInterval(() => {
-      setActiveTestimonialIndex((prev) => {
-        const nextIndex = (prev + 1) % testimonials.length;
-        scrollCarouselTo(testimonialsRef.current, nextIndex);
-        return nextIndex;
-      });
-    }, 4000);
-    return () => clearInterval(timer);
-  }, [testimonials.length]);
-
-  const handleTestimonialsScroll = () => {
-    if (!testimonialsRef.current || testimonials.length === 0) return;
-    const container = testimonialsRef.current;
-    const scrollAmount = container.clientWidth * 0.85;
-    if (scrollAmount > 0) {
-      const newIndex = Math.round(container.scrollLeft / scrollAmount);
-      setActiveTestimonialIndex(Math.min(testimonials.length - 1, Math.max(0, newIndex)));
-    }
-  };
 
   const eventTitle = event?.title || "Événement NFL Courtier & Service";
   const eventLocation = event?.location || "Libreville, Gabon";
   const eventImage = event?.image_url || event?.image || nflImg1;
   const eventPrice = event?.price || 0;
-  const corporatePrice = eventPrice * 8;
+  const corporatePrice = eventPrice > 0 ? eventPrice * 8 : 100000;
+  const isPast = event?.date ? new Date(event.date) < new Date(new Date().setHours(0, 0, 0, 0)) : false;
 
-  // Repli générique tant que l'admin n'a pas renseigné "Votre participation
-  // comprend" pour cet événement précis (voir AdminDashboard.tsx).
-  const DEFAULT_INCLUDES = ["Accueil et badge nominatif", "Networking", "Accès aux conférences", "Documentation", "Photos officielles"];
+  const DEFAULT_INCLUDES = [
+    "Accueil VIP et badge nominatif sécurisé",
+    "Accès complet aux conférences et ateliers",
+    "Kit de documentation & support de présentation",
+    "Accès à l'espace de Networking avec les experts",
+    "Photos et souvenirs officiels de l'événement",
+  ];
   const eventIncludes = event?.includes?.length ? event.includes : DEFAULT_INCLUDES;
-
-  const DEFAULT_SPONSOR_WORDS = ["L'EXCELLENCE", "LA RIGUEUR", "LE PRESTIGE", "LA STRATÉGIE", "LA CONFIANCE"];
-  const sponsors = homeContent?.partners?.length ? homeContent.partners : DEFAULT_SPONSOR_WORDS.map((name) => ({ name }));
-
-  // Statistiques réelles disponibles pour cet événement (on n'affiche que ce qui est vrai)
-  const infoStats = [
-    event?.capacity ? `${event.capacity} places disponibles` : null,
-    speakers.length > 0 ? `${speakers.length} intervenant${speakers.length > 1 ? "s" : ""}` : null,
-    event?.category ? `Catégorie : ${event.category}` : null,
-  ].filter(Boolean) as string[];
 
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,7 +128,7 @@ const EventDetail = () => {
         : `${corporatePrice.toLocaleString()} FCFA`;
       const message = `Bonjour NFL Courtier & Service,\n\n` +
                       `Je souhaite réserver pour l'événement : *${eventTitle}*.\n\n` +
-                      `*Détails du participant :*\n` +
+                      `*Détails de la réservation :*\n` +
                       `- *Nom complet* : ${fullName}\n` +
                       `- *Email* : ${email}\n` +
                       `- *Nombre de places* : ${nbPlaces}\n` +
@@ -192,7 +136,6 @@ const EventDetail = () => {
                       `- *Formule choisie* : ${selectedFormule === "individuel" ? "Tarif individuel" : "Table Corporate (8 pers.)"} (${priceStr})\n\n` +
                       `Merci de valider ma réservation.`;
 
-      // Numéro dédié à l'événement s'il en a un, sinon celui configuré dans Paramètres.
       const whatsappNumber = (event?.whatsapp_number || siteSettings?.whatsapp_number || "24166692338").replace(/[^\d]/g, "");
       const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
       setTimeout(() => {
@@ -210,526 +153,396 @@ const EventDetail = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0e11] flex flex-col text-white">
+    <div className="min-h-screen bg-[#fcfbfa] text-[#100906] flex flex-col">
       <Helmet>
         <title>{`${eventTitle} | NFL Courtier & Service`}</title>
-        <meta name="description" content={event?.description || `Découvrez les intervenants, le programme et réservez votre place pour ${eventTitle}.`} />
+        <meta name="description" content={event?.description || `Réservez votre place pour ${eventTitle}.`} />
       </Helmet>
+
       <Navbar />
 
-      {/* 1. HERO SECTION WITH IMAGE BACKGROUND & BOUTON RETOUR */}
-      <section className="relative pt-20 pb-14 md:pt-28 md:pb-18 overflow-hidden border-b border-white/10 bg-[#0d0e11]">
-        <img
-          src={eventImage}
-          alt={eventTitle}
-          className="absolute inset-0 w-full h-full object-cover filter brightness-[0.25] contrast-[1.15]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0d0e11] via-[#0d0e11]/85 to-[#0d0e11]/90" />
+      <main className="flex-grow pt-20">
+        
+        {/* 1. HERO COVER PHOTO SECTION (FLOATING BACK BUTTON LEFT + COUNTDOWN & ACTION BUTTON RIGHT) */}
+        <section className="relative w-full h-[360px] sm:h-[420px] lg:h-[480px] bg-[#100906] overflow-hidden">
+          <img
+            src={eventImage}
+            alt={eventTitle}
+            className="w-full h-full object-cover opacity-85 brightness-90 filter"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#100906]/90 via-[#100906]/40 to-black/30" />
 
-        <div className="relative z-10 container mx-auto px-4 max-w-6xl">
-          <div className="mb-6">
+          {/* FLOATING BACK BUTTON (<) TOP LEFT */}
+          <div className="absolute top-6 left-4 sm:left-8 z-20">
             <Link
               to="/events"
-              className="inline-flex items-center gap-2 text-[#e3bd51] hover:text-[#d4af37] font-bold text-lvl-footer uppercase tracking-widest transition-all bg-white/5 border border-[#e3bd51]/30 hover:border-[#e3bd51] px-5 py-2.5 rounded-none backdrop-blur-md shadow-md"
+              aria-label="Retour aux événements"
+              className="w-11 h-11 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-md border border-white/30 text-white flex items-center justify-center transition-all shadow-lg hover:scale-105"
             >
-              <ArrowLeft className="w-4 h-4" /> RETOUR AUX ÉVÉNEMENTS
+              <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
             </Link>
           </div>
 
-          <div className="grid lg:grid-cols-12 gap-10 items-center">
-            <div className="lg:col-span-7 space-y-5 text-center lg:text-left flex flex-col items-center lg:items-start">
-              <span className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-[0.25em] block">
-                {event?.category ? `• ${event.category.toUpperCase()} •` : "• ÉVÉNEMENT EXCLUSIF •"}
-              </span>
+          {/* COMPTE À REBOURS & BOUTON D'ACTION (S'INSCRIRE) À DROITE SUR LA COUVERTURE */}
+          <div className="absolute bottom-6 right-4 sm:right-8 z-20 max-w-sm w-[90%] sm:w-auto">
+            <div className="bg-[#100906]/85 backdrop-blur-xl border border-[#d4af37]/40 p-4 sm:p-5 rounded-[2rem] text-white shadow-2xl space-y-3">
+              
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#d4af37] flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-pulse" />
+                  {isPast ? "Événement Terminé" : "Compte à Rebours"}
+                </span>
+                <span className="text-[10px] font-bold text-white/60 uppercase">
+                  {eventPrice > 0 ? `${eventPrice.toLocaleString()} FCFA` : "Sur invitation"}
+                </span>
+              </div>
 
-              <h1 className="text-lvl-hero text-white leading-tight drop-shadow-md">
-                {eventTitle}
-              </h1>
-
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 text-lvl-footer text-white/90 font-medium">
-                {event?.date && (
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-[#e3bd51]" />
-                    <span>{formatEventDate(event.date)}</span>
+              {!isPast && timeLeft && (
+                <div className="grid grid-cols-4 gap-2 text-center">
+                  <div className="bg-white/10 border border-white/10 p-2 rounded-xl">
+                    <span className="text-lg sm:text-2xl font-extrabold text-[#d4af37] block leading-tight">{timeLeft.days}</span>
+                    <span className="text-[9px] uppercase font-bold text-white/70">Jours</span>
                   </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-[#e3bd51]" />
-                  <span>{eventLocation}</span>
-                </div>
-                {event?.time && (
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-[#e3bd51]" />
-                    <span>À partir de {event.time}</span>
+                  <div className="bg-white/10 border border-white/10 p-2 rounded-xl">
+                    <span className="text-lg sm:text-2xl font-extrabold text-[#d4af37] block leading-tight">{timeLeft.hours}</span>
+                    <span className="text-[9px] uppercase font-bold text-white/70">Heures</span>
                   </div>
-                )}
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-center gap-4 pt-3">
-                <button
-                  onClick={() => document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth" })}
-                  className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider py-4 px-8 rounded-none transition-colors shadow-lg"
-                >
-                  Réserver ma place
-                </button>
-                <button
-                  onClick={() => document.getElementById("programme-section")?.scrollIntoView({ behavior: "smooth" })}
-                  className="border border-white/30 bg-transparent hover:bg-white/10 text-white font-bold text-lvl-footer uppercase tracking-wider py-4 px-8 rounded-none transition-colors"
-                >
-                  Voir le programme
-                </button>
-              </div>
-            </div>
-
-            {infoStats.length > 0 && (
-              <div className="lg:col-span-5">
-                <div className="bg-[#14161a]/90 backdrop-blur-md border border-white/15 p-7 sm:p-8 rounded-none space-y-4 max-w-md mx-auto lg:mx-0 lg:ml-auto shadow-2xl">
-                  {infoStats.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-center lg:justify-start gap-3 text-lvl-footer text-white/90 font-medium">
-                      <CheckCircle2 className="w-4.5 h-4.5 text-[#e3bd51] shrink-0" />
-                      <span>{item}</span>
-                    </div>
-                  ))}
+                  <div className="bg-white/10 border border-white/10 p-2 rounded-xl">
+                    <span className="text-lg sm:text-2xl font-extrabold text-[#d4af37] block leading-tight">{timeLeft.minutes}</span>
+                    <span className="text-[9px] uppercase font-bold text-white/70">Min</span>
+                  </div>
+                  <div className="bg-white/10 border border-white/10 p-2 rounded-xl">
+                    <span className="text-lg sm:text-2xl font-extrabold text-[#d4af37] block leading-tight">{timeLeft.seconds}</span>
+                    <span className="text-[9px] uppercase font-bold text-white/70">Sec</span>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* 2. DESCRIPTION & PROGRAMME TIMELINE */}
-      <section id="programme-section" className="section-y bg-[#0d0e11] border-b border-white/10">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-            <div className="lg:col-span-7 space-y-5 text-center lg:text-left flex flex-col items-center lg:items-start">
-              <h2 className="text-lvl-subtitle text-white leading-tight">
-                À propos de cet événement
-              </h2>
-              {event?.description ? (
-                event.description
-                  .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}]/gu, "")
-                  .split("\n").filter(Boolean).map((para, idx) => (
-                    <p key={idx} className="text-white/70 text-lvl-body font-light">
-                      {para.trim()}
-                    </p>
-                  ))
-              ) : (
-                <p className="text-white/50 text-lvl-body font-light italic">
-                  Description à venir.
-                </p>
               )}
+
+              <button
+                onClick={() => document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth" })}
+                className="w-full bg-gradient-to-r from-[#d4af37] via-[#e3bd51] to-[#d4af37] hover:opacity-95 text-black font-extrabold py-3 px-5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-wider group"
+              >
+                <span>S'inscrire maintenant</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+
             </div>
+          </div>
+        </section>
 
-            <div className="lg:col-span-5 w-full">
-              <div className="bg-[#14161a] border border-white/10 p-7 sm:p-8 rounded-none space-y-6 w-full shadow-2xl">
-                <h3 className="text-lvl-subtitle text-white border-b border-white/10 pb-3">
-                  Programme
-                </h3>
+        {/* 2. MAIN 2-COLUMN LAYOUT (LEFT: EVENT DETAILS & TEXT, RIGHT: DESKTOP STICKY FORM) */}
+        <section className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-8 sm:py-12">
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+            
+            {/* GAUCHE (DESKTOP): DÉTAILS DE L'ÉVÉNEMENT ET TEXTES */}
+            <div className="lg:col-span-7 space-y-8">
+              
+              {/* TITRE ET CATÉGORIE */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#8c591a] bg-[#8c591a]/10 px-3 py-1 rounded-full border border-[#8c591a]/20">
+                    {event?.category || "Événement d'Excellence"}
+                  </span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#100906] tracking-tight leading-snug">
+                  {eventTitle}
+                </h1>
+              </div>
 
-                {program.length > 0 ? (
-                  <div className="space-y-6">
+              {/* DATE ROW WITH CALENDAR ICON */}
+              <div className="flex items-center gap-3 text-sm sm:text-base font-semibold text-[#333]">
+                <div className="w-10 h-10 rounded-xl bg-[#8c591a]/10 border border-[#8c591a]/20 flex items-center justify-center shrink-0">
+                  <Calendar className="w-5 h-5 text-[#8c591a]" />
+                </div>
+                <div>
+                  <span className="block text-[#100906] capitalize">
+                    {event?.date ? formatEventDate(event.date) : "Date à venir"}
+                  </span>
+                  {event?.time && (
+                    <span className="text-xs text-[#666] font-normal block">
+                      À partir de {event.time}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* LOCATION ROW WITH MAP PIN ICON */}
+              <div className="flex items-center gap-3 text-sm sm:text-base font-semibold text-[#333]">
+                <div className="w-10 h-10 rounded-xl bg-[#8c591a]/10 border border-[#8c591a]/20 flex items-center justify-center shrink-0">
+                  <MapPin className="w-5 h-5 text-[#8c591a]" />
+                </div>
+                <div>
+                  <span className="block text-[#100906]">
+                    {eventLocation}
+                  </span>
+                  <span className="text-xs text-[#666] font-normal block">
+                    Libreville &amp; Visioconférence
+                  </span>
+                </div>
+              </div>
+
+              {/* PARTICIPANTS / NOMBRE D'INSCRITS (DESIGN SANS LISTE DE NOMS AVATARS) */}
+              <div className="flex items-center gap-3 py-3 border-y border-black/5">
+                <div className="w-10 h-10 rounded-xl bg-[#8c591a]/10 border border-[#8c591a]/20 flex items-center justify-center shrink-0">
+                  <Users className="w-5 h-5 text-[#8c591a]" />
+                </div>
+                <div>
+                  <span className="block text-[#100906] font-bold text-sm sm:text-base">
+                    {event?.capacity ? `${event.capacity} places disponibles` : "35 personnes inscrites"}
+                  </span>
+                  <span className="text-xs text-[#666] font-normal block">
+                    Rejoignez les participants à cet événement d'exception
+                  </span>
+                </div>
+              </div>
+
+              {/* SECTION À PROPOS */}
+              <div className="space-y-3">
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#100906]">
+                  À propos
+                </h2>
+                <div className="text-sm sm:text-base text-[#444] leading-relaxed space-y-3 font-normal">
+                  {event?.description ? (
+                    event.description
+                      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}]/gu, "")
+                      .split("\n").filter(Boolean).map((para, idx) => (
+                        <p key={idx}>{para.trim()}</p>
+                      ))
+                  ) : (
+                    <p className="italic text-[#888]">
+                      Rejoignez NFL Courtier & Service pour une expérience d'exception réunissant décideurs et leaders d'entreprises.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* PROGRAMME DÉTAILLÉ (SI RENSEIGNÉ) */}
+              {program.length > 0 && (
+                <div className="space-y-4 pt-4 border-t border-black/5">
+                  <h2 className="text-xl sm:text-2xl font-extrabold text-[#100906]">
+                    Programme de l'événement
+                  </h2>
+                  <div className="space-y-3">
                     {program.map((p, idx) => (
-                      <div key={idx} className="flex gap-4 items-start border-b border-white/5 pb-4 last:border-0 last:pb-0">
-                        {p.time && <span className="text-[#e3bd51] font-bold text-lvl-footer shrink-0 pt-0.5">{p.time}</span>}
-                        <div className="space-y-1">
-                          <p className="font-bold text-lvl-footer text-white leading-snug">{p.title}</p>
-                          {p.description && <p className="text-lvl-footer text-white/60">{p.description}</p>}
+                      <div key={idx} className="flex gap-4 items-start bg-[#f4f2ee] p-4 rounded-2xl border border-black/5">
+                        {p.time && (
+                          <span className="bg-[#8c591a] text-white text-xs font-bold px-3 py-1 rounded-full shrink-0">
+                            {p.time}
+                          </span>
+                        )}
+                        <div>
+                          <p className="font-bold text-sm text-[#100906]">{p.title}</p>
+                          {p.description && <p className="text-xs text-[#666] mt-0.5">{p.description}</p>}
                         </div>
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <p className="text-white/50 text-lvl-footer italic">Programme communiqué prochainement.</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+                </div>
+              )}
 
-      {/* 3. INTERVENANTS SECTION (uniquement si renseignés par l'admin) */}
-      {speakers.length > 0 && (
-        <section className="section-y bg-[#0d0e11] text-center border-b border-white/5">
-          <div className="container mx-auto px-4 max-w-6xl">
-            <h2 className="text-lvl-title text-[#e3bd51] mb-10 md:mb-14 tracking-wide">
-              Intervenants
-            </h2>
-
-            <div className="relative">
-              <div
-                ref={speakersRef}
-                onScroll={handleSpeakersScroll}
-                className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-4 md:grid md:grid-cols-3 md:gap-8 scrollbar-none -mx-4 px-4 md:mx-0 md:px-0"
-              >
-                {speakers.map((speaker, idx) => (
-                  <div key={idx} className="w-[85vw] max-w-[320px] md:w-auto shrink-0 snap-center bg-[#14161a] border border-white/10 rounded-xl p-6 sm:p-7 flex flex-col items-center shadow-xl group hover:border-[#e3bd51]/40 transition-colors">
-                    <div className="w-full h-72 sm:h-80 rounded-lg overflow-hidden mb-6 bg-black/40 flex items-center justify-center">
-                      {speaker.photo_url ? (
-                        <img
-                          src={speaker.photo_url}
-                          alt={speaker.name}
-                          className="w-full h-full object-cover grayscale contrast-125 group-hover:scale-105 transition-transform duration-700"
-                        />
-                      ) : (
-                        <Users className="w-16 h-16 text-white/20" />
-                      )}
-                    </div>
-                    <h3 className="text-lvl-subtitle text-[#e3bd51] tracking-wide">
-                      {speaker.name}
-                    </h3>
-                    {speaker.role && (
-                      <p className="text-white/80 text-lvl-footer font-bold uppercase tracking-widest mt-1">
-                        {speaker.role}
-                      </p>
-                    )}
-                    {speaker.company && (
-                      <p className="text-white/50 text-lvl-footer font-semibold uppercase tracking-wider mt-0.5">
-                        {speaker.company}
-                      </p>
-                    )}
+              {/* INTERVENANTS / SPEAKERS (SI RENSEIGNÉS) */}
+              {speakers.length > 0 && (
+                <div className="space-y-4 pt-4 border-t border-black/5">
+                  <h2 className="text-xl sm:text-2xl font-extrabold text-[#100906]">
+                    Intervenants
+                  </h2>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {speakers.map((s, idx) => (
+                      <div key={idx} className="bg-[#f4f2ee] p-4 rounded-2xl border border-black/5 flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-xl overflow-hidden bg-black/10 shrink-0">
+                          {s.photo_url ? (
+                            <img src={s.photo_url} alt={s.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-[#100906] font-bold text-lg">
+                              {s.name[0]}
+                            </div>
+                          )}
+                        </div>
+                        <div className="truncate">
+                          <h4 className="font-bold text-sm text-[#100906] truncate">{s.name}</h4>
+                          {s.role && <p className="text-xs text-[#8c591a] font-semibold truncate">{s.role}</p>}
+                          {s.company && <p className="text-[11px] text-[#666] truncate">{s.company}</p>}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-
-              {speakers.length > 1 && (
-                <div className="flex md:hidden justify-center items-center gap-2 mt-4">
-                  {speakers.map((_, idx) => (
-                    <button
-                      key={idx}
-                      aria-label={`Intervenant ${idx + 1}`}
-                      onClick={() => {
-                        setActiveSpeakerIndex(idx);
-                        scrollCarouselTo(speakersRef.current, idx);
-                      }}
-                      className={`transition-all duration-300 rounded-full ${
-                        activeSpeakerIndex === idx
-                          ? "w-6 h-2.5 bg-[#e3bd51]"
-                          : "w-2.5 h-2.5 bg-white/30 hover:bg-white/50"
-                      }`}
-                    />
-                  ))}
                 </div>
               )}
-            </div>
-          </div>
-        </section>
-      )}
 
-      {/* 4. ALBUM — galerie de CET événement si l'admin en a fourni une, sinon
-          repli sur les 3 derniers événements passés en guise d'illustration. */}
-      {gallery.length > 0 ? (
-        <section className="relative overflow-hidden bg-black py-2 sm:py-0">
-          <Link to={`/event/${event?.slug || event?.id}/galerie`} className="grid grid-cols-2 sm:grid-cols-3 gap-0 relative group/album">
-            {gallery.slice(0, 6).map((src, idx) => (
-              <div key={idx} className="relative h-40 sm:h-56 md:h-64 overflow-hidden">
-                <img
-                  src={src}
-                  alt={`${eventTitle} — photo ${idx + 1}`}
-                  className="w-full h-full object-cover filter brightness-[0.75] transition-transform duration-700 group-hover/album:scale-105"
-                  loading="lazy"
-                />
-              </div>
-            ))}
-            <div className="absolute inset-0 bg-black/0 group-hover/album:bg-black/30 transition-colors" />
-
-            <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-              <div className="bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider px-8 py-3.5 rounded-none shadow-2xl border border-black/20 flex items-center gap-2">
-                L'esprit NFL Courtier & Service
-                <span className="hidden sm:inline opacity-70">— Voir l'album complet</span>
-              </div>
-            </div>
-          </Link>
-        </section>
-      ) : throwbackEvents.length > 0 && (
-        <section className="relative overflow-hidden bg-black py-2 sm:py-0">
-          <div
-            className="grid grid-cols-1 gap-0 relative min-h-[380px] sm:min-h-[460px]"
-            style={{ gridTemplateColumns: `repeat(${throwbackEvents.length}, minmax(0, 1fr))` }}
-          >
-            {throwbackEvents.map((ev, idx) => (
-              <Link
-                key={ev.id}
-                to={`/event/${ev.slug || ev.id}`}
-                className="relative h-64 md:h-auto overflow-hidden group block"
-              >
-                <img
-                  src={ev.image_url || ev.image}
-                  alt={ev.title}
-                  className="w-full h-full object-cover filter brightness-[0.75] transition-transform duration-700 group-hover:scale-105"
-                />
-                <div
-                  className={`absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-black/70 md:from-black/60 via-transparent to-black/40 ${
-                    idx === throwbackEvents.length - 1 ? "md:bg-gradient-to-l" : ""
-                  }`}
-                />
-                <div className="absolute bottom-4 inset-x-4 md:hidden">
-                  <p className="text-white text-lvl-footer font-bold uppercase tracking-wider line-clamp-1">{ev.title}</p>
-                </div>
-              </Link>
-            ))}
-
-            <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-              <div className="bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-wider px-8 py-3.5 rounded-none shadow-2xl border border-black/20 pointer-events-none">
-                L'esprit NFL Courtier & Service
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* 5. TÉMOIGNAGES (issus des témoignages publiés sur le site) */}
-      {testimonials.length > 0 && (
-        <section className="section-y bg-[#0d0e11] border-b border-white/5">
-          <div className="container mx-auto px-4 max-w-6xl">
-            <div className="relative">
-              <div
-                ref={testimonialsRef}
-                onScroll={handleTestimonialsScroll}
-                className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-4 md:grid md:grid-cols-3 md:gap-6 scrollbar-none -mx-4 px-4 md:mx-0 md:px-0"
-              >
-                {testimonials.map((t) => {
-                  const initials = t.author_name
-                    ? t.author_name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
-                    : "NFL";
-                  return (
-                    <div key={t.id} className="w-[85vw] max-w-[340px] md:w-auto shrink-0 snap-center bg-[#15171b] border border-white/5 p-7 sm:p-8 rounded-none flex flex-col justify-between shadow-xl">
-                      <p className="italic text-white/90 text-lvl-body mb-8">
-                        "{t.quote}"
-                      </p>
-                      <div className="flex items-center gap-3.5 pt-4 border-t border-white/5">
-                        <div className="w-9 h-9 bg-[#e3bd51] text-black font-bold text-lvl-footer flex items-center justify-center rounded-none shrink-0">
-                          {initials}
-                        </div>
-                        <div>
-                          <p className="text-white font-bold text-lvl-body leading-tight">{t.author_name}</p>
-                          <p className="text-[#e3bd51] text-lvl-footer font-semibold uppercase tracking-wider mt-0.5">
-                            {[t.author_role, t.author_company].filter(Boolean).join(", ").toUpperCase()}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {testimonials.length > 1 && (
-                <div className="flex md:hidden justify-center items-center gap-2 mt-4">
-                  {testimonials.map((_, idx) => (
-                    <button
-                      key={idx}
-                      aria-label={`Témoignage ${idx + 1}`}
-                      onClick={() => {
-                        setActiveTestimonialIndex(idx);
-                        scrollCarouselTo(testimonialsRef.current, idx);
-                      }}
-                      className={`transition-all duration-300 rounded-full ${
-                        activeTestimonialIndex === idx
-                          ? "w-6 h-2.5 bg-[#e3bd51]"
-                          : "w-2.5 h-2.5 bg-white/30 hover:bg-white/50"
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* 6. VOTRE PARTICIPATION COMPREND : (offre standard NFL, commune à tous les événements) */}
-      <section className="section-y bg-[#e8e6e2] text-[#1c1c1c]">
-        <div className="container mx-auto px-4 max-w-5xl">
-          <div className="grid lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-5 bg-[#f0ede8] p-8 sm:p-12 border border-black/10 shadow-sm rounded-none text-center lg:text-left min-h-[220px] flex items-center justify-center">
-              <h2 className="text-lvl-subtitle text-[#1c1c1c] leading-tight">
-                Votre participation<br className="hidden sm:inline" /> comprend :
-              </h2>
-            </div>
-
-            <div className="lg:col-span-7">
-              <div className="bg-white p-8 sm:p-10 rounded-none shadow-2xl border border-black/10">
-                <div className="space-y-4">
-                  {eventIncludes.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-3 text-lvl-body font-medium text-[#2c2c2c]">
-                      <div className="w-5 h-5 rounded-full bg-[#d4af37]/20 flex items-center justify-center shrink-0">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#655410]" />
-                      </div>
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. SPONSORS (bandeau défilant, valeurs de la marque) */}
-      <section className="py-8 bg-black text-center border-y border-white/10 overflow-hidden">
-        <span className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-[0.3em] block mb-4">
-          Sponsors
-        </span>
-        <div className="relative w-full overflow-hidden">
-          <div className="absolute top-0 bottom-0 left-0 w-16 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
-          <div className="absolute top-0 bottom-0 right-0 w-16 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
-          <div className="flex animate-marquee gap-10 items-center w-max">
-            {Array.from({ length: 3 }).flatMap((_, outerIdx) =>
-              sponsors.map((s, idx) => (
-                <span key={`${outerIdx}-${idx}`} className="flex items-center gap-10 shrink-0">
-                  {s.logo_url ? (
-                    <img src={s.logo_url} alt={s.name || "Partenaire"} className="h-10 w-auto max-w-[160px] object-contain opacity-80" />
-                  ) : (
-                    <span className="text-white/50 text-lvl-body font-bold uppercase tracking-wider whitespace-nowrap">{s.name}</span>
-                  )}
-                  <span className="text-[#e3bd51]">✦</span>
-                </span>
-              )),
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* 8. RÉSERVEZ VOTRE PLACE (BOOKING SECTION) */}
-      <section id="booking-form" className="section-y bg-[#0c0d0f] text-white">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid lg:grid-cols-12 gap-12 items-start">
-            <div className="lg:col-span-5 space-y-7 text-center lg:text-left flex flex-col items-center lg:items-start">
-              <div>
-                <h2 className="text-lvl-title text-white leading-tight mb-4">
-                  Réservez votre place
+              {/* CE QUE VOTRE PARTICIPATION COMPREND */}
+              <div className="space-y-4 pt-4 border-t border-black/5">
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#100906]">
+                  Votre participation comprend
                 </h2>
-                <p className="text-white/60 text-lvl-body font-normal">
-                  L'accès à cet événement est limité pour garantir une expérience de qualité supérieure.
-                </p>
-              </div>
-
-              <div className="space-y-4 pt-2 w-full">
-                <div
-                  onClick={() => setSelectedFormule("individuel")}
-                  className={`p-6 rounded-none border cursor-pointer transition-all flex items-center gap-4 ${
-                    selectedFormule === "individuel"
-                      ? "border-[#e3bd51] bg-[#e3bd51]/10"
-                      : "border-white/15 bg-white/5 hover:border-white/30"
-                  }`}
-                >
-                  <div className="w-10 h-10 rounded-full bg-[#e3bd51]/20 flex items-center justify-center shrink-0">
-                    <UserCheck className="w-5 h-5 text-[#e3bd51]" />
-                  </div>
-                  <div>
-                    <span className="text-white/60 text-lvl-footer font-bold uppercase tracking-wider block">
-                      Tarif individuel
-                    </span>
-                    <span className="text-lvl-subtitle font-bold text-[#e3bd51]">
-                      {eventPrice.toLocaleString()} FCFA
-                    </span>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => setSelectedFormule("corporate")}
-                  className={`p-6 rounded-none border cursor-pointer transition-all flex items-center gap-4 ${
-                    selectedFormule === "corporate"
-                      ? "border-[#e3bd51] bg-[#e3bd51]/10"
-                      : "border-white/15 bg-white/5 hover:border-white/30"
-                  }`}
-                >
-                  <div className="w-10 h-10 rounded-full bg-[#e3bd51]/20 flex items-center justify-center shrink-0">
-                    <Award className="w-5 h-5 text-[#e3bd51]" />
-                  </div>
-                  <div>
-                    <span className="text-white/60 text-lvl-footer font-bold uppercase tracking-wider block">
-                      Table Corporate (8 pers.)
-                    </span>
-                    <span className="text-lvl-subtitle font-bold text-[#e3bd51]">
-                      {corporatePrice.toLocaleString()} FCFA
-                    </span>
-                  </div>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {eventIncludes.map((item, idx) => (
+                    <div key={idx} className="flex items-start gap-3 bg-[#f4f2ee] p-3.5 rounded-xl border border-black/5">
+                      <CheckCircle2 className="w-4 h-4 text-[#8c591a] shrink-0 mt-0.5" />
+                      <span className="text-xs sm:text-sm text-[#333] font-medium">{item}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
+
             </div>
 
-            <div className="lg:col-span-7">
-              <form onSubmit={handleBooking} className="bg-[#17191d] border border-white/10 p-8 sm:p-10 rounded-none space-y-5 shadow-2xl">
-                <div className="grid sm:grid-cols-2 gap-5">
+            {/* DROITE (DESKTOP STICKY): FORMULAIRE DE RÉSERVATION / INSCRIPTION */}
+            <div id="booking-form" className="lg:col-span-5 lg:sticky lg:top-28 scroll-mt-24">
+              <div className="bg-gradient-to-br from-[#100906] via-[#1f120c] to-[#3a2012] text-white p-6 sm:p-8 rounded-[2.5rem] shadow-2xl border border-white/10 space-y-6 relative overflow-hidden">
+                
+                <div className="absolute top-0 right-0 w-48 h-48 bg-[#d4af37]/10 rounded-full blur-3xl pointer-events-none" />
+
+                <div className="space-y-1 relative z-10">
+                  <span className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#d4af37] block">
+                    Formulaire d'Inscription
+                  </span>
+                  <h3 className="text-2xl font-extrabold text-white">
+                    Réservez votre place
+                  </h3>
+                  <p className="text-xs text-white/70">
+                    Remplissez vos informations pour valider votre participation et recevoir votre ticket virtuel instantané.
+                  </p>
+                </div>
+
+                {/* SÉLECTEUR DE FORMULE */}
+                <div className="grid grid-cols-2 gap-2 p-1 bg-black/40 border border-white/10 rounded-xl relative z-10">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedFormule("individuel")}
+                    className={`py-2.5 px-3 rounded-lg text-xs font-bold transition-all text-center ${
+                      selectedFormule === "individuel"
+                        ? "bg-[#d4af37] text-black shadow-md"
+                        : "text-white/70 hover:text-white"
+                    }`}
+                  >
+                    Individuel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedFormule("corporate")}
+                    className={`py-2.5 px-3 rounded-lg text-xs font-bold transition-all text-center ${
+                      selectedFormule === "corporate"
+                        ? "bg-[#d4af37] text-black shadow-md"
+                        : "text-white/70 hover:text-white"
+                    }`}
+                  >
+                    Corporate (8 pers.)
+                  </button>
+                </div>
+
+                {/* FORMULAIRE DES CHAMPS */}
+                <form onSubmit={handleBooking} className="space-y-4 relative z-10">
+                  
                   <div className="space-y-1.5">
-                    <label className="text-lvl-footer font-bold uppercase tracking-wider text-white/70">
-                      NOM COMPLET
+                    <label className="text-xs font-semibold text-white/80 block">
+                      Nom complet
                     </label>
                     <input
                       type="text"
                       required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Ex : MOUSSAVOU ALEX"
-                      className="w-full bg-[#22252b] border border-white/10 text-lvl-footer text-white px-4 py-3.5 rounded-none placeholder:text-white/30 focus:outline-none focus:border-[#e3bd51]"
+                      placeholder="Ex: Jean Dupont"
+                      className="w-full bg-black/40 border border-white/10 text-sm text-white px-4 py-3 rounded-xl placeholder:text-white/30 focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-lvl-footer font-bold uppercase tracking-wider text-white/70">
-                      ADRESSE EMAIL
+                    <label className="text-xs font-semibold text-white/80 block">
+                      Adresse Email
                     </label>
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="moussavou@gmail.com"
-                      className="w-full bg-[#22252b] border border-white/10 text-lvl-footer text-white px-4 py-3.5 rounded-none placeholder:text-white/30 focus:outline-none focus:border-[#e3bd51]"
+                      placeholder="jean.dupont@example.com"
+                      className="w-full bg-black/40 border border-white/10 text-sm text-white px-4 py-3 rounded-xl placeholder:text-white/30 focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all"
                     />
                   </div>
-                </div>
 
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <label className="text-lvl-footer font-bold uppercase tracking-wider text-white/70">
-                      NOMBRE DE PLACES
-                    </label>
-                    <select
-                      value={nbPlaces}
-                      onChange={(e) => setNbPlaces(e.target.value)}
-                      className="w-full bg-[#22252b] border border-white/10 text-lvl-footer text-white px-4 py-3.5 rounded-none focus:outline-none focus:border-[#e3bd51]"
-                    >
-                      <option value="1 Place">1 Place</option>
-                      <option value="2 Places">2 Places</option>
-                      <option value="3 Places">3 Places</option>
-                      <option value="4 Places">4 Places</option>
-                      <option value="Table Corporate (8 places)">Table Corporate (8 places)</option>
-                    </select>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-white/80 block">
+                        Nombre de places
+                      </label>
+                      <select
+                        value={nbPlaces}
+                        onChange={(e) => setNbPlaces(e.target.value)}
+                        className="w-full bg-black/40 border border-white/10 text-sm text-white px-3 py-3 rounded-xl focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all"
+                      >
+                        <option value="1 Place" className="bg-[#100906]">1 Place</option>
+                        <option value="2 Places" className="bg-[#100906]">2 Places</option>
+                        <option value="3 Places" className="bg-[#100906]">3 Places</option>
+                        <option value="4 Places" className="bg-[#100906]">4 Places</option>
+                        <option value="Table Corporate (8 places)" className="bg-[#100906]">Table Corporate (8 pers.)</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-white/80 block">
+                        Téléphone
+                      </label>
+                      <div className="relative flex items-center">
+                        <div className="absolute left-3 flex items-center gap-1 text-[11px] text-white/60 font-semibold pointer-events-none">
+                          <span>🇬🇦 +241</span>
+                        </div>
+                        <input
+                          type="tel"
+                          required
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          placeholder="06 00 00"
+                          className="w-full bg-black/40 border border-white/10 text-sm text-white pl-[68px] pr-3 py-3 rounded-xl placeholder:text-white/30 focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all"
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-lvl-footer font-bold uppercase tracking-wider text-white/70">
-                      TÉLÉPHONE (WHATSAPP)
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+241 00 00 00 00"
-                      className="w-full bg-[#22252b] border border-white/10 text-lvl-footer text-white px-4 py-3.5 rounded-none placeholder:text-white/30 focus:outline-none focus:border-[#e3bd51]"
-                    />
+                  {/* SUMMARY & SUBMIT BUTTON */}
+                  <div className="p-4 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between mt-2">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-white/50 block">Montant Total</span>
+                      <span className="text-xs text-white/70">
+                        {selectedFormule === "individuel" ? "Tarif unitaire" : "Formule Entreprise"}
+                      </span>
+                    </div>
+                    <span className="text-lg font-extrabold text-[#d4af37]">
+                      {selectedFormule === "individuel"
+                        ? (eventPrice > 0 ? `${eventPrice.toLocaleString()} FCFA` : "Gratuit")
+                        : `${corporatePrice.toLocaleString()} FCFA`}
+                    </span>
                   </div>
-                </div>
 
-                <div className="pt-4">
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-widest py-4 px-6 rounded-none transition-colors flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full bg-gradient-to-r from-[#d4af37] via-[#e3bd51] to-[#d4af37] hover:opacity-95 text-black font-extrabold text-xs sm:text-sm uppercase tracking-wider py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group disabled:opacity-50"
                   >
-                    {isSubmitting ? "TRAITEMENT..." : "CONFIRMER LA RÉSERVATION"} <ArrowRight className="w-4 h-4" />
+                    {isSubmitting ? (
+                      "Confirmation..."
+                    ) : (
+                      <>
+                        <span>Confirmer ma réservation</span>
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
                   </button>
-                  <p className="text-lvl-footer text-white/40 text-center italic mt-3">
-                    Un ticket virtuel vous sera envoyé après validation.
-                  </p>
-                </div>
-              </form>
+
+                  <div className="flex items-center justify-center gap-2 pt-1 text-white/40 text-[11px] font-medium">
+                    <ShieldCheck className="w-4 h-4 text-[#d4af37]" />
+                    <span>Validation directe avec NFL Courtier &amp; Service</span>
+                  </div>
+
+                </form>
+
+              </div>
             </div>
+
           </div>
-        </div>
-      </section>
+        </section>
+
+      </main>
 
       <Footer />
     </div>

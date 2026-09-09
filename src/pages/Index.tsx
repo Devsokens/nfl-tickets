@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, type Variants } from "framer-motion";
-import { ArrowRight, ShieldCheck, CheckCircle2, Info, X, Sparkles, Award, GraduationCap, Calendar, Briefcase, TrendingUp, Users, Crown } from "lucide-react";
+import { ArrowRight, ShieldCheck, CheckCircle2, Info, X, Award, GraduationCap, Calendar, Briefcase, TrendingUp, Users, Crown } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HighlightEventCard from "@/components/HighlightEventCard";
@@ -390,38 +390,21 @@ const Index = () => {
       <KeyStatsSection />
 
       {/* 3. EVENEMENTS D'EXCEPTION */}
-      <section id="evenements" className="section-y bg-[#fdfbf7] relative overflow-hidden">
+      <section id="evenements" className="section-y bg-gradient-to-b from-[#fbf5e6] via-[#f7ebd7] to-[#fbf5e6] border-y border-[#d4af37]/25 relative overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl relative z-10">
-          <motion.div
-            className="text-left mb-10"
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportOnce}
-            variants={fadeUp}
-          >
-            <span className="text-[#8c591a] text-xs font-bold uppercase tracking-[0.2em] block mb-2">
-              <EditableText value={content.eventsSection.eyebrow || ""} onSave={makeFieldSaver("eventsSection", "eyebrow")} label="Eyebrow" />
-            </span>
-            <h2 className="font-sans text-3xl sm:text-4xl font-extrabold text-[#100906] tracking-tight">
-              <EditableText value={content.eventsSection.title || ""} onSave={makeFieldSaver("eventsSection", "title")} label="Titre de section" />
-            </h2>
-          </motion.div>
-
-          <div className="relative">
-            {isEditMode && (
-              <div className="flex items-center gap-2 text-ink/60 text-lvl-footer mb-4 bg-black/5 border border-black/10 rounded-lg px-4 py-2.5 w-fit">
-                <Info className="w-3.5 h-3.5 text-gold-dark shrink-0" />
-                Les événements affichés ici sont gérés depuis l'onglet <strong className="text-ink/80">Événements</strong>.
-              </div>
-            )}
-            {featuredEvents.length === 0 ? (
-              <div className="text-center py-16 text-ink/50 border border-black/10 rounded-2xl">
-                Aucun événement à afficher pour le moment.
-              </div>
-            ) : (
-              <EventsCarousel events={featuredEvents} isEditMode={isEditMode} />
-            )}
-          </div>
+          {isEditMode && (
+            <div className="flex items-center gap-2 text-ink/60 text-lvl-footer mb-4 bg-black/5 border border-black/10 rounded-lg px-4 py-2.5 w-fit">
+              <Info className="w-3.5 h-3.5 text-gold-dark shrink-0" />
+              Les événements affichés ici sont gérés depuis l'onglet <strong className="text-ink/80">Événements</strong>.
+            </div>
+          )}
+          {featuredEvents.length === 0 ? (
+            <div className="text-center py-16 text-ink/50 border border-black/10 rounded-2xl">
+              Aucun événement à afficher pour le moment.
+            </div>
+          ) : (
+            <EventsCarousel events={featuredEvents} isEditMode={isEditMode} />
+          )}
         </div>
       </section>
 
@@ -559,11 +542,6 @@ const Index = () => {
               
               {/* GAUCHE : TEXTE & BOUTONS D'ACTION */}
               <div className="lg:col-span-6 space-y-6 text-left">
-                
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-bold text-[#e3bd51] uppercase tracking-widest">
-                  <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-pulse" />
-                  <span>Excellence & Accompagnement</span>
-                </div>
 
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.15]">
                   <EditableText value={content.ctaSection.title || "Prêt à élever vos standards ?"} onSave={makeFieldSaver("ctaSection", "title")} label="Titre" />
@@ -579,22 +557,22 @@ const Index = () => {
                   />
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                <div className="flex flex-row gap-1.5 sm:gap-4 pt-2">
                   <button
                     onClick={isEditMode ? undefined : () => navigate("/contact")}
-                    className="gradient-gold text-accent-foreground font-bold text-xs uppercase tracking-wider py-4 px-8 rounded-full shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all inline-flex items-center justify-center gap-2 group"
+                    className="gradient-gold text-accent-foreground font-bold text-[8px] sm:text-xs uppercase tracking-tight sm:tracking-wider py-2 px-2.5 sm:py-4 sm:px-8 rounded-full shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all inline-flex items-center justify-center gap-1 sm:gap-2 group whitespace-nowrap min-w-0"
                   >
                     <span>
                       {isEditMode ? (
                         <EditableText value={content.ctaSection.primaryBtnText || "PRENDRE RENDEZ-VOUS"} onSave={makeFieldSaver("ctaSection", "primaryBtnText")} label="Bouton principal" />
                       ) : (content.ctaSection.primaryBtnText || "PRENDRE RENDEZ-VOUS")}
                     </span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="hidden sm:inline-block w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </button>
 
                   <button
                     onClick={isEditMode ? undefined : () => navigate("/contact")}
-                    className="border border-white/30 hover:border-white bg-transparent text-white font-bold text-xs uppercase tracking-wider py-4 px-8 rounded-full transition-all duration-300 inline-flex items-center justify-center gap-2"
+                    className="border border-white/30 hover:border-white bg-transparent text-white font-bold text-[8px] sm:text-xs uppercase tracking-tight sm:tracking-wider py-2 px-2.5 sm:py-4 sm:px-8 rounded-full transition-all duration-300 inline-flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap min-w-0"
                   >
                     <span>
                       {isEditMode ? (
@@ -685,19 +663,15 @@ const Index = () => {
               variants={fadeUp}
             >
               <div>
-                <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[#8c591a] mb-3">
-                  <Sparkles className="w-3.5 h-3.5 text-[#d4af37]" />
-                  Notre Histoire
-                </span>
-                <h2 className="text-lvl-title text-[#100906] mb-2">
+                <h2 className="font-sans text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#100906] tracking-tight leading-tight mb-2">
                   <EditableText value={content.about.title || "C'est quoi NFL?"} onSave={makeFieldSaver("about", "title")} label="Titre" />
                 </h2>
-                <p className="text-lvl-subtitle text-[#8c591a] font-semibold mb-4">
+                <p className="text-base sm:text-lg text-[#8c591a] font-semibold mb-4">
                   <EditableText value={content.about.subtitle || "Une vision née de l'exigence"} onSave={makeFieldSaver("about", "subtitle")} label="Sous-titre" />
                 </p>
               </div>
 
-              <p className="text-[#444] text-base sm:text-lg leading-relaxed font-normal">
+              <p className="text-[#555] text-base sm:text-lg leading-relaxed font-normal">
                 <EditableText value={content.about.paragraph || ""} onSave={makeFieldSaver("about", "paragraph")} label="Paragraphe" multiline as="div" />
               </p>
 

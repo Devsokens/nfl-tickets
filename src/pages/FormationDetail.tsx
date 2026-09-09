@@ -1,16 +1,15 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Helmet } from "react-helmet-async";
 import {
-  ArrowRight, ArrowLeft, ShieldCheck, CheckCircle2, Layers, BarChart3, Award, Lock,
-  Building2, Utensils, Smartphone, Headset, Loader2, UserCheck, Users2,
-  FileText, Sparkles, TrendingUp, Briefcase, Scale, Globe, Quote, Download, Images
+  ChevronLeft, ArrowRight, CheckCircle2, Award, Clock, Globe,
+  GraduationCap, Loader2, ShieldCheck, Users, BookOpen, Images
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { FormationsAPI, TestimonialsAPI, ContactAPI, type Formation, type Testimonial } from "@/lib/api";
+import { FormationsAPI, ContactAPI, type Formation } from "@/lib/api";
 
 const FormationDetail = () => {
   const { id } = useParams();
@@ -22,34 +21,49 @@ const FormationDetail = () => {
     enabled: !!id,
   });
 
-  const { data: testimonials = [] } = useQuery<Testimonial[]>({
-    queryKey: ["testimonials"],
-    queryFn: () => TestimonialsAPI.getAll(false),
-  });
-
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   // Formulaire d'inscription
+  const [selectedFormule, setSelectedFormule] = useState<"individuel" | "corporate">("individuel");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [nbPlaces, setNbPlaces] = useState("1 Place");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const gallery = formation?.gallery || [];
 
-  // Repli générique tant que l'admin n'a pas renseigné la citation pour
-  // cette formation précise (voir FormationsTab.tsx).
-  const DEFAULT_EXPERTISE_POINTS = [
-    "Plus de 15 ans d'expérience dans les banques d'affaires internationales à Londres et Singapour.",
-    "Architecte de la structuration de dettes complexes pour des projets d'infrastructure majeurs.",
-    "Membre du Cercle d'Excellence Financière et conseillère stratégique auprès de fonds souverains.",
+  const formationPrice = formation?.price ? Number(formation.price) : 0;
+  const corporatePrice = formationPrice > 0 ? Math.round(formationPrice * 5.5) : 0;
+
+  // Inclusions standards pour les formations
+  const formationIncludes = (formation?.bullets && formation.bullets.length > 0)
+    ? formation.bullets
+    : [
+        "Support pédagogique complet et supports de cours numériques",
+        "Ateliers pratiques immersifs et études de cas réels",
+        "Accompagnement et feedbacks personnalisés par les experts",
+        "Attestation officielle & certification professionnelle NFL",
+        "Accès exclusif au réseau des Alumni NFL Courtier",
+        "Déjeuners d'affaires & pauses networking VIP",
+      ];
+
+  // Programme de formation
+  const defaultProgram = [
+    { title: "Fondamentaux & Cadre Stratégique", time: "Jour 1", description: "Maîtrise des concepts clés, analyse des enjeux sectoriels et diagnostic initial." },
+    { title: "Outils Pratiques & Études de Cas", time: "Jour 2", description: "Mises en situation réelles, simulation et élaboration de stratégies opérationnelles." },
+    { title: "Optimisation, Synthèse & Certification", time: "Jour 3", description: "Restitution de projet, évaluation continue des compétences et validation finale." },
   ];
-  const quoteText = formation?.quote || "L'excellence n'est pas un acte, c'est une habitude. En finance, c'est la différence entre le hasard et la maîtrise.";
-  const quoteAuthorName = formation?.quote_author_name || "Directrice du programme";
-  const quoteAuthorTitle = formation?.quote_author_title || "Senior Investment Strategist, NFL Courtier";
-  const expertisePoints = formation?.expertise_points?.length ? formation.expertise_points : DEFAULT_EXPERTISE_POINTS;
+
+  const program = (formation?.program && formation.program.length > 0)
+    ? formation.program.map((p: any, idx: number) => ({
+        title: p.title || p.name || `Module ${idx + 1}`,
+        time: p.time || p.category || `Module 0${idx + 1}`,
+        description: p.description || "Session approfondie et méthodologie pratique.",
+      }))
+    : defaultProgram;
 
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,14 +82,12 @@ const FormationDetail = () => {
       description: "Redirection vers WhatsApp pour finaliser votre inscription...",
     });
 
-    // Trace la demande côté admin (module Demandes, type "formation") — avant,
-    // ce formulaire ne faisait qu'une redirection WhatsApp, sans laisser
-    // aucune trace exploitable côté admin (pas de suivi, pas de stats).
+    // Trace côté admin (module Demandes)
     ContactAPI.send({
       name: fullName,
       email,
       subject: `Inscription formation : ${formation?.title || "Formation"}`,
-      message: `Nombre de places : ${nbPlaces}\nTéléphone WhatsApp : ${phone}`,
+      message: `Formule : ${selectedFormule}\nNombre de places : ${nbPlaces}\nTéléphone WhatsApp : ${phone}`,
       type: "formation",
       formation_id: formation?.id,
     }).catch((err) => console.error("Échec de l'enregistrement de la demande formation :", err));
@@ -85,6 +97,7 @@ const FormationDetail = () => {
                     `*Détails du participant :*\n` +
                     `- *Nom complet* : ${fullName}\n` +
                     `- *Email* : ${email}\n` +
+                    `- *Formule* : ${selectedFormule === "individuel" ? "Individuel" : "Corporate (Entreprise)"}\n` +
                     `- *Nombre de places* : ${nbPlaces}\n` +
                     `- *Téléphone WhatsApp* : ${phone}\n\n` +
                     `Merci de me contacter avec le programme complet et les modalités d'accès.`;
@@ -98,21 +111,24 @@ const FormationDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0b0d] flex items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-[#e3bd51]" />
+      <div className="min-h-screen bg-[#100906] flex items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-[#d4af37]" />
       </div>
     );
   }
 
   if (isError || !formation) {
     return (
-      <div className="min-h-screen bg-[#0a0b0d] flex flex-col text-white">
+      <div className="min-h-screen bg-[#100906] flex flex-col text-white">
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center gap-6 py-32 px-4 text-center">
-          <h1 className="text-lvl-title">Formation introuvable</h1>
-          <p className="text-white/60 text-lvl-body max-w-md">Ce module n'existe plus ou a été dépublié.</p>
-          <Link to="/catalogue-formations" className="inline-flex items-center gap-2 text-[#e3bd51] font-bold text-lvl-footer uppercase tracking-widest border border-[#e3bd51]/30 hover:border-[#e3bd51] px-5 py-2.5">
-            <ArrowLeft className="w-4 h-4" /> Retour au catalogue
+          <h1 className="text-3xl font-bold text-white">Formation introuvable</h1>
+          <p className="text-white/60 text-base max-w-md">Ce module n'existe plus ou a été dépublié.</p>
+          <Link
+            to="/catalogue-formations"
+            className="inline-flex items-center gap-2 text-black bg-[#d4af37] font-bold text-xs uppercase tracking-widest px-6 py-3 rounded-full hover:bg-white transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" /> Retour au catalogue
           </Link>
         </div>
         <Footer />
@@ -120,433 +136,391 @@ const FormationDetail = () => {
     );
   }
 
-  // Split title for gold accent styling
-  const titleParts = formation.title ? formation.title.split(" ") : ["Masterclass", "en", "Ingénierie", "Financière"];
-  const titleMain = titleParts.length > 2 ? titleParts.slice(0, -2).join(" ") : titleParts[0] || "Masterclass";
-  const titleAccent = titleParts.length > 2 ? titleParts.slice(-2).join(" ") : titleParts.slice(1).join(" ") || "Ingénierie Financière";
-
-  const priceLabel = formation.price
-    ? `${formation.price.toLocaleString()} ${formation.currency || "XAF"}`
-    : null;
-
-  // Piliers de programme dynamiques ou de repli scrupuleux
-  const defaultPillars = [
-    {
-      code: "01 / ANALYSE",
-      icon: BarChart3,
-      title: "Ingénierie de Marché",
-      description: "Décryptage des flux de capitaux mondiaux et modélisation de volatilité avancée."
-    },
-    {
-      code: "02 / GESTION",
-      icon: TrendingUp,
-      title: "Stratégie d'Actifs",
-      description: "Optimisation de portefeuilles institutionnels sous contraintes de risque dynamique."
-    },
-    {
-      code: "03 / NÉGOCIATION",
-      icon: Briefcase,
-      title: "Closing de Prestige",
-      description: "L'art de la négociation de haut niveau et protocoles de finalisation d'accords."
-    },
-    {
-      code: "04 / GAINS",
-      icon: Scale,
-      title: "Ingénierie Fiscale",
-      description: "Cadre réglementaire international et optimisation des structures de financement."
-    }
-  ];
-
-  const programPillars = (formation.program && formation.program.length > 0)
-    ? formation.program.map((item: any, idx: number) => ({
-        code: `0${idx + 1} / ${item.category || "MODULE"}`,
-        icon: [BarChart3, TrendingUp, Briefcase, Scale][idx % 4],
-        title: item.title || item.name || `Module ${idx + 1}`,
-        description: item.description || "Contenu stratégique approfondi."
-      }))
-    : defaultPillars;
-
   return (
-    <div className="min-h-screen bg-[#0a0b0d] flex flex-col text-white font-sans selection:bg-[#e3bd51] selection:text-black">
+    <div className="min-h-screen bg-[#fcfbfa] text-[#100906] flex flex-col font-sans">
       <Helmet>
-        <title>{formation.title} | NFL Courtier & Service</title>
-        <meta name="description" content={formation.description || `Masterclass d'Excellence : ${formation.title} dispensée par NFL Courtier & Service.`} />
+        <title>{`${formation.title} | NFL Courtier & Service`}</title>
+        <meta name="description" content={formation.description || `Formation d'Excellence : ${formation.title} dispensée par NFL Courtier & Service.`} />
       </Helmet>
-      
+
       <Navbar />
 
-      {/* 1. HERO SECTION (image de la formation en arrière-plan + dégradé noir) */}
-      <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 bg-[#0a0b0d] overflow-hidden border-b border-white/10">
-        {formation.image_url && (
-          <>
+      <main className="flex-grow pt-20">
+        
+        {/* 1. HERO COVER PHOTO SECTION (IDENTIQUE À EVENT DETAIL) */}
+        <section className="relative w-full h-[360px] sm:h-[420px] lg:h-[480px] bg-[#100906] overflow-hidden">
+          {formation.image_url ? (
             <img
               src={formation.image_url}
               alt={formation.title}
-              className="absolute inset-0 w-full h-full object-cover"
+              className="w-full h-full object-cover opacity-85 brightness-90 filter"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0b0d] via-[#0a0b0d]/85 to-[#0a0b0d]/50" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#0a0b0d]/70 via-transparent to-transparent" />
-          </>
-        )}
-        {/* Diamond Geometric Wireframe Overlay */}
-        <div className="absolute top-16 right-8 md:right-24 w-64 h-64 md:w-96 md:h-96 border border-white/10 rotate-45 pointer-events-none hidden sm:block opacity-40" />
-        <div className="absolute top-24 right-16 md:right-32 w-48 h-48 md:w-72 md:h-72 border border-[#e3bd51]/20 rotate-45 pointer-events-none hidden sm:block opacity-30" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-[#100906] via-[#1f120c] to-[#3a2012] flex items-center justify-center">
+              <GraduationCap className="w-20 h-20 text-[#d4af37]/30" />
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#100906]/90 via-[#100906]/40 to-black/30" />
 
-        <div className="relative z-10 container mx-auto px-4 max-w-6xl">
-          {/* Back Button */}
-          <div className="mb-8">
+          {/* FLOATING BACK BUTTON (<) TOP LEFT */}
+          <div className="absolute top-6 left-4 sm:left-8 z-20">
             <Link
               to="/catalogue-formations"
-              className="inline-flex items-center gap-2 text-white/60 hover:text-[#e3bd51] font-bold text-lvl-footer uppercase tracking-widest transition-all"
+              aria-label="Retour au catalogue des formations"
+              className="w-11 h-11 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-md border border-white/30 text-white flex items-center justify-center transition-all shadow-lg hover:scale-105"
             >
-              <ArrowLeft className="w-4 h-4 text-[#e3bd51]" /> RETOUR AU CATALOGUE FORMATION
+              <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
             </Link>
           </div>
-
-          <div className="max-w-3xl mx-auto lg:mx-0 space-y-6 text-center lg:text-left flex flex-col items-center lg:items-start">
-            {/* Top Eyebrow Badge */}
-            <div className="flex items-center justify-center lg:justify-start gap-3 text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-[0.25em]">
-              <span className="w-8 h-[1px] bg-[#e3bd51] inline-block" />
-              <span>{formation.badge || "EXCELLENCE ACADÉMIQUE"}</span>
-            </div>
-
-            {/* Main Title */}
-            <h1 className="text-lvl-hero leading-[1.15]">
-              <span className="block text-white">{titleMain}</span>
-              <span className="inline-block italic text-[#e3bd51] relative pb-2 mt-1">
-                {titleAccent}
-                <span className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#e3bd51] via-[#c29c38] to-transparent" />
-              </span>
-            </h1>
-
-            {/* Metadata Cards Row (Niveau, Durée, Certification) */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-6 pt-2 w-full max-w-xl">
-              <div className="min-w-0 bg-white/[0.03] border border-white/15 p-2.5 sm:p-5 rounded-none">
-                <span className="text-white/40 text-lvl-footer font-bold uppercase tracking-widest block mb-1 truncate">NIVEAU</span>
-                <span className="text-white font-bold text-lvl-body sm:text-lvl-subtitle break-words">{formation.level || "Expert"}</span>
+          <div className="absolute bottom-6 right-4 sm:right-8 z-20 max-w-sm w-[90%] sm:w-auto">
+            <div className="bg-[#100906]/90 backdrop-blur-xl border border-[#d4af37]/40 p-4 sm:p-5 rounded-[2rem] text-white shadow-2xl space-y-3">
+              
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#d4af37] flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-pulse" />
+                  Programme Certifiant
+                </span>
+                <span className="text-[10px] font-bold text-white/70 uppercase">
+                  {formationPrice > 0 ? `${formationPrice.toLocaleString()} FCFA` : "Sur devis"}
+                </span>
               </div>
-              <div className="min-w-0 bg-white/[0.03] border border-white/15 p-2.5 sm:p-5 rounded-none">
-                <span className="text-white/40 text-lvl-footer font-bold uppercase tracking-widest block mb-1 truncate">DURÉE</span>
-                <span className="text-white font-bold text-lvl-body sm:text-lvl-subtitle break-words">{formation.duration || "3 Jours"}</span>
-              </div>
-              <div className="min-w-0 bg-white/[0.03] border border-white/15 p-2.5 sm:p-5 rounded-none">
-                <span className="text-white/40 text-lvl-footer font-bold uppercase tracking-widest block mb-1 truncate">CERTIF.</span>
-                <span className="text-[#e3bd51] font-bold text-lvl-body sm:text-lvl-subtitle break-words">{formation.certification || "NFL Élite"}</span>
-              </div>
-            </div>
 
-            {/* CTA Button */}
-            <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-4">
+              {/* 3 Metrics Tiles */}
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="bg-white/10 border border-white/10 p-2 rounded-xl">
+                  <span className="text-xs sm:text-sm font-extrabold text-[#d4af37] block leading-tight truncate">
+                    {formation.duration || "3 Jours"}
+                  </span>
+                  <span className="text-[9px] uppercase font-bold text-white/70">Durée</span>
+                </div>
+                <div className="bg-white/10 border border-white/10 p-2 rounded-xl">
+                  <span className="text-xs sm:text-sm font-extrabold text-[#d4af37] block leading-tight truncate">
+                    {formation.level || "Exécutif"}
+                  </span>
+                  <span className="text-[9px] uppercase font-bold text-white/70">Niveau</span>
+                </div>
+                <div className="bg-white/10 border border-white/10 p-2 rounded-xl">
+                  <span className="text-xs sm:text-sm font-extrabold text-[#d4af37] block leading-tight truncate">
+                    {formation.certification || "NFL"}
+                  </span>
+                  <span className="text-[9px] uppercase font-bold text-white/70">Certif.</span>
+                </div>
+              </div>
+
               <button
                 onClick={() => document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth" })}
-                className="bg-[#e3bd51] hover:bg-[#d4af37] text-black font-bold text-lvl-footer uppercase tracking-widest py-4 px-9 rounded-none transition-all flex items-center gap-3 shadow-xl hover:shadow-[#e3bd51]/20 active:scale-95"
+                className="w-full bg-gradient-to-r from-[#d4af37] via-[#e3bd51] to-[#d4af37] hover:opacity-95 text-black font-extrabold py-3 px-5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-wider group cursor-pointer"
               >
-                S'INSCRIRE <ArrowRight className="w-4 h-4" />
+                <span>S'inscrire maintenant</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
-              {priceLabel && (
-                <span className="text-white/60 text-lvl-body font-semibold">{priceLabel}</span>
-              )}
+
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 2. SECTION HIGHLIGHT / STANDARDS */}
-      <section className="section-y bg-[#0a0b0d] border-b border-white/5">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid lg:grid-cols-12 gap-10 items-start">
-            {/* Left Title */}
-            <div className="lg:col-span-5 text-center lg:text-left">
-              <h2 className="text-lvl-title leading-snug">
-                <span className="block text-white">Redéfinir les</span>
-                <span className="block text-white">standards de la</span>
-                <span className="inline-block italic text-[#e3bd51] relative pb-1 mt-1">
-                  haute finance.
-                  <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#e3bd51]" />
-                </span>
-              </h2>
-            </div>
+        {/* 2. MAIN 2-COLUMN LAYOUT (GAUCHE : DÉTAILS FORMATION, DROITE : FORMULAIRE STICKY) */}
+        <section className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-8 sm:py-12">
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+            
+            {/* GAUCHE : DÉTAILS DE LA FORMATION */}
+            <div className="lg:col-span-7 space-y-8">
+              
+              {/* TITRE PRINCIPAL */}
+              <div>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#100906] tracking-tight leading-snug">
+                  {formation.title}
+                </h1>
+              </div>
 
-            {/* Right Paragraph & Key Badges */}
-            <div className="lg:col-span-7 space-y-5 text-center lg:text-left flex flex-col items-center lg:items-start">
-              <p className="text-white/80 text-lvl-body font-light">
-                {formation.description ||
-                  "Cette Masterclass immersive est conçue pour l'élite financière. Elle transcende la théorie conventionnelle pour explorer les mécanismes complexes des marchés mondiaux et les stratégies de structuration de capital les plus sophistiquées."}
-              </p>
-
-              <p className="text-white/60 text-lvl-body font-light">
-                Notre objectif est de forger des leaders capables de naviguer dans l'incertitude avec une précision chirurgicale, en maîtrisant les outils de l'ingénierie moderne au service de la performance durable.
-              </p>
-
-              {/* Highlights List */}
-              <div className="flex flex-wrap justify-center lg:justify-start gap-8 pt-4 border-t border-white/10 w-full">
-                <div className="flex items-center gap-3 text-lvl-footer font-bold uppercase tracking-wider text-white">
-                  <div className="w-7 h-7 rounded-full bg-[#e3bd51]/10 border border-[#e3bd51]/40 flex items-center justify-center text-[#e3bd51]">
-                    <Sparkles className="w-3.5 h-3.5" />
-                  </div>
-                  <span>PRATIQUE INTENSIVE</span>
+              {/* DURÉE ROW WITH CLOCK ICON */}
+              <div className="flex items-center gap-3 text-sm sm:text-base font-semibold text-[#333]">
+                <div className="w-10 h-10 rounded-xl bg-[#8c591a]/10 border border-[#8c591a]/20 flex items-center justify-center shrink-0">
+                  <Clock className="w-5 h-5 text-[#8c591a]" />
                 </div>
-                <div className="flex items-center gap-3 text-lvl-footer font-bold uppercase tracking-wider text-white">
-                  <div className="w-7 h-7 rounded-full bg-[#e3bd51]/10 border border-[#e3bd51]/40 flex items-center justify-center text-[#e3bd51]">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                  </div>
-                  <span>RÉSULTATS MESURABLES</span>
+                <div>
+                  <span className="block text-[#100906]">
+                    {formation.duration || "Formation intensive — 3 à 5 jours"}
+                  </span>
+                  <span className="text-xs text-[#666] font-normal block">
+                    Horaires flexibles adaptés aux cadres et dirigeants
+                  </span>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* 3. ARCHITECTURE PÉDAGOGIQUE (4 Piliers Fondamentaux) */}
-      <section className="section-y bg-[#07080a] border-b border-white/5">
-        <div className="container mx-auto px-4 max-w-6xl">
-          {/* Centered Header */}
-          <div className="text-center max-w-2xl mx-auto mb-10 md:mb-14 space-y-3">
-            <span className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-[0.25em] block">
-              ARCHITECTURE PÉDAGOGIQUE
-            </span>
-            <h2 className="text-lvl-title text-white leading-tight">
-              Un Programme Structuré en 4 <br />
-              <span className="italic text-white/90">Piliers Fondamentaux</span>
-            </h2>
-          </div>
+              {/* FORMAT ROW WITH GLOBE / LOCATION ICON */}
+              <div className="flex items-center gap-3 text-sm sm:text-base font-semibold text-[#333]">
+                <div className="w-10 h-10 rounded-xl bg-[#8c591a]/10 border border-[#8c591a]/20 flex items-center justify-center shrink-0">
+                  <Globe className="w-5 h-5 text-[#8c591a]" />
+                </div>
+                <div>
+                  <span className="block text-[#100906]">
+                    Présentiel à Libreville &amp; Visioconférence
+                  </span>
+                  <span className="text-xs text-[#666] font-normal block">
+                    Accès aux replays, supports numériques et plateforme e-learning
+                  </span>
+                </div>
+              </div>
 
-          {/* 4 Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {programPillars.slice(0, 4).map((pillar: any, idx: number) => {
-              const IconComp = pillar.icon || BarChart3;
-              return (
-                <div
-                  key={idx}
-                  className="bg-[#121418] border border-white/10 p-7 rounded-none flex flex-col justify-between space-y-5 hover:border-[#e3bd51]/50 transition-all duration-300 group"
-                >
-                  <div className="space-y-4">
-                    <span className="text-white/35 text-lvl-footer font-bold tracking-[0.2em] uppercase block">
-                      {pillar.code}
-                    </span>
+              {/* CERTIFICATION ROW */}
+              <div className="flex items-center gap-3 py-3 border-y border-black/5">
+                <div className="w-10 h-10 rounded-xl bg-[#8c591a]/10 border border-[#8c591a]/20 flex items-center justify-center shrink-0">
+                  <Award className="w-5 h-5 text-[#8c591a]" />
+                </div>
+                <div>
+                  <span className="block text-[#100906] font-bold text-sm sm:text-base">
+                    {formation.certification || "Certification Professionnelle NFL Courtier"}
+                  </span>
+                  <span className="text-xs text-[#666] font-normal block">
+                    Attestation de compétences et validation des acquis reconnue
+                  </span>
+                </div>
+              </div>
 
-                    <div className="w-10 h-10 rounded-full bg-[#e3bd51]/10 border border-[#e3bd51]/30 flex items-center justify-center text-[#e3bd51] group-hover:bg-[#e3bd51] group-hover:text-black transition-colors">
-                      <IconComp className="w-5 h-5" />
-                    </div>
-
-                    <h3 className="text-lvl-subtitle text-white group-hover:text-[#e3bd51] transition-colors">
-                      {pillar.title}
-                    </h3>
-
-                    <p className="text-white/60 text-lvl-footer font-light">
-                      {pillar.description}
+              {/* SECTION À PROPOS */}
+              <div className="space-y-3">
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#100906]">
+                  À propos de la formation
+                </h2>
+                <div className="text-sm sm:text-base text-[#444] leading-relaxed space-y-3 font-normal">
+                  {formation.description ? (
+                    formation.description
+                      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}]/gu, "")
+                      .split("\n").filter(Boolean).map((para, idx) => (
+                        <p key={idx}>{para.trim()}</p>
+                      ))
+                  ) : (
+                    <p className="italic text-[#888]">
+                      Cette formation de haut niveau est conçue pour outiller les professionnels et dirigeants avec des méthodes concrètes et directement applicables.
                     </p>
+                  )}
+                </div>
+              </div>
+
+              {/* PROGRAMME DÉTAILLÉ DE LA FORMATION */}
+              {program.length > 0 && (
+                <div className="space-y-4 pt-4 border-t border-black/5">
+                  <h2 className="text-xl sm:text-2xl font-extrabold text-[#100906]">
+                    Programme de la formation
+                  </h2>
+                  <div className="space-y-3">
+                    {program.map((p: any, idx: number) => (
+                      <div key={idx} className="flex gap-4 items-start bg-[#f4f2ee] p-4 rounded-2xl border border-black/5">
+                        {p.time && (
+                          <span className="bg-[#8c591a] text-white text-xs font-bold px-3 py-1 rounded-full shrink-0">
+                            {p.time}
+                          </span>
+                        )}
+                        <div>
+                          <p className="font-bold text-sm text-[#100906]">{p.title}</p>
+                          {p.description && <p className="text-xs text-[#666] mt-0.5">{p.description}</p>}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+              )}
 
-      {/* 4. QUOTE & EXPERTISE SECTION */}
-      <section className="section-y bg-[#0a0b0d] border-b border-white/5">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid lg:grid-cols-12 gap-12 items-center">
-            {/* Left Quote */}
-            <div className="lg:col-span-7 space-y-5 text-center lg:text-left flex flex-col items-center lg:items-start">
-              <div className="w-12 h-12 bg-white/5 border border-white/10 flex items-center justify-center text-[#e3bd51] text-lvl-title">
-                "
-              </div>
-
-              <blockquote className="italic text-lvl-title text-white/95 leading-snug">
-                "{quoteText}"
-              </blockquote>
-
-              <div className="pt-2">
-                <span className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-wider block">
-                  {quoteAuthorName.toUpperCase()}
-                </span>
-                <span className="text-white/50 text-lvl-footer block mt-0.5">
-                  {quoteAuthorTitle}
-                </span>
-              </div>
-            </div>
-
-            {/* Right Expertise Card */}
-            <div className="lg:col-span-5">
-              <div className="bg-[#14161b] border border-white/10 p-8 sm:p-10 rounded-none space-y-6 shadow-2xl">
-                <h3 className="text-[#e3bd51] text-lvl-footer font-bold tracking-[0.2em] uppercase border-b border-white/10 pb-4">
-                  EXPERTISE & PARCOURS
-                </h3>
-
-                <div className="space-y-6">
-                  {expertisePoints.map((point, idx) => (
-                    <div key={idx} className="flex gap-4 items-start">
-                      <span className="text-[#e3bd51] font-bold text-lvl-body shrink-0">{String(idx + 1).padStart(2, "0")}</span>
-                      <p className="text-white/80 text-lvl-footer font-light">{point}</p>
+              {/* CE QUE VOTRE INSCRIPTION COMPREND */}
+              <div className="space-y-4 pt-4 border-t border-black/5">
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#100906]">
+                  Votre inscription comprend
+                </h2>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {formationIncludes.map((item, idx) => (
+                    <div key={idx} className="flex items-start gap-3 bg-[#f4f2ee] p-3.5 rounded-xl border border-black/5">
+                      <CheckCircle2 className="w-4 h-4 text-[#8c591a] shrink-0 mt-0.5" />
+                      <span className="text-xs sm:text-sm text-[#333] font-medium">{item}</span>
                     </div>
                   ))}
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* GALERIE PHOTOS (cohortes précédentes, alimentée depuis l'admin) */}
-      {gallery.length > 0 && (
-        <section className="section-y bg-[#07080a] border-b border-white/5">
-          <div className="container mx-auto px-4 max-w-6xl">
-            <div className="flex items-center justify-between gap-4 mb-8">
-              <div className="flex items-center gap-3">
-                <Images className="w-5 h-5 text-[#e3bd51]" />
-                <h2 className="text-white text-xl md:text-2xl font-bold">Galerie photos</h2>
-              </div>
-              <Link
-                to={`/formation/${formation?.slug || id}/galerie`}
-                className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-wider hover:text-white transition-colors whitespace-nowrap"
-              >
-                Voir tout →
-              </Link>
-            </div>
-            <Link to={`/formation/${formation?.slug || id}/galerie`} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 group/album">
-              {gallery.slice(0, 8).map((src, idx) => (
-                <div key={idx} className="relative aspect-square rounded-xl overflow-hidden">
-                  <img
-                    src={src}
-                    alt={`${formation?.title || "Formation"} — photo ${idx + 1}`}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover/album:scale-105"
-                    loading="lazy"
-                  />
+              {/* GALERIE PHOTOS (SI DISPONIBLE) */}
+              {gallery.length > 0 && (
+                <div className="space-y-4 pt-4 border-t border-black/5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Images className="w-5 h-5 text-[#8c591a]" />
+                      <h2 className="text-xl sm:text-2xl font-extrabold text-[#100906]">
+                        Galerie des sessions précédentes
+                      </h2>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {gallery.slice(0, 6).map((src, idx) => (
+                      <div key={idx} className="relative aspect-video rounded-xl overflow-hidden bg-black/10">
+                        <img
+                          src={src}
+                          alt={`${formation.title} — session ${idx + 1}`}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </Link>
-          </div>
-        </section>
-      )}
+              )}
 
-      {/* 6. BOOKING FORM SECTION */}
-      <section id="booking-form" className="section-y bg-[#e8e6e2] text-[#1c1c1c]">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid lg:grid-cols-12 gap-12 items-start">
-            <div className="lg:col-span-5 space-y-6">
-              <div className="text-center lg:text-left">
-                <h2 className="text-lvl-title text-[#1c1c1c] leading-tight mb-4">
-                  Inscrivez-vous
-                </h2>
-                <p className="text-[#555] text-lvl-body font-light">
-                  Les places sont limitées pour garantir un accompagnement de qualité supérieure à chaque participant.
-                </p>
-              </div>
-
-              <div className="bg-white border border-black/10 p-6 rounded-none shadow-sm flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-[#655410]/10 flex items-center justify-center shrink-0">
-                  <UserCheck className="w-5 h-5 text-[#655410]" />
-                </div>
-                <div>
-                  <span className="text-[#666] text-lvl-footer font-bold uppercase tracking-wider block">
-                    Tarif de la formation
-                  </span>
-                  <span className="text-lvl-subtitle font-bold text-[#655410]">
-                    {priceLabel || "Sur devis / Inscription sur-mesure"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="bg-white border border-black/10 p-6 rounded-none shadow-sm flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-[#655410]/10 flex items-center justify-center shrink-0">
-                  <Users2 className="w-5 h-5 text-[#655410]" />
-                </div>
-                <div>
-                  <span className="text-[#666] text-lvl-footer font-bold uppercase tracking-wider block">
-                    Accompagnement
-                  </span>
-                  <span className="text-lvl-body font-semibold text-[#1c1c1c]">
-                    Individuel & groupes en entreprise
-                  </span>
-                </div>
-              </div>
             </div>
 
-            <div className="lg:col-span-7">
-              <form onSubmit={handleBooking} className="bg-white border border-black/10 p-8 sm:p-10 rounded-none space-y-5 shadow-2xl">
-                <div className="grid sm:grid-cols-2 gap-5">
+            {/* DROITE (DESKTOP STICKY): FORMULAIRE D'INSCRIPTION — IDENTIQUE À EVENT DETAIL */}
+            <div id="booking-form" className="lg:col-span-5 lg:sticky lg:top-28 scroll-mt-24">
+              <div className="bg-gradient-to-br from-[#100906] via-[#1f120c] to-[#3a2012] text-white p-6 sm:p-8 rounded-[2.5rem] shadow-2xl border border-white/10 space-y-6 relative overflow-hidden">
+                
+                <div className="absolute top-0 right-0 w-48 h-48 bg-[#d4af37]/10 rounded-full blur-3xl pointer-events-none" />
+
+                <div className="space-y-1 relative z-10">
+                  <span className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#d4af37] block">
+                    Formulaire d'Inscription
+                  </span>
+                  <h3 className="text-2xl font-extrabold text-white">
+                    Réservez votre place
+                  </h3>
+                  <p className="text-xs text-white/70">
+                    Remplissez vos informations pour réserver votre place et recevoir la documentation complète.
+                  </p>
+                </div>
+
+                {/* SÉLECTEUR DE FORMULE */}
+                <div className="grid grid-cols-2 gap-2 p-1 bg-black/40 border border-white/10 rounded-xl relative z-10">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedFormule("individuel")}
+                    className={`py-2.5 px-3 rounded-lg text-xs font-bold transition-all text-center ${
+                      selectedFormule === "individuel"
+                        ? "bg-[#d4af37] text-black shadow-md"
+                        : "text-white/70 hover:text-white"
+                    }`}
+                  >
+                    Individuel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedFormule("corporate")}
+                    className={`py-2.5 px-3 rounded-lg text-xs font-bold transition-all text-center ${
+                      selectedFormule === "corporate"
+                        ? "bg-[#d4af37] text-black shadow-md"
+                        : "text-white/70 hover:text-white"
+                    }`}
+                  >
+                    Entreprise / Groupe
+                  </button>
+                </div>
+
+                {/* FORMULAIRE DES CHAMPS */}
+                <form onSubmit={handleBooking} className="space-y-4 relative z-10">
+                  
                   <div className="space-y-1.5">
-                    <label className="text-lvl-footer font-bold uppercase tracking-wider text-black/70">
-                      NOM COMPLET
+                    <label className="text-xs font-semibold text-white/80 block">
+                      Nom complet
                     </label>
                     <input
                       type="text"
                       required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Ex : MOUSSAVOU ALEX"
-                      className="w-full bg-[#f4f2ee] border border-black/10 text-lvl-footer text-black px-4 py-3.5 rounded-none placeholder:text-black/30 focus:outline-none focus:border-[#655410]"
+                      placeholder="Ex: Jean Dupont"
+                      className="w-full bg-black/40 border border-white/10 text-sm text-white px-4 py-3 rounded-xl placeholder:text-white/30 focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-lvl-footer font-bold uppercase tracking-wider text-black/70">
-                      ADRESSE EMAIL
+                    <label className="text-xs font-semibold text-white/80 block">
+                      Adresse Email professionnelle
                     </label>
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="moussavou@gmail.com"
-                      className="w-full bg-[#f4f2ee] border border-black/10 text-lvl-footer text-black px-4 py-3.5 rounded-none placeholder:text-black/30 focus:outline-none focus:border-[#655410]"
+                      placeholder="jean.dupont@entreprise.com"
+                      className="w-full bg-black/40 border border-white/10 text-sm text-white px-4 py-3 rounded-xl placeholder:text-white/30 focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all"
                     />
                   </div>
-                </div>
 
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <label className="text-lvl-footer font-bold uppercase tracking-wider text-black/70">
-                      NOMBRE DE PLACES
-                    </label>
-                    <select
-                      value={nbPlaces}
-                      onChange={(e) => setNbPlaces(e.target.value)}
-                      className="w-full bg-[#f4f2ee] border border-black/10 text-lvl-footer text-black px-4 py-3.5 rounded-none focus:outline-none focus:border-[#655410]"
-                    >
-                      <option value="1 Place">1 Place</option>
-                      <option value="2 Places">2 Places</option>
-                      <option value="3 Places">3 Places</option>
-                      <option value="4 Places">4 Places</option>
-                      <option value="Groupe entreprise (5+ places)">Groupe entreprise (5+ places)</option>
-                    </select>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-white/80 block">
+                        Nombre de participants
+                      </label>
+                      <select
+                        value={nbPlaces}
+                        onChange={(e) => setNbPlaces(e.target.value)}
+                        className="w-full bg-black/40 border border-white/10 text-sm text-white px-3 py-3 rounded-xl focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all"
+                      >
+                        <option value="1 Place" className="bg-[#100906]">1 Participant</option>
+                        <option value="2 Places" className="bg-[#100906]">2 Participants</option>
+                        <option value="3 Places" className="bg-[#100906]">3 Participants</option>
+                        <option value="5 Places" className="bg-[#100906]">5 Participants (Équipe)</option>
+                        <option value="Session sur-mesure (+10)" className="bg-[#100906]">Session sur-mesure (+10)</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-white/80 block">
+                        Téléphone WhatsApp
+                      </label>
+                      <div className="relative flex items-center">
+                        <div className="absolute left-3 flex items-center gap-1 text-[11px] text-white/60 font-semibold pointer-events-none">
+                          <span>🇬🇦 +241</span>
+                        </div>
+                        <input
+                          type="tel"
+                          required
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          placeholder="06 00 00"
+                          className="w-full bg-black/40 border border-white/10 text-sm text-white pl-[68px] pr-3 py-3 rounded-xl placeholder:text-white/30 focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all"
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-lvl-footer font-bold uppercase tracking-wider text-black/70">
-                      TÉLÉPHONE (WHATSAPP)
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+241 00 00 00 00"
-                      className="w-full bg-[#f4f2ee] border border-black/10 text-lvl-footer text-black px-4 py-3.5 rounded-none placeholder:text-black/30 focus:outline-none focus:border-[#655410]"
-                    />
+                  {/* SUMMARY & SUBMIT BUTTON */}
+                  <div className="p-4 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between mt-2">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-white/50 block">Montant</span>
+                      <span className="text-xs text-white/70">
+                        {selectedFormule === "individuel" ? "Tarif individuel" : "Formule Entreprise"}
+                      </span>
+                    </div>
+                    <span className="text-lg font-extrabold text-[#d4af37]">
+                      {selectedFormule === "individuel"
+                        ? (formationPrice > 0 ? `${formationPrice.toLocaleString()} FCFA` : "Sur devis")
+                        : (corporatePrice > 0 ? `${corporatePrice.toLocaleString()} FCFA` : "Sur devis")}
+                    </span>
                   </div>
-                </div>
 
-                <div className="pt-2">
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-[#655410] hover:bg-[#52440b] text-white font-bold text-lvl-footer uppercase tracking-widest py-4 px-6 rounded-none transition-colors flex items-center justify-center gap-2 shadow-lg"
+                    className="w-full bg-gradient-to-r from-[#d4af37] via-[#e3bd51] to-[#d4af37] hover:opacity-95 text-black font-extrabold text-xs sm:text-sm uppercase tracking-wider py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group disabled:opacity-50 cursor-pointer"
                   >
-                    {isSubmitting ? "TRAITEMENT..." : "CONFIRMER L'INSCRIPTION"} <ArrowRight className="w-4 h-4" />
+                    {isSubmitting ? (
+                      "Confirmation..."
+                    ) : (
+                      <>
+                        <span>Confirmer mon inscription</span>
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
                   </button>
-                  <p className="text-lvl-footer text-black/40 text-center italic mt-3">
-                    Notre équipe conciergerie vous contactera sous 24h.
-                  </p>
-                </div>
-              </form>
+
+                  <div className="flex items-center justify-center gap-2 pt-1 text-white/40 text-[11px] font-medium">
+                    <ShieldCheck className="w-4 h-4 text-[#d4af37]" />
+                    <span>Accompagnement &amp; validation directe NFL Courtier</span>
+                  </div>
+
+                </form>
+
+              </div>
             </div>
+
           </div>
-        </div>
-      </section>
+        </section>
+
+      </main>
 
       <Footer />
     </div>

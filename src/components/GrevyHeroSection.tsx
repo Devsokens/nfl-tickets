@@ -8,9 +8,10 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetDescription } from
 import { Button } from "@/components/ui/button";
 
 // Assets locaux de NFL
-import nflLogoWhite from "@/assets/Logo_NFL_fond_blanc-removebg-preview.png";
-import nflLogoMark from "@/assets/LOGO_NFL-removebg-preview.png";
+import nflLogoMark from "@/assets/Logo_NFL_fond_blanc-removebg-preview.png";
 import heroImage3 from "@/assets/louise2.jpeg";
+import nflGroupPhoto from "@/assets/nfl img3.jpeg";
+import louisePortrait from "@/assets/louise photo.jpeg";
 
 interface GrevyHeroSectionProps {
   content: {
@@ -28,37 +29,37 @@ interface GrevyHeroSectionProps {
   onSaveField: (field: string, value: string) => Promise<void>;
 }
 
-// Avatars professionnels pour le collage de squircles (style Grevy exact)
+// Photos d'événements NFL réels pour le collage de squircles (6 images distinctes, sans répétition)
 const AVATARS = [
   {
     id: 1,
-    url: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80",
-    alt: "Expert NFL 1",
+    url: "/assets/nfl-image-1.jpeg",
+    alt: "Panel NFL — intervenants en conférence",
   },
   {
     id: 2,
-    url: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80",
-    alt: "Expert NFL 2",
+    url: "/assets/nfl-image-2.jpeg",
+    alt: "Participante lors d'un événement NFL",
   },
   {
     id: 3,
-    url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-    alt: "Expert NFL 3",
+    url: "/assets/nfl-image-3.jpeg",
+    alt: "Participant lors d'un événement NFL",
   },
   {
     id: 4,
-    url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
-    alt: "Expert NFL 4",
+    url: "/assets/nfl4.jpeg",
+    alt: "Panel NFL — échange en conférence",
   },
   {
     id: 5,
-    url: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=400&q=80",
-    alt: "Expert NFL 5",
+    url: nflGroupPhoto,
+    alt: "Participantes lors d'un séminaire NFL",
   },
   {
     id: 6,
-    url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
-    alt: "Expert NFL 6",
+    url: louisePortrait,
+    alt: "Louise-Audyll Ongoum, fondatrice de NFL",
   },
 ];
 

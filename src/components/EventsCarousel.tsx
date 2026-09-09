@@ -1,7 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Event } from "@/lib/api";
 import HighlightEventCard from "@/components/HighlightEventCard";
 
@@ -10,163 +9,184 @@ interface EventsCarouselProps {
   isEditMode?: boolean;
 }
 
-export const EventsCarousel = ({ events, isEditMode }: EventsCarouselProps) => {
-  const [activeIndex, setActiveIndex] = useState(0);
+export const EventsCarousel = ({ events }: EventsCarouselProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  const totalCards = Math.min(events.length, 3) + 1; // 3 events + 1 "Voir tous" card = 4 cards total
-
-  // Autonomous auto-scrolling on mobile/tablet every 3.5s
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveIndex((prev) => {
-        const next = (prev + 1) % totalCards;
-        scrollToIndex(next);
-        return next;
-      });
-    }, 3500);
-
-    return () => clearInterval(timer);
-  }, [totalCards]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const activeIndexRef = useRef(0); // ref toujours à jour pour l'interval
+  const totalCards = events.length + 1;
 
   const scrollToIndex = (index: number) => {
     if (!scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
-    const cardNode = container.children[index] as HTMLElement;
-    if (cardNode) {
-      container.scrollTo({
-        left: cardNode.offsetLeft - 16,
-        behavior: "smooth",
-      });
+    const card = container.children[index] as HTMLElement;
+    if (card) {
+      container.scrollTo({ left: card.offsetLeft, behavior: "smooth" });
     }
   };
 
-  const handleDotClick = (index: number) => {
-    setActiveIndex(index);
-    scrollToIndex(index);
+  // ── Auto-scroll stable — utilise la ref pour éviter la closure périmée ──
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const next = (activeIndexRef.current + 1) % totalCards;
+      activeIndexRef.current = next;
+      setActiveIndex(next);
+      scrollToIndex(next);
+    }, 3200);
+    return () => clearInterval(timer);
+  }, [totalCards]); // se relance uniquement si le nombre de cartes change
+
+  const handleDotClick = (idx: number) => {
+    activeIndexRef.current = idx;
+    setActiveIndex(idx);
+    scrollToIndex(idx);
   };
 
   const handleScroll = () => {
     if (!scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
-    const scrollPosition = container.scrollLeft;
-    const cardWidth = container.firstElementChild?.clientWidth || 280;
-    const newIndex = Math.round(scrollPosition / (cardWidth + 16));
-    if (newIndex >= 0 && newIndex < totalCards && newIndex !== activeIndex) {
+    const cardWidth = (container.firstElementChild as HTMLElement)?.offsetWidth || 240;
+    const newIndex = Math.round(container.scrollLeft / (cardWidth + 16));
+    if (newIndex >= 0 && newIndex < totalCards && newIndex !== activeIndexRef.current) {
+      activeIndexRef.current = newIndex;
       setActiveIndex(newIndex);
     }
   };
 
+  const scrollLeft = () => {
+    const prev = (activeIndexRef.current - 1 + totalCards) % totalCards;
+    activeIndexRef.current = prev;
+    setActiveIndex(prev);
+    scrollToIndex(prev);
+  };
+
+  const scrollRight = () => {
+    const next = (activeIndexRef.current + 1) % totalCards;
+    activeIndexRef.current = next;
+    setActiveIndex(next);
+    scrollToIndex(next);
+  };
+
   return (
     <div className="w-full">
-      {/* DESKTOP VIEW: CLEAN 4-COLUMN GRID */}
-      <div className="hidden lg:grid lg:grid-cols-4 lg:gap-6">
-        {events.slice(0, 3).map((event) => (
-          <div key={event.id} className="h-full">
-            <HighlightEventCard event={event} />
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 items-start">
+
+        {/* ── GAUCHE : TITRE + TEXTE + NAVIGATION ── */}
+        <div className="lg:w-72 shrink-0 flex flex-col gap-4">
+
+          {/* Eyebrow — identique aux autres sections */}
+          <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[#8c591a]">
+            <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-pulse" />
+            Agenda de prestige
+          </span>
+
+          {/* H2 — identique aux autres sections */}
+          <h2 className="font-sans text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#100906] tracking-tight leading-tight">
+            Nos événements d'élite
+          </h2>
+
+          <p className="text-black/65 text-sm sm:text-base leading-relaxed font-normal max-w-xs">
+            Séminaires de prestige, masterclasses privées et conférences d'exception pour les dirigeants au Gabon.
+          </p>
+
+          {/* ── DOTS + BOUTONS — en bas de la colonne ── */}
+          <div className="mt-auto pt-6 flex flex-col gap-4">
+
+            {/* Dots */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {Array.from({ length: totalCards }).map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleDotClick(idx)}
+                  aria-label={`Carte ${idx + 1}`}
+                  className={`transition-all duration-300 rounded-full ${
+                    idx === activeIndex
+                      ? "w-5 h-2.5 bg-[#100906]"
+                      : "w-2.5 h-2.5 bg-black/25 hover:bg-black/45"
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* Boutons navigation flèches — en dessous des dots */}
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={scrollLeft}
+                aria-label="Précédent"
+                className="w-10 h-10 rounded-full border border-black/20 text-black flex items-center justify-center hover:bg-[#100906] hover:text-white hover:border-[#100906] transition-all shadow-sm active:scale-95"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={scrollRight}
+                aria-label="Suivant"
+                className="w-10 h-10 rounded-full bg-[#100906] text-white flex items-center justify-center hover:bg-[#d4af37] hover:text-black transition-all shadow-md active:scale-95"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
           </div>
-        ))}
-
-        {/* 4TH CARD: VOIR TOUS LES ÉVÉNEMENTS (MEME TAILLE & STRUCTURE EXACTE QUE LES CARTES D'ÉVÉNEMENTS) */}
-        <div className="h-full">
-          <Link
-            to="/events"
-            className="group bg-gradient-to-br from-[#100906] via-[#1f120c] to-[#3a2012] text-white rounded-[2rem] border border-black/10 p-4 sm:p-5 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full hover:-translate-y-1 relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-40 h-40 bg-[#d4af37]/15 rounded-full blur-2xl pointer-events-none" />
-            
-            <div>
-              {/* COMPARTIMENT HAUT (MÊME HAUTEUR QUE L'IMAGE DES CARTES: h-48 sm:h-52) */}
-              <div className="relative w-full h-48 sm:h-52 rounded-[1.5rem] bg-white/10 border border-white/10 flex flex-col items-center justify-center p-4 text-center mb-6 overflow-hidden">
-                <div className="w-14 h-14 rounded-full bg-[#d4af37]/20 border border-[#d4af37]/40 text-[#d4af37] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
-                  <ArrowRight className="w-6 h-6" />
-                </div>
-              </div>
-
-              {/* TITRE ET DESCRIPTION */}
-              <div className="pt-1 px-1">
-                <h3 className="font-sans text-lg sm:text-xl font-bold text-white group-hover:text-[#d4af37] transition-colors line-clamp-2 leading-snug mb-2">
-                  Voir tous les événements
-                </h3>
-                <p className="text-white/70 text-xs leading-relaxed line-clamp-2 mb-4 font-normal">
-                  Explorez notre agenda complet de séminaires, masterclasses et formations.
-                </p>
-              </div>
-            </div>
-
-            {/* BOUTON DU BAS (MÊME STRUCTURE QUE "VOIR DÉTAIL") */}
-            <div className="pt-3 border-t border-white/10 flex flex-col gap-3 px-1 mt-auto">
-              <div className="w-full bg-[#d4af37] group-hover:bg-white text-black font-bold rounded-full py-2.5 px-4 text-xs uppercase tracking-wider transition-colors duration-300 flex items-center justify-center gap-2 shadow-sm">
-                <span>Découvrir l'agenda</span>
-                <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
-              </div>
-            </div>
-          </Link>
         </div>
-      </div>
 
-      {/* MOBILE / TABLET VIEW: AUTONOMOUS LINEAR SCROLLER WITH DOTS */}
-      <div className="block lg:hidden">
-        <div
-          ref={scrollContainerRef}
-          onScroll={handleScroll}
-          className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-none -mx-4 px-4"
-        >
-          {events.slice(0, 3).map((event) => (
-            <div key={event.id} className="w-[82vw] max-w-[320px] shrink-0 snap-center h-full">
-              <HighlightEventCard event={event} />
-            </div>
-          ))}
+        {/* ── DROITE : SLIDER SANS CLIPPING ── */}
+        {/* 
+          Clé du fix : on n'applique PAS overflow-hidden sur le conteneur parent.
+          Le scroll se fait sur l'élément lui-même, qui déborde naturellement vers la droite.
+          Le parent a juste min-w-0 pour que le flex fonctionne correctement.
+        */}
+        <div className="w-full lg:flex-1 lg:min-w-0">
+          <div
+            ref={scrollContainerRef}
+            onScroll={handleScroll}
+            className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-3 scroll-smooth"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
+          >
+            {events.map((event) => (
+              <div
+                key={event.id}
+                className="w-[220px] sm:w-[245px] lg:w-[260px] shrink-0 snap-start"
+              >
+                <HighlightEventCard event={event} />
+              </div>
+            ))}
 
-          {/* 4TH CARD ON MOBILE (MÊME TAILLE ET STRUCTURE) */}
-          <div className="w-[82vw] max-w-[320px] shrink-0 snap-center h-full">
-            <Link
-              to="/events"
-              className="group bg-gradient-to-br from-[#100906] via-[#1f120c] to-[#3a2012] text-white rounded-[2rem] border border-black/10 p-4 sm:p-5 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-40 h-40 bg-[#d4af37]/15 rounded-full blur-2xl pointer-events-none" />
-              
-              <div>
-                <div className="relative w-full h-48 sm:h-52 rounded-[1.5rem] bg-white/10 border border-white/10 flex flex-col items-center justify-center p-4 text-center mb-6 overflow-hidden">
-                  <div className="w-14 h-14 rounded-full bg-[#d4af37]/20 border border-[#d4af37]/40 text-[#d4af37] flex items-center justify-center shadow-md">
-                    <ArrowRight className="w-6 h-6" />
+            {/* CARTE "VOIR TOUS" */}
+            <div className="w-[220px] sm:w-[245px] lg:w-[260px] shrink-0 snap-start">
+              <Link
+                to="/events"
+                className="group bg-gradient-to-br from-[#100906] via-[#1f120c] to-[#3a2012] text-white rounded-2xl border border-white/10 p-4 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full hover:-translate-y-1 relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#d4af37]/15 rounded-full blur-2xl pointer-events-none" />
+
+                <div>
+                  <div className="relative w-full h-32 sm:h-36 rounded-xl bg-white/10 border border-white/10 flex flex-col items-center justify-center p-4 text-center mb-4 overflow-hidden">
+                    <div className="w-12 h-12 rounded-full bg-[#d4af37]/20 border border-[#d4af37]/40 text-[#d4af37] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
+                      <ArrowRight className="w-5 h-5" />
+                    </div>
+                  </div>
+
+                  <div className="px-0.5">
+                    <h3 className="font-sans text-sm font-bold text-white group-hover:text-[#d4af37] transition-colors line-clamp-2 leading-snug mb-1.5">
+                      Voir tous les événements
+                    </h3>
+                    <p className="text-white/60 text-[11px] leading-relaxed line-clamp-2 mb-3 font-normal">
+                      Explorez notre agenda complet de séminaires, masterclasses et galas.
+                    </p>
                   </div>
                 </div>
 
-                <div className="pt-1 px-1">
-                  <h3 className="font-sans text-lg sm:text-xl font-bold text-white leading-snug mb-2">
-                    Voir tous les événements
-                  </h3>
-                  <p className="text-white/70 text-xs leading-relaxed line-clamp-2 mb-4 font-normal">
-                    Explorez notre agenda complet de séminaires et masterclasses.
-                  </p>
+                <div className="pt-2.5 border-t border-white/10 mt-auto">
+                  <div className="w-full bg-[#d4af37] group-hover:bg-white text-black font-bold rounded-full py-2 px-3 text-[10px] uppercase tracking-wider transition-colors duration-300 flex items-center justify-center gap-1.5 shadow-sm">
+                    <span>Découvrir l'agenda</span>
+                    <ArrowRight className="w-3 h-3 transition-transform duration-300 group-hover:translate-x-1" />
+                  </div>
                 </div>
-              </div>
+              </Link>
+            </div>
 
-              <div className="pt-3 border-t border-white/10 flex flex-col gap-3 px-1 mt-auto">
-                <div className="w-full bg-[#d4af37] text-black font-bold rounded-full py-2.5 px-4 text-xs uppercase tracking-wider text-center shadow-sm">
-                  Découvrir l'agenda
-                </div>
-              </div>
-            </Link>
           </div>
         </div>
 
-        {/* DOTS INDICATOR (POINTS RONDS UNIQUEMENT SANS BARRE) */}
-        <div className="flex items-center justify-center gap-2.5 mt-4 pt-2">
-          {Array.from({ length: totalCards }).map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleDotClick(idx)}
-              aria-label={`Aller à la carte ${idx + 1}`}
-              className={`transition-all duration-300 rounded-full ${
-                idx === activeIndex
-                  ? "w-3 h-3 bg-[#100906]"
-                  : "w-2.5 h-2.5 bg-black/20 hover:bg-black/40"
-              }`}
-            />
-          ))}
-        </div>
       </div>
     </div>
   );

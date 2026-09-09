@@ -4,23 +4,22 @@ import Footer from "@/components/Footer";
 import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, Download, CheckCircle2, Loader2, GraduationCap } from "lucide-react";
+import { ArrowDown, Download, CheckCircle2, Loader2, GraduationCap, Sparkles, Award } from "lucide-react";
 import { FormationsAPI, HomeContentAPI, SiteSettingsAPI, type Formation, type HomeContent } from "@/lib/api";
 import { useIsEditMode } from "@/lib/EditModeContext";
 import { EditableText } from "@/components/admin/editable/EditableText";
-import { EditableImage } from "@/components/admin/editable/EditableImage";
 import { generateFormationsCatalogPdf } from "@/lib/formationsPdf";
 import { useToast } from "@/hooks/use-toast";
-
-import nflImg5 from "@/assets/nfl img 5.jpeg";
+import FormationStackCards from "@/components/FormationStackCards";
+import HighlightFormationCard from "@/components/HighlightFormationCard";
 
 type FormationsPageContent = Required<NonNullable<HomeContent["formationsPage"]>>;
 
 const DEFAULT_FORMATIONS_PAGE_CONTENT: FormationsPageContent = {
   hero: {
-    eyebrow: "ACADÉMIE D'ÉLITE",
+    eyebrow: "ACADÉMIE D'ÉLITE & FORMATION PROFESSIONNELLE",
     title: "Maîtrisez l'Art de l'Excellence.",
-    description: "NFL Courtier & Service propose des formations de haut niveau destinées aux professionnels exigeants. Transformez votre approche et élevez vos standards de performance.",
+    description: "NFL Courtier & Service conçoit des parcours de formation certifiants de très haut niveau, alliant rigueur académique et immersion opérationnelle pour propulser vos standards de performance.",
     image: "",
   },
 };
@@ -55,6 +54,13 @@ const CatalogueFormation = () => {
       });
     } finally {
       setIsGeneratingPdf(false);
+    }
+  };
+
+  const handleScrollToFormations = () => {
+    const el = document.getElementById("formations-catalogue");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -93,143 +99,121 @@ const CatalogueFormation = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0e11] flex flex-col text-white">
+    <div className="min-h-screen bg-[#100906] flex flex-col text-white">
       <Helmet>
         <title>Catalogue Formations | NFL Courtier & Service</title>
         <meta name="description" content="Découvrez nos modules de formation de haut niveau destinées aux professionnels exigeants." />
       </Helmet>
       <Navbar />
 
-      {/* 1. HERO SECTION */}
-      <section className="pt-24 pb-14 md:pt-28 md:pb-16 bg-[#0d0e11] border-b border-white/5">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid lg:grid-cols-12 gap-12 items-center">
-            {/* Left Info */}
-            <div className="lg:col-span-7 space-y-5">
-              <span className="text-[#e3bd51] text-lvl-footer font-bold uppercase tracking-[0.25em] block">
-                <EditableText value={content.hero.eyebrow || ""} onSave={makeHeroFieldSaver("eyebrow")} label="Eyebrow" />
-              </span>
-              <h1 className="text-lvl-hero text-white leading-tight">
-                <EditableText value={content.hero.title || ""} onSave={makeHeroFieldSaver("title")} label="Titre" multiline />
-              </h1>
-              <p className="text-white/70 text-lvl-body max-w-xl font-light">
-                <EditableText value={content.hero.description || ""} onSave={makeHeroFieldSaver("description")} label="Description" multiline as="div" />
-              </p>
+      {/* 1. HERO SECTION — Suite de la Navbar (#100906) avec cartes empilées animées */}
+      <section className="relative pt-28 pb-16 sm:pt-36 sm:pb-24 lg:pt-40 lg:pb-28 bg-[#100906] border-b border-[#d4af37]/20 overflow-hidden">
+        {/* Subtle Ambient Luxury Glows */}
+        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-[#d4af37]/10 rounded-full blur-[130px] pointer-events-none" />
+        <div className="absolute bottom-10 right-0 w-[420px] h-[420px] bg-[#8c591a]/15 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute top-0 right-1/4 w-80 h-80 bg-[#d4af37]/5 rounded-full blur-[100px] pointer-events-none" />
+
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10">
+          <div className="grid lg:grid-cols-12 gap-12 lg:gap-14 items-center">
+            
+            {/* LEFT COLUMN: Animated Stacking Cards (Deck Animation with 6s interval) */}
+            <div className="lg:col-span-6 order-2 lg:order-1 flex flex-col items-center lg:items-start">
+              <FormationStackCards className="w-full" />
             </div>
 
-            {/* Right Hero Image Card */}
-            <div className="lg:col-span-5">
-              <div className="relative rounded-none border border-white/10 overflow-hidden shadow-2xl">
-                <EditableImage
-                  src={content.hero.image || nflImg5}
-                  alt="Formation exécutive NFL Courtier"
-                  className="w-full h-72 sm:h-96 object-cover filter brightness-90 contrast-110"
-                  wrapperClassName="w-full h-72 sm:h-96"
-                  onSave={(url) => saveFormationsPageSection({ hero: { ...content.hero, image: url } })}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+            {/* RIGHT COLUMN: Text & 2 Action Buttons */}
+            <div className="lg:col-span-6 order-1 lg:order-2 space-y-6 sm:space-y-7 text-left">
+              {/* Title with font-display (same as other hero sections) */}
+              <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-semibold text-white tracking-tight leading-tight">
+                <EditableText value={content.hero.title || ""} onSave={makeHeroFieldSaver("title")} label="Titre" multiline />
+              </h1>
+
+              {/* Description */}
+              <div className="text-white/80 text-sm sm:text-base lg:text-lg max-w-xl font-light leading-relaxed">
+                <EditableText value={content.hero.description || ""} onSave={makeHeroFieldSaver("description")} label="Description" multiline as="div" />
+              </div>
+
+              {/* 2 ACTION BUTTONS — Style exact des autres herosections */}
+              <div className="pt-2 flex flex-row items-center gap-2 sm:gap-4">
+                {/* Button 1: Scroll to formations */}
+                <button
+                  onClick={handleScrollToFormations}
+                  className="flex-1 sm:flex-initial bg-gradient-to-r from-[#d4af37] via-[#e3bd51] to-[#d4af37] hover:opacity-95 text-black font-extrabold text-[9px] sm:text-sm uppercase tracking-wider py-2.5 px-3 sm:py-4 sm:px-8 rounded-full transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-1 sm:gap-2 shrink-0 whitespace-nowrap cursor-pointer hover:scale-[1.02] active:scale-95"
+                >
+                  <span>DÉCOUVRIR LES FORMATIONS</span>
+                  <ArrowDown className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
+                </button>
+
+                {/* Button 2: Download PDF catalog */}
+                <button
+                  onClick={handleDownloadCatalog}
+                  disabled={isGeneratingPdf || formations.length === 0}
+                  className="flex-1 sm:flex-initial rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/30 text-white font-semibold text-[9px] sm:text-sm uppercase tracking-wider py-2.5 px-3 sm:py-4 sm:px-8 transition-all duration-300 shadow-[0_10px_40px_rgba(0,0,0,0.3)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-1 sm:gap-2 shrink-0 whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isGeneratingPdf ? (
+                    <>
+                      <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin text-[#d4af37] shrink-0" />
+                      <span>GÉNÉRATION...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
+                      <span>TÉLÉCHARGER LE CATALOGUE</span>
+                    </>
+                  )}
+                </button>
               </div>
             </div>
+
           </div>
         </div>
       </section>
 
-      {/* 2. NOS MODULES DE FORMATION */}
-      <section className="section-y bg-[#e8e6e2] text-[#1c1c1c]">
-        <div className="container mx-auto px-4 max-w-6xl">
+      {/* 2. NOS MODULES DE FORMATION — STYLE IDENTIQUE AUX ÉVÉNEMENTS */}
+      <section id="formations-catalogue" className="py-12 md:py-20 bg-gradient-to-b from-[#fbf5e6] via-[#f7ebd7] to-[#fbf5e6] border-y border-[#d4af37]/25 text-black scroll-mt-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl">
           {/* Header Row */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
             <div>
-              <h2 className="text-lvl-title text-[#1c1c1c] mb-3">
+              <h2 className="font-sans text-2xl sm:text-4xl lg:text-5xl font-extrabold text-[#100906] tracking-tight leading-tight">
                 Nos Modules de Formation
               </h2>
-              <p className="text-[#555] text-lvl-body font-medium max-w-xl">
-                Découvrez nos parcours exclusifs conçus pour forger les leaders de demain dans le secteur du luxe et de la finance.
+              <p className="text-[#555] text-xs sm:text-base font-medium max-w-xl mt-2">
+                Découvrez nos parcours exclusifs conçus pour forger les leaders de demain dans le secteur du management, du luxe et de la finance.
               </p>
             </div>
             <button
               onClick={handleDownloadCatalog}
               disabled={isGeneratingPdf || formations.length === 0}
-              className="bg-[#e3bd51] hover:bg-[#d4af37] disabled:opacity-60 disabled:cursor-not-allowed text-black font-bold text-lvl-footer uppercase tracking-wider px-6 py-3.5 rounded-none flex items-center justify-center gap-2 transition-colors shadow-md shrink-0 w-fit"
+              className="bg-gradient-to-r from-[#d4af37] via-[#e3bd51] to-[#d4af37] hover:opacity-95 text-black font-extrabold text-xs sm:text-sm uppercase tracking-wider py-3.5 px-6 rounded-full transition-all shadow-md flex items-center justify-center gap-2 shrink-0 whitespace-nowrap cursor-pointer disabled:opacity-50"
             >
               {isGeneratingPdf ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> GÉNÉRATION...
+                  <Loader2 className="w-4 h-4 animate-spin text-black" />
+                  <span>GÉNÉRATION...</span>
                 </>
               ) : (
                 <>
-                  <Download className="w-4 h-4" /> TÉLÉCHARGER PDF
+                  <Download className="w-4 h-4" />
+                  <span>TÉLÉCHARGER LE CATALOGUE (PDF)</span>
                 </>
               )}
             </button>
           </div>
 
-          {/* Grid of Module Cards */}
+          {/* Grid of Formation Cards — EXACTEMENT COMME LES ÉVÉNEMENTS (2 sur mobile grid-cols-2, 3 sur desktop) */}
           {isLoading ? (
-            <div className="flex justify-center py-24"><Loader2 className="w-8 h-8 animate-spin text-[#e3bd51]" /></div>
+            <div className="flex justify-center py-24"><Loader2 className="w-8 h-8 animate-spin text-[#8c591a]" /></div>
           ) : formations.length === 0 ? (
-            <div className="text-center py-24 text-[#666] flex flex-col items-center gap-3">
-              <GraduationCap className="w-10 h-10 text-[#e3bd51]/50" />
+            <div className="text-center py-24 text-black/50 flex flex-col items-center gap-3 font-medium">
+              <GraduationCap className="w-10 h-10 text-[#8c591a]/50" />
               Aucune formation disponible pour le moment.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
               {formations.map((m) => (
-                <div key={m.id} className="bg-white border border-black/10 rounded-none overflow-hidden flex flex-col justify-between shadow-md group">
-                  <div>
-                    <Link
-                      to={`/formation/${m.slug || m.id}`}
-                      onClick={isEditMode ? (e) => e.preventDefault() : undefined}
-                      className="relative h-56 overflow-hidden bg-black/5 block group/img"
-                    >
-                      {m.image_url ? (
-                        <img
-                          src={m.image_url}
-                          alt={m.title}
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-black/5">
-                          <GraduationCap className="w-10 h-10 text-[#e3bd51]/50" />
-                        </div>
-                      )}
-                      {m.badge && (
-                        <div className="absolute top-3 left-3 bg-[#e3bd51] text-black text-lvl-footer font-bold uppercase tracking-wider px-3 py-1 rounded-none shadow-sm z-10">
-                          {m.badge}
-                        </div>
-                      )}
-                    </Link>
-
-                    <div className="p-6 space-y-3">
-                      <h3 className="text-lvl-subtitle text-[#1c1c1c] leading-snug">
-                        {m.title}
-                      </h3>
-                      <p className="text-[#666] text-lvl-footer line-clamp-3">
-                        {m.description}
-                      </p>
-
-                      {(m.bullets || []).length > 0 && (
-                        <div className="pt-3 border-t border-black/5 space-y-2">
-                          {(m.bullets || []).map((b, bIdx) => (
-                            <div key={bIdx} className="flex items-center gap-2 text-lvl-footer font-semibold text-[#333]">
-                              <div className="w-1.5 h-1.5 bg-[#e3bd51] rounded-full shrink-0" />
-                              <span>{b}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="p-6 pt-0">
-                    <Link
-                      to={`/formation/${m.slug || m.id}`}
-                      onClick={isEditMode ? (e) => e.preventDefault() : undefined}
-                      className="block text-center border border-black/20 bg-white hover:bg-black hover:text-white text-black font-bold text-lvl-footer uppercase tracking-widest py-3 rounded-none transition-colors"
-                    >
-                      VOIR LE DÉTAIL &rarr;
-                    </Link>
-                  </div>
+                <div key={m.id} className="h-full">
+                  <HighlightFormationCard formation={m} />
                 </div>
               ))}
             </div>
