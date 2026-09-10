@@ -72,7 +72,7 @@ const Footer = () => {
   }, []);
 
   return (
-    <footer id="footer-contact" className="bg-[#100906] text-white border-t border-white/10 pt-14 pb-8 relative z-20">
+    <footer id="footer-contact" className="bg-[#100906] text-white pt-14 pb-8 relative z-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl">
         
         {/* GRILLE PRINCIPALE 3 COLONNES SANS COLONNE RÉSEAUX */}

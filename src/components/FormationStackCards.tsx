@@ -115,7 +115,7 @@ export const FormationStackCards: React.FC<FormationStackCardsProps> = ({ classN
 
               {/* Large Stylized Number in top-right (matches reference image) */}
               <span
-                className={`absolute top-3 right-5 sm:right-7 font-serif font-black text-7xl sm:text-8xl leading-none select-none pointer-events-none transition-opacity duration-300 ${
+                className={`absolute top-2 right-4 sm:top-3 sm:right-7 font-serif font-black text-4xl sm:text-8xl leading-none select-none pointer-events-none transition-opacity duration-300 ${
                   isActive ? "text-[#d4af37]/35" : "text-black/10"
                 }`}
               >
@@ -126,9 +126,9 @@ export const FormationStackCards: React.FC<FormationStackCardsProps> = ({ classN
               <div className="p-6 sm:p-8 flex flex-col justify-between h-full relative z-10">
                 <div>
                   {/* Top Badge & Icon */}
-                  <div className="flex items-center gap-3 mb-4 sm:mb-5">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4 sm:mb-5 pr-10 sm:pr-14">
                     <div
-                      className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center transition-all ${
+                      className={`w-9 h-9 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center shrink-0 transition-all ${
                         isActive
                           ? "bg-gradient-to-br from-[#d4af37] to-[#b8932b] text-[#100906] shadow-md shadow-[#d4af37]/35"
                           : "bg-black/5 border border-black/10 text-[#8c591a]"
@@ -137,7 +137,7 @@ export const FormationStackCards: React.FC<FormationStackCardsProps> = ({ classN
                       <Icon className="w-5 h-5" />
                     </div>
                     <span
-                      className={`text-xs sm:text-[13px] font-extrabold uppercase tracking-widest px-3 py-1.5 rounded-full border transition-all ${
+                      className={`text-[10px] sm:text-[13px] font-extrabold uppercase tracking-widest px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border transition-all ${
                         isActive
                           ? "bg-[#d4af37]/20 border-[#d4af37]/50 text-[#8c591a]"
                           : "bg-black/5 border-black/10 text-black/60"

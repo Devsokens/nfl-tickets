@@ -131,7 +131,7 @@ export const GrevyHeroSection = ({ content, onSaveField }: GrevyHeroSectionProps
           </h1>
 
           {/* Description & Corps de texte */}
-          <p className="text-white/80 text-sm sm:text-base max-w-lg font-light leading-relaxed">
+          <div className="text-white/80 text-sm sm:text-base max-w-lg font-light leading-relaxed">
             <EditableText
               value={
                 content.subtitle ||
@@ -142,7 +142,7 @@ export const GrevyHeroSection = ({ content, onSaveField }: GrevyHeroSectionProps
               multiline
               as="div"
             />
-          </p>
+          </div>
 
           {/* Bouton CTA Pilule Verre dépoli style Grevy */}
           <div className="pt-1 flex items-center gap-4">
@@ -175,37 +175,80 @@ export const GrevyHeroSection = ({ content, onSaveField }: GrevyHeroSectionProps
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
         >
-          {/* SQUIRCLE GRID IN ESCALIER (STAIRCASE) FORMATION — TOUTES LES CARTES UNIFORMES */}
+          {/* SQUIRCLE GRID IN ESCALIER — animation "vague" en bloc :
+              chaque carte ondule verticalement avec un décalage de phase suivant
+              sa position, créant une onde qui traverse la cascade en diagonale. */}
           <div className="relative w-full max-w-[540px] h-[380px] sm:h-[440px] mx-auto lg:mr-0">
 
             {/* MARCHE 1 (HAUT DROITE) */}
-            <div className="absolute top-[0%] left-[68%] -translate-x-1/2 w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] overflow-hidden border-2 border-white/30 shadow-2xl transition-transform hover:scale-105 hover:z-30 duration-300 bg-[#2a221e]">
+            <motion.div
+              className="absolute top-[0%] left-[68%] w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] overflow-hidden border-2 border-white/30 shadow-2xl bg-[#2a221e] hover:z-30"
+              style={{ x: "-50%" }}
+              whileHover={{ scale: 1.08 }}
+              animate={{ y: [0, -12, 0] }}
+              transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut", delay: 0 }}
+            >
               <img src={AVATARS[0].url} alt={AVATARS[0].alt} className="w-full h-full object-cover" />
-            </div>
+            </motion.div>
 
             {/* MARCHE 2 (HAUT MILIEU & EXTRÊME DROITE) */}
-            <div className="absolute top-[22%] left-[44%] -translate-x-1/2 w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] overflow-hidden border-2 border-white/30 shadow-2xl transition-transform hover:scale-105 hover:z-30 duration-300 bg-[#7a482b]">
+            <motion.div
+              className="absolute top-[22%] left-[44%] w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] overflow-hidden border-2 border-white/30 shadow-2xl bg-[#7a482b] hover:z-30"
+              style={{ x: "-50%" }}
+              whileHover={{ scale: 1.08 }}
+              animate={{ y: [0, -12, 0] }}
+              transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+            >
               <img src={AVATARS[1].url} alt={AVATARS[1].alt} className="w-full h-full object-cover" />
-            </div>
-            <div className="absolute top-[18%] left-[88%] -translate-x-1/2 w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] overflow-hidden border-2 border-white/30 shadow-xl transition-transform hover:scale-105 hover:z-30 duration-300 bg-[#553b26]">
+            </motion.div>
+            <motion.div
+              className="absolute top-[18%] left-[88%] w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] overflow-hidden border-2 border-white/30 shadow-xl bg-[#553b26] hover:z-30"
+              style={{ x: "-50%" }}
+              whileHover={{ scale: 1.08 }}
+              animate={{ y: [0, -12, 0] }}
+              transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut", delay: 0.15 }}
+            >
               <img src={AVATARS[5].url} alt={AVATARS[5].alt} className="w-full h-full object-cover" />
-            </div>
+            </motion.div>
 
             {/* MARCHE 3 (MILIEU - BADGE SQUIRCLE LOGO NFL CENTRAL + AVATAR DROITE) */}
-            <div className="absolute top-[44%] left-[22%] -translate-x-1/2 w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] bg-white flex items-center justify-center p-3.5 border-2 border-white shadow-[0_25px_60px_rgba(0,0,0,0.6)] z-20 transition-transform hover:scale-105 duration-300">
+            <motion.div
+              className="absolute top-[44%] left-[22%] w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] bg-white flex items-center justify-center p-3.5 border-2 border-white shadow-[0_25px_60px_rgba(0,0,0,0.6)] z-20"
+              style={{ x: "-50%" }}
+              whileHover={{ scale: 1.08 }}
+              animate={{ y: [0, -12, 0] }}
+              transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+            >
               <img src={nflLogoMark} alt="NFL Mark" className="w-full h-full object-contain filter drop-shadow-md" />
-            </div>
-            <div className="absolute top-[44%] left-[62%] -translate-x-1/2 w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] overflow-hidden border-2 border-white/30 shadow-2xl transition-transform hover:scale-105 hover:z-30 duration-300 bg-[#d4af37]">
+            </motion.div>
+            <motion.div
+              className="absolute top-[44%] left-[62%] w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] overflow-hidden border-2 border-white/30 shadow-2xl bg-[#d4af37] hover:z-30"
+              style={{ x: "-50%" }}
+              whileHover={{ scale: 1.08 }}
+              animate={{ y: [0, -12, 0] }}
+              transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut", delay: 0.45 }}
+            >
               <img src={AVATARS[2].url} alt={AVATARS[2].alt} className="w-full h-full object-cover" />
-            </div>
+            </motion.div>
 
             {/* MARCHE 4 (BAS GAUCHE & BAS MILIEU) */}
-            <div className="absolute top-[66%] left-[0%] w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] overflow-hidden border-2 border-white/30 shadow-2xl transition-transform hover:scale-105 hover:z-30 duration-300 bg-[#438a5e]">
+            <motion.div
+              className="absolute top-[66%] left-[0%] w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] overflow-hidden border-2 border-white/30 shadow-2xl bg-[#438a5e] hover:z-30"
+              whileHover={{ scale: 1.08 }}
+              animate={{ y: [0, -12, 0] }}
+              transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut", delay: 0.75 }}
+            >
               <img src={AVATARS[3].url} alt={AVATARS[3].alt} className="w-full h-full object-cover" />
-            </div>
-            <div className="absolute top-[66%] left-[40%] -translate-x-1/2 w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] overflow-hidden border-2 border-white/30 shadow-2xl transition-transform hover:scale-105 hover:z-30 duration-300 bg-[#336688]">
+            </motion.div>
+            <motion.div
+              className="absolute top-[66%] left-[40%] w-24 h-24 sm:w-32 sm:h-32 rounded-[2.2rem] overflow-hidden border-2 border-white/30 shadow-2xl bg-[#336688] hover:z-30"
+              style={{ x: "-50%" }}
+              whileHover={{ scale: 1.08 }}
+              animate={{ y: [0, -12, 0] }}
+              transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+            >
               <img src={AVATARS[4].url} alt={AVATARS[4].alt} className="w-full h-full object-cover" />
-            </div>
+            </motion.div>
 
           </div>
         </motion.div>

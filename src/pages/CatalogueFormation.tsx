@@ -175,7 +175,7 @@ const CatalogueFormation = () => {
           {/* Header Row */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
             <div>
-              <h2 className="font-sans text-2xl sm:text-4xl lg:text-5xl font-extrabold text-[#100906] tracking-tight leading-tight">
+              <h2 className="font-sans text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-[#100906]">
                 Nos Modules de Formation
               </h2>
               <p className="text-[#555] text-xs sm:text-base font-medium max-w-xl mt-2">
@@ -222,7 +222,10 @@ const CatalogueFormation = () => {
       </section>
 
       {/* 3. PARTNERS LOGO TICKER — logos gérés depuis l'éditeur visuel (onglet Accueil) */}
-      <section className="py-8 bg-[#dedcd7] text-black/70 border-t border-b border-black/10 overflow-hidden">
+      <section className="py-10 bg-[#100906] text-white/70 border-t border-[#d4af37]/15 overflow-hidden">
+        <p className="text-center text-xs font-bold uppercase tracking-[0.25em] text-[#e3bd51] mb-6">
+          Ils nous font confiance
+        </p>
         <div className="flex gap-8 sm:gap-12 items-center animate-marquee w-max">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="flex gap-8 sm:gap-12 items-center shrink-0">
@@ -232,10 +235,10 @@ const CatalogueFormation = () => {
                     key={idx}
                     src={p.logo_url}
                     alt={p.name || "Partenaire NFL Courtier & Service"}
-                    className="h-16 sm:h-20 w-auto max-w-[180px] sm:max-w-[240px] object-contain opacity-90 hover:opacity-100 transition-all shrink-0"
+                    className="h-16 sm:h-20 w-auto max-w-[180px] sm:max-w-[240px] object-contain opacity-80 hover:opacity-100 transition-all shrink-0"
                   />
                 ) : (
-                  <span key={idx} className="font-bold text-lvl-body tracking-widest text-black/40 hover:text-black/70 uppercase shrink-0 whitespace-nowrap transition-colors">
+                  <span key={idx} className="font-bold text-lvl-body tracking-widest text-white/40 hover:text-white/80 uppercase shrink-0 whitespace-nowrap transition-colors">
                     {p.name}
                   </span>
                 )

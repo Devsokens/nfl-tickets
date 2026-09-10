@@ -94,7 +94,7 @@ export const ExpertisePillarsSection = ({
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="text-center max-w-2xl mx-auto mb-12 sm:mb-16"
         >
-          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-semibold text-[#100906] tracking-tight">
+          <h2 className="font-sans text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-[#100906]">
             Nos Piliers d'Accompagnement
           </h2>
           <div className="w-20 h-[3px] bg-gradient-to-r from-[#8a4216] via-[#d4af37] to-[#8a4216] mx-auto mt-5 rounded-full" />

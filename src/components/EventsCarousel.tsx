@@ -80,7 +80,7 @@ export const EventsCarousel = ({ events }: EventsCarouselProps) => {
           </span>
 
           {/* H2 — identique aux autres sections */}
-          <h2 className="font-sans text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#100906] tracking-tight leading-tight">
+          <h2 className="font-sans text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-[#100906]">
             Nos événements d'élite
           </h2>
 

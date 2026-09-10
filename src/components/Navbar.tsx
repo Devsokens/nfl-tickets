@@ -149,7 +149,7 @@ const Navbar = () => {
                     <Menu className="h-6 w-6" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="bg-[#0a0a0c]/98 backdrop-blur-2xl border-l-white/10 flex flex-col pt-16 gap-2 text-white">
+                <SheetContent side="right" className="bg-[#100906] backdrop-blur-2xl border-l border-[#d4af37]/20 flex flex-col pt-16 gap-2 text-white">
                   <SheetHeader>
                     <SheetDescription className="sr-only text-left">Menu de navigation mobile pour NFL Courtier & Service</SheetDescription>
                   </SheetHeader>
@@ -164,19 +164,25 @@ const Navbar = () => {
                       key={item.to}
                       to={item.to}
                       onClick={item.onClick}
-                      className={`w-fit text-sm font-bold uppercase tracking-wide rounded-full px-5 py-3 transition-colors ${
-                        item.active ? "bg-white text-black" : "bg-white/10 text-white hover:bg-white/20"
+                      className={`w-fit text-sm font-bold uppercase tracking-wide rounded-full px-5 py-3 transition-colors border ${
+                        item.active
+                          ? "bg-[#e3bd51] text-[#100906] border-[#e3bd51]"
+                          : "bg-white/5 text-white/80 border-[#d4af37]/20 hover:text-white hover:border-[#d4af37]/60"
                       }`}
                     >
                       {item.label}
                     </Link>
                   ))}
 
-                  <Button variant="outline" className="w-full mt-3 border-white/30 text-white rounded-full py-3 hover:bg-white hover:text-black" asChild>
-                    <Link to="/contact" onClick={guardNav()}>RÉSERVER</Link>
-                  </Button>
+                  <Link
+                    to="/contact"
+                    onClick={guardNav()}
+                    className="w-full mt-3 gradient-gold text-[#100906] font-bold uppercase tracking-wider text-sm rounded-full py-3.5 text-center shadow-lg hover:shadow-xl transition-shadow"
+                  >
+                    RÉSERVER
+                  </Link>
 
-                  <div className="mt-8 pt-8 border-t border-white/10 space-y-4">
+                  <div className="mt-8 pt-8 border-t border-[#d4af37]/15 space-y-4">
                     <h4 className="text-lvl-footer font-semibold uppercase tracking-wider text-[#e3bd51]">Restez informés</h4>
                     <p className="text-lvl-footer text-white/70">Recevez nos invitations directement par email.</p>
                     <form className="flex flex-col gap-2" onSubmit={handleNewsletter}>
@@ -186,9 +192,9 @@ const Navbar = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="bg-white/10 text-white placeholder:text-white/50 border border-white/20 rounded-xl px-4 py-3 text-lvl-footer focus:outline-none focus:ring-2 focus:ring-[#e3bd51]/50"
+                        className="bg-white/5 text-white placeholder:text-white/40 border border-[#d4af37]/25 rounded-xl px-4 py-3 text-lvl-footer focus:outline-none focus:ring-2 focus:ring-[#e3bd51]/50"
                       />
-                      <Button variant="gold" className="w-full bg-[#e3bd51] text-black rounded-xl" disabled={isLoading}>
+                      <Button variant="gold" className="w-full bg-[#e3bd51] text-[#100906] rounded-xl" disabled={isLoading}>
                         {isLoading ? "En cours..." : "S'abonner"}
                       </Button>
                     </form>

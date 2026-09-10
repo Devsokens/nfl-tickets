@@ -112,7 +112,6 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
     author_role: "Directrice Commerciale",
     author_company: "BGFIBank Gabon",
     quote: "Un accompagnement d'exception. La rigueur et le professionnalisme de l'équipe NFL ont permis de transformer la dynamique commerciale de nos équipes.",
-    is_approved: true,
   },
   {
     id: "2",
@@ -120,7 +119,6 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
     author_role: "Responsable Formation",
     author_company: "Airtel Gabon",
     quote: "Le séminaire sur le closing haut de gamme dispensé par Louise Ongoum est d'une valeur inestimable. Résultats concrets et immédiats sur le terrain.",
-    is_approved: true,
   },
   {
     id: "3",
@@ -128,7 +126,6 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
     author_role: "Directrice des Ressources Humaines",
     author_company: "TotalEnergies",
     quote: "Un partenaire stratégique incontournable à Libreville. Une expertise fine, une réactivité exemplaire et un sens du détail remarquable.",
-    is_approved: true,
   },
   {
     id: "4",
@@ -136,7 +133,6 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
     author_role: "Fondatrice & Dirigeante",
     author_company: "Prestige Group",
     quote: "Grâce aux modules de l'Académie NFL, nos managers ont développé un leadership affirmé et une culture de la haute performance durable.",
-    is_approved: true,
   },
   {
     id: "5",
@@ -144,7 +140,6 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
     author_role: "Directeur Général",
     author_company: "Gabon Telecom",
     quote: "L'organisation clé en main de notre séminaire exécutif était tout simplement parfaite. Du prestige, de la précision et un contenu sur mesure.",
-    is_approved: true,
   },
   {
     id: "6",
@@ -152,7 +147,6 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
     author_role: "Cadre Supérieur",
     author_company: "Secteur Bancaire",
     quote: "Une expérience d'apprentissage enrichissante, immersive et stimulante. Je recommande vivement les formations NFL à toute organisation ambitieuse.",
-    is_approved: true,
   },
 ];
 
@@ -371,7 +365,7 @@ const Index = () => {
       {/* 2. NOS PILIERS D'ACCOMPAGNEMENT (Présentation interactive par onglets) */}
       <ExpertisePillarsSection
         pillars={content.pillars}
-        onSaveItemField={makeArrayItemFieldSaver.bind(null, "pillars")}
+        onSaveItemField={(index, field, value) => makeArrayItemFieldSaver("pillars", index, field)(value)}
         onAddPillar={async () => {
           await addListItem("pillars", {
             icon: "Star",
@@ -417,11 +411,7 @@ const Index = () => {
           viewport={viewportOnce}
           variants={fadeUp}
         >
-          <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[#8c591a] mb-3">
-            <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-pulse" />
-            Impact & Témoignages
-          </span>
-          <h2 className="font-sans text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#100906] tracking-tight leading-tight">
+          <h2 className="font-sans text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-[#100906]">
             Ce que disent nos clients &amp; partenaires
           </h2>
           <div className="w-20 h-[3px] bg-gradient-to-r from-[#8a4216] via-[#d4af37] to-[#8a4216] mx-auto mt-5 rounded-full" />
@@ -543,7 +533,7 @@ const Index = () => {
               {/* GAUCHE : TEXTE & BOUTONS D'ACTION */}
               <div className="lg:col-span-6 space-y-6 text-left">
 
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.15]">
+                <h2 className="font-sans text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white">
                   <EditableText value={content.ctaSection.title || "Prêt à élever vos standards ?"} onSave={makeFieldSaver("ctaSection", "title")} label="Titre" />
                 </h2>
 
@@ -557,10 +547,10 @@ const Index = () => {
                   />
                 </p>
 
-                <div className="flex flex-row gap-1.5 sm:gap-4 pt-2">
+                <div className="flex flex-row gap-2 sm:gap-4 pt-2">
                   <button
                     onClick={isEditMode ? undefined : () => navigate("/contact")}
-                    className="gradient-gold text-accent-foreground font-bold text-[8px] sm:text-xs uppercase tracking-tight sm:tracking-wider py-2 px-2.5 sm:py-4 sm:px-8 rounded-full shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all inline-flex items-center justify-center gap-1 sm:gap-2 group whitespace-nowrap min-w-0"
+                    className="flex-1 sm:flex-initial gradient-gold text-accent-foreground font-bold text-[10px] sm:text-xs uppercase tracking-tight sm:tracking-wider py-3 px-3 sm:py-4 sm:px-8 rounded-full shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all inline-flex items-center justify-center gap-1 sm:gap-2 group whitespace-nowrap min-w-0"
                   >
                     <span>
                       {isEditMode ? (
@@ -572,7 +562,7 @@ const Index = () => {
 
                   <button
                     onClick={isEditMode ? undefined : () => navigate("/contact")}
-                    className="border border-white/30 hover:border-white bg-transparent text-white font-bold text-[8px] sm:text-xs uppercase tracking-tight sm:tracking-wider py-2 px-2.5 sm:py-4 sm:px-8 rounded-full transition-all duration-300 inline-flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap min-w-0"
+                    className="flex-1 sm:flex-initial border border-white/30 hover:border-white bg-transparent text-white font-bold text-[10px] sm:text-xs uppercase tracking-tight sm:tracking-wider py-3 px-3 sm:py-4 sm:px-8 rounded-full transition-all duration-300 inline-flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap min-w-0"
                   >
                     <span>
                       {isEditMode ? (
@@ -663,7 +653,7 @@ const Index = () => {
               variants={fadeUp}
             >
               <div>
-                <h2 className="font-sans text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#100906] tracking-tight leading-tight mb-2">
+                <h2 className="font-sans text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-[#100906] mb-2">
                   <EditableText value={content.about.title || "C'est quoi NFL?"} onSave={makeFieldSaver("about", "title")} label="Titre" />
                 </h2>
                 <p className="text-base sm:text-lg text-[#8c591a] font-semibold mb-4">
@@ -720,7 +710,7 @@ const Index = () => {
                 <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-[#fdfbf7] via-[#fdfbf7]/80 to-transparent z-10 pointer-events-none" />
 
                 {/* COLONNE SLIDER 1 (DESCENDANTE) */}
-                <InfiniteSlider direction="vertical" duration={22}>
+                <InfiniteSlider direction="vertical" duration={18}>
                   <img
                     src={heroImage1}
                     alt="NFL Séminaire 1"
@@ -754,7 +744,7 @@ const Index = () => {
                 </InfiniteSlider>
 
                 {/* COLONNE SLIDER 2 (MONTANTE / INVERSE) */}
-                <InfiniteSlider direction="vertical" reverse duration={26}>
+                <InfiniteSlider direction="vertical" reverse duration={21}>
                   <img
                     src={louisePhotoFull}
                     alt="Louise Ongoum portrait"
@@ -811,7 +801,7 @@ const Index = () => {
                   <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-pulse" />
                   FAQs
                 </span>
-                <h2 className="font-sans text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#100906] tracking-tight leading-tight">
+                <h2 className="font-sans text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-[#100906]">
                   Foire aux questions
                 </h2>
               </div>
@@ -869,11 +859,14 @@ const Index = () => {
       </section>
 
       {/* PARTENAIRES & SPONSORS — logos gérés depuis l'éditeur visuel */}
-      <section className="py-10 bg-sand border-y border-black/5 overflow-hidden relative">
+      <section className="py-10 bg-[#100906] border-t border-[#d4af37]/15 overflow-hidden relative">
+        <p className="text-center text-xs font-bold uppercase tracking-[0.25em] text-[#e3bd51] mb-6">
+          Ils nous font confiance
+        </p>
         {isEditMode ? (
           <div className="container mx-auto px-4">
-            <div className="flex items-center gap-2 text-ink/60 text-lvl-footer mb-5 bg-black/5 border border-black/10 rounded-lg px-4 py-2.5 w-fit">
-              <Info className="w-3.5 h-3.5 text-gold-dark shrink-0" />
+            <div className="flex items-center gap-2 text-white/60 text-lvl-footer mb-5 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 w-fit">
+              <Info className="w-3.5 h-3.5 text-[#e3bd51] shrink-0" />
               Logos partenaires &amp; sponsors, affichés en boucle sur l'accueil et le catalogue formations.
             </div>
             <div className="flex flex-wrap gap-4">
@@ -906,8 +899,8 @@ const Index = () => {
           </div>
         ) : (
           <div className="w-full relative">
-            <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-sand to-transparent z-10 pointer-events-none" />
-            <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-sand to-transparent z-10 pointer-events-none" />
+            <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-[#100906] to-transparent z-10 pointer-events-none" />
+            <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-[#100906] to-transparent z-10 pointer-events-none" />
 
             <div className="flex gap-8 sm:gap-12 w-max py-1 animate-marquee items-center">
               {Array.from({ length: 3 }).map((_, outerIdx) => (
@@ -923,7 +916,7 @@ const Index = () => {
                     ) : (
                       <span
                         key={idx}
-                        className="text-ink/35 hover:text-ink/70 transition-colors text-lvl-subtitle tracking-[0.2em] uppercase font-bold shrink-0 whitespace-nowrap"
+                        className="text-white/40 hover:text-white/80 transition-colors text-lvl-subtitle tracking-[0.2em] uppercase font-bold shrink-0 whitespace-nowrap"
                       >
                         {p.name}
                       </span>

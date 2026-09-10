@@ -74,7 +74,7 @@ const AdminLogin = () => {
         <div className="max-w-md w-full mx-auto space-y-8 animate-fade-in">
           <div className="text-center lg:text-left">
             <img
-              src="/assets/Logo_NFL_fond_marron__écrits_jaune_-removebg-preview.png"
+              src="/assets/Logo_NFL_fond_blanc-removebg-preview.png"
               alt="NFL Logo"
               className="nfl-logo nfl-logo-on-light h-24 w-auto mb-8 mx-auto lg:mx-0"
             />

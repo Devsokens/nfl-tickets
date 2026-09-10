@@ -103,7 +103,7 @@ export const KeyStatsSection = ({
             className="lg:col-span-6 space-y-8"
           >
             <div>
-              <h2 className="font-sans text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#121212] tracking-tight leading-[1.15]">
+              <h2 className="font-sans text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-[#121212]">
                 {onSaveTitle ? (
                   <EditableText value={title} onSave={onSaveTitle} label="Titre de la section" />
                 ) : (
@@ -132,7 +132,7 @@ export const KeyStatsSection = ({
                       {isEditMode ? (
                         <EditableText
                           value={stat.number}
-                          onSave={(v) => onSaveStat && onSaveStat(idx, "number", v)}
+                          onSave={(v) => onSaveStat ? onSaveStat(idx, "number", v) : Promise.resolve()}
                           label="Chiffre"
                         />
                       ) : (
@@ -143,7 +143,7 @@ export const KeyStatsSection = ({
                       {isEditMode ? (
                         <EditableText
                           value={stat.label}
-                          onSave={(v) => onSaveStat && onSaveStat(idx, "label", v)}
+                          onSave={(v) => onSaveStat ? onSaveStat(idx, "label", v) : Promise.resolve()}
                           label="Intitulé"
                         />
                       ) : (
