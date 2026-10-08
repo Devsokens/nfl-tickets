@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider, dehydrate, hydrate } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { AnalyticsAPI } from "@/lib/api";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -11,11 +11,6 @@ import { mockEvents } from "@/lib/mockData";
 
 // Lazy loading for optimized bundle size
 const Index = lazy(() => import("./pages/Index.tsx"));
-const Catalog = lazy(() => import("./pages/Catalog.tsx"));
-const EventDetail = lazy(() => import("./pages/EventDetail.tsx"));
-const CatalogueFormation = lazy(() => import("./pages/CatalogueFormation.tsx"));
-const FormationDetail = lazy(() => import("./pages/FormationDetail.tsx"));
-const GalleryPage = lazy(() => import("./pages/GalleryPage.tsx"));
 const NewsletterUnsubscribe = lazy(() => import("./pages/NewsletterUnsubscribe.tsx"));
 const Contact = lazy(() => import("./pages/Contact.tsx"));
 const TestimonialSubmission = lazy(() => import("./pages/TestimonialSubmission.tsx"));
@@ -104,12 +99,11 @@ const App = () => (
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/events" element={<Catalog />} />
-              <Route path="/event/:id" element={<EventDetail />} />
-              <Route path="/event/:id/galerie" element={<GalleryPage type="event" />} />
-              <Route path="/catalogue-formations" element={<CatalogueFormation />} />
-              <Route path="/formation/:id" element={<FormationDetail />} />
-              <Route path="/formation/:id/galerie" element={<GalleryPage type="formation" />} />
+              {/* Redirections one-pager vers les sections de l'accueil */}
+              <Route path="/events" element={<Navigate to="/#evenements" replace />} />
+              <Route path="/event/*" element={<Navigate to="/" replace />} />
+              <Route path="/catalogue-formations" element={<Navigate to="/#formations" replace />} />
+              <Route path="/formation/*" element={<Navigate to="/" replace />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/temoignage/:ticketId" element={<TestimonialSubmission />} />
               <Route path="/newsletter/desabonnement" element={<NewsletterUnsubscribe />} />

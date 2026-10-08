@@ -150,10 +150,10 @@ export const EventsCarousel = ({ events }: EventsCarouselProps) => {
               </div>
             ))}
 
-            {/* CARTE "VOIR TOUS" */}
+            {/* CARTE "ÉVÉNEMENT SUR MESURE" */}
             <div className="w-[220px] sm:w-[245px] lg:w-[260px] shrink-0 snap-start">
               <Link
-                to="/events"
+                to="/contact"
                 className="group bg-gradient-to-br from-[#100906] via-[#1f120c] to-[#3a2012] text-white rounded-2xl border border-white/10 p-4 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full hover:-translate-y-1 relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#d4af37]/15 rounded-full blur-2xl pointer-events-none" />
@@ -167,17 +167,17 @@ export const EventsCarousel = ({ events }: EventsCarouselProps) => {
 
                   <div className="px-0.5">
                     <h3 className="font-sans text-sm font-bold text-white group-hover:text-[#d4af37] transition-colors line-clamp-2 leading-snug mb-1.5">
-                      Voir tous les événements
+                      Événement sur mesure
                     </h3>
                     <p className="text-white/60 text-[11px] leading-relaxed line-clamp-2 mb-3 font-normal">
-                      Explorez notre agenda complet de séminaires, masterclasses et galas.
+                      Organisez votre séminaire ou masterclass avec l'équipe de NFL Courtier & Service.
                     </p>
                   </div>
                 </div>
 
                 <div className="pt-2.5 border-t border-white/10 mt-auto">
                   <div className="w-full bg-[#d4af37] group-hover:bg-white text-black font-bold rounded-full py-2 px-3 text-[10px] uppercase tracking-wider transition-colors duration-300 flex items-center justify-center gap-1.5 shadow-sm">
-                    <span>Découvrir l'agenda</span>
+                    <span>Demander un devis</span>
                     <ArrowRight className="w-3 h-3 transition-transform duration-300 group-hover:translate-x-1" />
                   </div>
                 </div>

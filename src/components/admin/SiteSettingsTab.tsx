@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Save, Search, ScrollText, Info, Mail, Bell, TicketX } from "lucide-react";
+import { Loader2, Save, Search, ScrollText, Info, Mail, Bell, TicketX, Phone } from "lucide-react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
@@ -21,12 +21,18 @@ const emailQuillModules = {
   ],
 };
 
-const emptySettings: SiteSettings = {};
+const emptySettings: SiteSettings = {
+  contact_email: "contact@nfl-ga.com",
+  phone: "+241 66 69 23 38",
+  whatsapp_number: "+241 66 69 23 38",
+  address: "BP 10898 Libreville, Gabon",
+};
 
 // Sert à la fois de sommaire (timeline latérale) et d'ancres de scroll —
 // une seule liste à tenir à jour pour les deux.
 const SECTIONS = [
   { id: "settings-notifications", label: "Notifications", icon: Bell },
+  { id: "settings-contact", label: "Coordonnées de contact", icon: Phone },
   { id: "settings-disponibilite", label: "Disponibilité", icon: TicketX },
   { id: "settings-identite", label: "Identité technique", icon: Search },
   { id: "settings-seo", label: "SEO par défaut", icon: Search },
@@ -202,7 +208,8 @@ const SiteSettingsTab = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await SiteSettingsAPI.update(form);
+      const { id, created_at, updated_at, ...cleanData } = form as any;
+      await SiteSettingsAPI.update(cleanData);
       toast.success("Réglages enregistrés !");
     } catch (err: any) {
       toast.error("Erreur : " + (err.response?.data?.message || err.message));
@@ -220,18 +227,13 @@ const SiteSettingsTab = () => {
       <div className="flex-1 min-w-0 space-y-8">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold">Réglages avancés</h2>
-            <p className="text-sm text-muted-foreground mt-1">Champs sans équivalent visuel sur le site (SEO, identité technique, mentions légales, emails automatiques).</p>
+            <h2 className="text-2xl font-bold">Réglages du site</h2>
+            <p className="text-sm text-muted-foreground mt-1">Coordonnées de contact, notifications, identité, SEO et paramètres généraux du site.</p>
           </div>
           <Button variant="gold" className="rounded-2xl h-12 px-6 shadow-xl shrink-0" onClick={handleSave} disabled={isSaving}>
             {isSaving ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Save className="h-5 w-5 mr-2" />}
             Enregistrer
           </Button>
-        </div>
-
-        <div className="flex items-center gap-2 text-muted-foreground text-xs bg-secondary/30 border border-border/50 rounded-xl px-4 py-3">
-          <Info className="w-4 h-4 text-gold shrink-0" />
-          Le téléphone, l'email, l'adresse, les réseaux sociaux et tous les textes de page se modifient directement dans l'onglet <strong className="text-foreground">Éditeur visuel</strong>.
         </div>
 
         <div id="settings-notifications" className="glass-card rounded-3xl p-8 border border-border/50 space-y-5 scroll-mt-6">
@@ -258,6 +260,18 @@ const SiteSettingsTab = () => {
             placeholder="Laisser vide pour utiliser l'adresse Gmail par défaut"
           />
         </div>
+
+        <Section id="settings-contact" icon={<Phone className="h-5 w-5 text-gold" />} title="Coordonnées de contact & Réseaux">
+          <Field label="Email de contact" value={form.contact_email} onChange={set("contact_email")} placeholder="contact@nfl-ga.com" />
+          <Field label="Téléphone principal" value={form.phone} onChange={set("phone")} placeholder="+241 66 69 23 38" />
+          <Field label="Numéro WhatsApp" value={form.whatsapp_number} onChange={set("whatsapp_number")} placeholder="+241 66 69 23 38" />
+          <Field label="Adresse / Siège social" value={form.address} onChange={set("address")} placeholder="BP 10898 Libreville, Gabon" />
+          <Field label="Lien Facebook" value={form.facebook_url} onChange={set("facebook_url")} placeholder="https://facebook.com/..." />
+          <Field label="Lien LinkedIn" value={form.linkedin_url} onChange={set("linkedin_url")} placeholder="https://linkedin.com/..." />
+          <Field label="Lien Instagram" value={form.instagram_url} onChange={set("instagram_url")} placeholder="https://instagram.com/..." />
+          <Field label="Lien Twitter / X" value={form.twitter_url} onChange={set("twitter_url")} placeholder="https://x.com/..." />
+          <Field label="Lien YouTube" value={form.youtube_url} onChange={set("youtube_url")} placeholder="https://youtube.com/..." />
+        </Section>
 
         <div id="settings-disponibilite" className="glass-card rounded-3xl p-8 border border-border/50 space-y-5 scroll-mt-6">
           <h3 className="font-bold text-lg flex items-center gap-2"><TicketX className="h-5 w-5 text-gold" /> Disponibilité des réservations</h3>

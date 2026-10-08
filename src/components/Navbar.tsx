@@ -73,6 +73,24 @@ const Navbar = () => {
     fallback?.();
   };
 
+  const scrollToAnchor = (anchorId: string) => (e: React.MouseEvent) => {
+    if (isEditMode) {
+      e.preventDefault();
+      return;
+    }
+    if (isHome) {
+      e.preventDefault();
+      const el = document.getElementById(anchorId);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+        window.history.pushState(null, "", `#${anchorId}`);
+      }
+    } else {
+      e.preventDefault();
+      navigate(`/#${anchorId}`);
+    }
+  };
+
   // Sur mobile/tablette (< lg) la navbar reste fixe en permanence (même taille,
   // même style, pas de contraction en pilule au scroll) — seul le desktop (lg+)
   // garde l'effet de morphing au scroll.
@@ -107,21 +125,39 @@ const Navbar = () => {
             <div className={`hidden lg:flex items-center shrink-0 ${isScrolled ? "gap-0.5 mx-auto" : "gap-2"}`}>
               <Link
                 to="/"
-                onClick={guardNav(() => window.scrollTo({ top: 0, behavior: "smooth" }))}
-                className={navLinkClass(isHome)}
+                onClick={guardNav(() => {
+                  if (isHome) {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    window.history.pushState(null, "", "/");
+                  } else {
+                    navigate("/");
+                  }
+                })}
+                className={navLinkClass(isHome && !location.hash)}
               >
                 Accueil
               </Link>
-              <Link to="/events" onClick={guardNav()} className={navLinkClass(location.pathname === "/events")}>
-                Événements
-              </Link>
-              <Link
-                to="/catalogue-formations"
-                onClick={guardNav()}
-                className={navLinkClass(location.pathname === "/catalogue-formations")}
+              <a
+                href="/#formations"
+                onClick={scrollToAnchor("formations")}
+                className={navLinkClass(location.hash === "#formations")}
               >
-                Catalogue Formation
-              </Link>
+                Formations
+              </a>
+              <a
+                href="/#evenements"
+                onClick={scrollToAnchor("evenements")}
+                className={navLinkClass(location.hash === "#evenements")}
+              >
+                Événements
+              </a>
+              <a
+                href="/#temoignages"
+                onClick={scrollToAnchor("temoignages")}
+                className={navLinkClass(location.hash === "#temoignages")}
+              >
+                Témoignages
+              </a>
               <Link to="/contact" onClick={guardNav()} className={navLinkClass(location.pathname === "/contact")}>
                 Contact
               </Link>
@@ -155,14 +191,15 @@ const Navbar = () => {
                   </SheetHeader>
 
                   {[
-                    { to: "/", label: "Accueil", active: isHome, onClick: guardNav(() => window.scrollTo({ top: 0, behavior: "smooth" })) },
-                    { to: "/events", label: "Événements", active: location.pathname === "/events", onClick: guardNav() },
-                    { to: "/catalogue-formations", label: "Catalogue Formation", active: location.pathname === "/catalogue-formations", onClick: guardNav() },
+                    { to: "/", label: "Accueil", active: isHome && !location.hash, onClick: guardNav(() => { if (isHome) window.scrollTo({ top: 0, behavior: "smooth" }); else navigate("/"); }) },
+                    { to: "/#formations", label: "Formations", active: location.hash === "#formations", onClick: scrollToAnchor("formations") },
+                    { to: "/#evenements", label: "Événements", active: location.hash === "#evenements", onClick: scrollToAnchor("evenements") },
+                    { to: "/#temoignages", label: "Témoignages", active: location.hash === "#temoignages", onClick: scrollToAnchor("temoignages") },
                     { to: "/contact", label: "Contact", active: location.pathname === "/contact", onClick: guardNav() },
                   ].map((item) => (
-                    <Link
+                    <a
                       key={item.to}
-                      to={item.to}
+                      href={item.to}
                       onClick={item.onClick}
                       className={`w-fit text-sm font-bold uppercase tracking-wide rounded-full px-5 py-3 transition-colors border ${
                         item.active
@@ -171,7 +208,7 @@ const Navbar = () => {
                       }`}
                     >
                       {item.label}
-                    </Link>
+                    </a>
                   ))}
 
                   <Link

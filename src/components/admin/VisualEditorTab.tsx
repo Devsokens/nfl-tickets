@@ -1,18 +1,14 @@
 import { useState } from "react";
-import { ExternalLink, Home, GraduationCap, Mail, CalendarDays } from "lucide-react";
+import { ExternalLink, Home, Mail } from "lucide-react";
 import { EditModeProvider } from "@/lib/EditModeContext";
 import Index from "@/pages/Index";
 import Contact from "@/pages/Contact";
-import CatalogueFormation from "@/pages/CatalogueFormation";
-import Catalog from "@/pages/Catalog";
 import { cn } from "@/lib/utils";
 
-type EditorPage = "home" | "events" | "catalogue-formations" | "contact";
+type EditorPage = "home" | "contact";
 
 const PAGES: { key: EditorPage; label: string; path: string; icon: typeof Home }[] = [
-  { key: "home", label: "Accueil", path: "/", icon: Home },
-  { key: "events", label: "Événements", path: "/events", icon: CalendarDays },
-  { key: "catalogue-formations", label: "Catalogue Formations", path: "/catalogue-formations", icon: GraduationCap },
+  { key: "home", label: "Accueil (One-Pager)", path: "/", icon: Home },
   { key: "contact", label: "Contact", path: "/contact", icon: Mail },
 ];
 
@@ -76,8 +72,6 @@ export const VisualEditorTab = () => {
       >
         <EditModeProvider key={page}>
           {page === "home" && <Index />}
-          {page === "events" && <Catalog />}
-          {page === "catalogue-formations" && <CatalogueFormation />}
           {page === "contact" && <Contact />}
         </EditModeProvider>
       </div>

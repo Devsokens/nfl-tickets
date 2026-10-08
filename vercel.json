@@ -1,4 +1,10 @@
 {
+  "redirects": [
+    { "source": "/events", "destination": "/#evenements", "permanent": true },
+    { "source": "/catalogue-formations", "destination": "/#formations", "permanent": true },
+    { "source": "/event/(.*)", "destination": "/", "permanent": true },
+    { "source": "/formation/(.*)", "destination": "/", "permanent": true }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",

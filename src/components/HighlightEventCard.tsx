@@ -25,7 +25,7 @@ const HighlightEventCard = ({ event }: HighlightEventCardProps) => {
 
   return (
     <Link
-      to={`/event/${event.slug || event.id}`}
+      to="/contact"
       className="group bg-gradient-to-br from-[#100906] via-[#1f120c] to-[#3a2012] text-white rounded-2xl sm:rounded-[2rem] border border-white/10 p-2.5 sm:p-5 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col justify-between h-full hover:-translate-y-1 relative overflow-hidden"
     >
       <div className="absolute top-0 right-0 w-28 sm:w-36 h-28 sm:h-36 bg-[#d4af37]/15 rounded-full blur-2xl pointer-events-none" />
@@ -88,9 +88,9 @@ const HighlightEventCard = ({ event }: HighlightEventCardProps) => {
           <span className="truncate">{event.location || "Libreville, Gabon"}</span>
         </div>
 
-        {/* BUTTON VOIR DÉTAIL */}
+        {/* BUTTON PRENDRE CONTACT */}
         <div className="w-full bg-[#d4af37] group-hover:bg-white text-black font-bold rounded-full py-1.5 sm:py-2.5 px-2 sm:px-4 text-[9px] sm:text-xs uppercase tracking-wider transition-colors duration-300 flex items-center justify-center gap-1.5 sm:gap-2 shadow-sm">
-          <span>Voir détail</span>
+          <span>Nous contacter</span>
           <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
         </div>
       </div>

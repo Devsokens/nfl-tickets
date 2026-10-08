@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, CheckCircle2, ChevronRight, ShieldCheck, Sparkles, Users, Award } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronRight, ShieldCheck, Sparkles, Users, Award, Download } from "lucide-react";
 import { EditableText } from "@/components/admin/editable/EditableText";
 import { EditableIcon } from "@/components/admin/editable/EditableIcon";
 import { RemoveItemButton, AddCardButton } from "@/components/admin/editable/EditableListControls";
@@ -80,7 +80,8 @@ export const ExpertisePillarsSection = ({
   const BadgeIcon = currentVisual.badgeIcon || Sparkles;
 
   return (
-    <section className="section-y bg-[#fdfbf7] relative overflow-hidden text-[#100906]">
+    <section id="formations" className="section-y bg-[#fdfbf7] relative overflow-hidden text-[#100906] scroll-mt-20">
+      <div id="piliers" className="absolute -top-24 pointer-events-none" />
       {/* Background Accent Mesh & Grid */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#d4af37]/10 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-[#8a4216]/10 rounded-full blur-[130px] pointer-events-none" />
@@ -320,9 +321,35 @@ export const ExpertisePillarsSection = ({
                       />
                       <ArrowRight className="w-3.5 h-3.5" />
                     </span>
+                  ) : activePillar.link?.startsWith("http") ? (
+                    <a
+                      href={activePillar.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 sm:gap-3 bg-[#121212] hover:bg-[#252525] text-white rounded-full px-3.5 py-2 sm:px-6 sm:py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-md hover:scale-105 active:scale-95 group"
+                    >
+                      <span>{activePillar.ctaText || "Télécharger le catalogue"}</span>
+                      <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-white/20 group-hover:bg-[#d4af37] group-hover:text-black transition-colors duration-300 flex items-center justify-center shrink-0">
+                        {activePillar.link.includes("drive.google") || activePillar.ctaText?.toLowerCase().includes("télécharger") ? (
+                          <Download className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                        ) : (
+                          <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                        )}
+                      </div>
+                    </a>
+                  ) : activePillar.link?.startsWith("#") ? (
+                    <a
+                      href={activePillar.link}
+                      className="inline-flex items-center gap-2 sm:gap-3 bg-[#121212] hover:bg-[#252525] text-white rounded-full px-3.5 py-2 sm:px-6 sm:py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-md hover:scale-105 active:scale-95 group"
+                    >
+                      <span>{activePillar.ctaText || "Découvrir"}</span>
+                      <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-white/20 group-hover:bg-[#d4af37] group-hover:text-black transition-colors duration-300 flex items-center justify-center shrink-0">
+                        <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                      </div>
+                    </a>
                   ) : (
                     <Link
-                      to={activePillar.link || "/catalogue-formations"}
+                      to={activePillar.link || "/contact"}
                       className="inline-flex items-center gap-2 sm:gap-3 bg-[#121212] hover:bg-[#252525] text-white rounded-full px-3.5 py-2 sm:px-6 sm:py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-md hover:scale-105 active:scale-95 group"
                     >
                       <span>{activePillar.ctaText || "Découvrir"}</span>

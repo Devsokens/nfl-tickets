@@ -11,9 +11,9 @@ import { EditableText } from "@/components/admin/editable/EditableText";
 const DEFAULT_SETTINGS: SiteSettings = {
   site_name: "NFL Courtier & Service",
   tagline: "Votre partenaire d'excellence à Libreville pour le courtage, les formations et l'événementiel de prestige.",
-  phone: "+241 00 00 00 00",
-  contact_email: "contact@nflprestige.com",
-  address: "Libreville, Gabon",
+  phone: "+241 66 69 23 38",
+  contact_email: "contact@nfl-ga.com",
+  address: "BP 10898 Libreville, Gabon",
   facebook_url: "",
   instagram_url: "",
   linkedin_url: "",
@@ -78,23 +78,32 @@ const Footer = () => {
         {/* GRILLE PRINCIPALE 3 COLONNES SANS COLONNE RÉSEAUX */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-12 items-start mb-12">
           
-          {/* COLONNE 1 : LOGO + SLOGAN */}
+          {/* COLONNE 1 : LOGO + SLOGAN + COORDONNÉES */}
           <div className="lg:col-span-5 space-y-4">
-            <Link
-              to="/admin/login"
-              onClick={isEditMode ? (e) => e.preventDefault() : undefined}
-              className="inline-block transition-transform hover:scale-[1.02]"
-              title="Espace Administration"
-            >
+            <div className="inline-block">
               <img
                 src="/assets/Logo_NFL_fond_marron__écrits_jaune_-removebg-preview.png"
                 alt="NFL Courtier & Service"
                 className="nfl-logo h-14 sm:h-16 w-auto object-contain"
               />
-            </Link>
+            </div>
             <p className="text-white/70 text-xs sm:text-sm leading-relaxed max-w-sm font-sans">
               <EditableText value={settings.tagline || ""} onSave={saveSettingsField("tagline")} label="Slogan" multiline as="div" />
             </p>
+            <div className="space-y-1.5 pt-1 text-xs text-white/70">
+              <p className="flex items-center gap-1.5">
+                <span className="text-[#e3bd51] font-semibold">Email :</span>
+                <EditableText value={settings.contact_email || "contact@nfl-ga.com"} onSave={saveSettingsField("contact_email")} label="Email de contact" />
+              </p>
+              <p className="flex items-center gap-1.5">
+                <span className="text-[#e3bd51] font-semibold">Tél :</span>
+                <EditableText value={settings.phone || "+241 66 69 23 38"} onSave={saveSettingsField("phone")} label="Téléphone" />
+              </p>
+              <p className="flex items-center gap-1.5">
+                <span className="text-[#e3bd51] font-semibold">Adresse :</span>
+                <EditableText value={settings.address || "BP 10898 Libreville, Gabon"} onSave={saveSettingsField("address")} label="Adresse" />
+              </p>
+            </div>
           </div>
 
           {/* COLONNE 2 : ENTREPRISE / NAVIGATION */}
@@ -109,16 +118,16 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/events" onClick={isEditMode ? (e) => e.preventDefault() : undefined} className="inline-flex items-center gap-1 hover:text-[#e3bd51] transition-colors">
-                  <span>Événements</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-[#d4af37]/70" />
-                </Link>
-              </li>
-              <li>
-                <Link to="/catalogue-formations" onClick={isEditMode ? (e) => e.preventDefault() : undefined} className="inline-flex items-center gap-1 hover:text-[#e3bd51] transition-colors">
+                <a href="/#formations" onClick={isEditMode ? (e) => e.preventDefault() : undefined} className="inline-flex items-center gap-1 hover:text-[#e3bd51] transition-colors">
                   <span>Formations</span>
                   <ArrowUpRight className="w-3.5 h-3.5 text-[#d4af37]/70" />
-                </Link>
+                </a>
+              </li>
+              <li>
+                <a href="/#evenements" onClick={isEditMode ? (e) => e.preventDefault() : undefined} className="inline-flex items-center gap-1 hover:text-[#e3bd51] transition-colors">
+                  <span>Événements</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-[#d4af37]/70" />
+                </a>
               </li>
               <li>
                 <Link to="/contact" onClick={isEditMode ? (e) => e.preventDefault() : undefined} className="hover:text-[#e3bd51] transition-colors">

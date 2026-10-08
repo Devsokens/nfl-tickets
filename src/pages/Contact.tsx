@@ -5,11 +5,15 @@ import Footer from "@/components/Footer";
 import { Helmet } from "react-helmet-async";
 import { MapPin, Phone, Mail, ArrowUpRight, ArrowRight, ArrowLeft, Info, Facebook, Linkedin, Youtube, Instagram } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { SiteSettingsAPI, ContactAPI, type SiteSettings } from "@/lib/api";
+import { useIsEditMode } from "@/lib/EditModeContext";
+import { EditableText } from "@/components/admin/editable/EditableText";
 
 const Contact = () => {
   const { toast } = useToast();
+  const isEditMode = useIsEditMode();
+  const queryClient = useQueryClient();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -21,6 +25,11 @@ const Contact = () => {
     queryKey: ["siteSettings"],
     queryFn: SiteSettingsAPI.get,
   });
+
+  const saveSettingsField = (field: keyof SiteSettings) => async (value: string) => {
+    const updated = await SiteSettingsAPI.update({ [field]: value });
+    queryClient.setQueryData(["siteSettings"], (prev: SiteSettings | undefined) => ({ ...(prev || {}), ...updated }));
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -123,7 +132,8 @@ const Contact = () => {
 
                 {/* CARTE EMAIL */}
                 <a
-                  href={`mailto:${siteSettings?.contact_email || "contact@nflprestige.com"}`}
+                  href={`mailto:${siteSettings?.contact_email || "contact@nfl-ga.com"}`}
+                  onClick={isEditMode ? (e) => e.preventDefault() : undefined}
                   className="group flex flex-col bg-white/90 hover:bg-white border border-black/10 rounded-xl p-2.5 sm:p-3.5 shadow-sm hover:shadow-md transition-all duration-300 min-w-0"
                 >
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-[#8c591a]/10 text-[#8c591a] flex items-center justify-center shrink-0 group-hover:bg-[#8c591a] group-hover:text-white transition-colors mb-2">
@@ -131,13 +141,22 @@ const Contact = () => {
                   </div>
                   <span className="text-[10px] sm:text-[11px] font-medium text-ink/50 block">Email</span>
                   <span className="text-[11px] sm:text-sm font-bold text-[#100906] truncate block">
-                    {siteSettings?.contact_email || "contact@nflprestige.com"}
+                    {isEditMode ? (
+                      <EditableText
+                        value={siteSettings?.contact_email || "contact@nfl-ga.com"}
+                        onSave={saveSettingsField("contact_email")}
+                        label="Email de contact"
+                      />
+                    ) : (
+                      siteSettings?.contact_email || "contact@nfl-ga.com"
+                    )}
                   </span>
                 </a>
 
                 {/* CARTE TÉLÉPHONE */}
                 <a
-                  href={`tel:${siteSettings?.phone || ""}`}
+                  href={`tel:${siteSettings?.phone || "+241 66 69 23 38"}`}
+                  onClick={isEditMode ? (e) => e.preventDefault() : undefined}
                   className="group flex flex-col bg-white/90 hover:bg-white border border-black/10 rounded-xl p-2.5 sm:p-3.5 shadow-sm hover:shadow-md transition-all duration-300 min-w-0"
                 >
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-[#8c591a]/10 text-[#8c591a] flex items-center justify-center shrink-0 group-hover:bg-[#8c591a] group-hover:text-white transition-colors mb-2">
@@ -145,7 +164,15 @@ const Contact = () => {
                   </div>
                   <span className="text-[10px] sm:text-[11px] font-medium text-ink/50 block">Téléphone</span>
                   <span className="text-[11px] sm:text-sm font-bold text-[#100906] truncate block">
-                    {siteSettings?.phone || "+241 00 00 00 00"}
+                    {isEditMode ? (
+                      <EditableText
+                        value={siteSettings?.phone || "+241 66 69 23 38"}
+                        onSave={saveSettingsField("phone")}
+                        label="Téléphone"
+                      />
+                    ) : (
+                      siteSettings?.phone || "+241 66 69 23 38"
+                    )}
                   </span>
                 </a>
               </div>
@@ -160,7 +187,15 @@ const Contact = () => {
                   </div>
                   <span className="text-[10px] sm:text-[11px] font-medium text-ink/50 block">Siège Social</span>
                   <span className="text-[11px] sm:text-sm font-bold text-[#100906] truncate block">
-                    {siteSettings?.address || "Libreville, Gabon"}
+                    {isEditMode ? (
+                      <EditableText
+                        value={siteSettings?.address || "BP 10898 Libreville, Gabon"}
+                        onSave={saveSettingsField("address")}
+                        label="Adresse"
+                      />
+                    ) : (
+                      siteSettings?.address || "BP 10898 Libreville, Gabon"
+                    )}
                   </span>
                 </div>
 

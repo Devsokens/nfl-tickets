@@ -92,6 +92,11 @@ export interface HomeContent {
   partners?: { name?: string; logo_url?: string }[];
   pillars?: { icon?: string; title?: string; description?: string; ctaText?: string; link?: string }[];
   eventsSection?: { eyebrow?: string; title?: string; ctaText?: string; ctaLink?: string };
+  keyStats?: {
+    title?: string;
+    subtitle?: string;
+    stats?: { number: string; label: string }[];
+  };
   spotlight?: {
     badge?: string;
     titleLines?: string[];
@@ -283,7 +288,8 @@ export const EventsAPI = {
     }
   },
   create: async (eventData: any) => {
-    const res = await api.post('/events', eventData);
+    const { id, created_at, updated_at, ticketsSold, ...cleanData } = eventData;
+    const res = await api.post('/events', cleanData);
     return res.data;
   },
   uploadImage: async (formData: FormData) => {
@@ -295,7 +301,8 @@ export const EventsAPI = {
     return res.data;
   },
   update: async (id: string, eventData: any) => {
-    const res = await api.patch(`/events/${id}`, eventData);
+    const { id: _id, created_at, updated_at, ticketsSold, ...cleanData } = eventData;
+    const res = await api.patch(`/events/${id}`, cleanData);
     return res.data;
   },
   delete: async (id: string) => {
@@ -530,7 +537,8 @@ export const SiteSettingsAPI = {
     }
   },
   update: async (data: Partial<SiteSettings>): Promise<SiteSettings> => {
-    const res = await api.patch('/site-settings', data);
+    const { id, created_at, updated_at, ...cleanData } = data as any;
+    const res = await api.patch('/site-settings', cleanData);
     return res.data;
   },
 };
@@ -574,11 +582,13 @@ export const TestimonialsAPI = {
     }
   },
   create: async (data: Partial<Testimonial>) => {
-    const res = await api.post('/testimonials', data);
+    const { id, created_at, updated_at, ticket_id, ...cleanData } = data as any;
+    const res = await api.post('/testimonials', cleanData);
     return res.data;
   },
   update: async (id: string, data: Partial<Testimonial>) => {
-    const res = await api.patch(`/testimonials/${id}`, data);
+    const { id: _id, created_at, updated_at, ticket_id, ...cleanData } = data as any;
+    const res = await api.patch(`/testimonials/${id}`, cleanData);
     return res.data;
   },
   delete: async (id: string) => {
@@ -616,11 +626,13 @@ export const FormationsAPI = {
     return res.data;
   },
   create: async (data: Partial<Formation>) => {
-    const res = await api.post('/formations', data);
+    const { id, created_at, updated_at, ...cleanData } = data as any;
+    const res = await api.post('/formations', cleanData);
     return res.data;
   },
   update: async (id: string, data: Partial<Formation>) => {
-    const res = await api.patch(`/formations/${id}`, data);
+    const { id: _id, created_at, updated_at, ...cleanData } = data as any;
+    const res = await api.patch(`/formations/${id}`, cleanData);
     return res.data;
   },
   delete: async (id: string) => {

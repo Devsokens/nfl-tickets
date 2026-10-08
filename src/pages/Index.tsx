@@ -51,7 +51,7 @@ const DEFAULT_HOME_CONTENT: HomeContent = {
     titleLine2: "de vos ambitions",
     subtitle: "Nous accompagnons les entreprises, institutions, dirigeants et personnels dans leurs projets les plus ambitieux grâce à une expertise reconnue et une satisfaction client au coeur de notre activité.",
     ctaPrimaryText: "Découvrir nos services",
-    ctaPrimaryLink: "/catalogue-formations",
+    ctaPrimaryLink: "#formations",
     ctaSecondaryText: "& le Prestige Événementiel",
     ctaSecondaryLink: "#evenements",
     badgeCardTitle: "Agréé & certifié",
@@ -71,23 +71,33 @@ const DEFAULT_HOME_CONTENT: HomeContent = {
     { name: "Gabon Telecom", logo_url: "" },
   ],
   pillars: [
-    { icon: "Building2", title: "Séminaires", description: "Accompagnement stratégique et organisation de séminaires sur mesure avec rigueur.", ctaText: "En savoir plus", link: "#evenements" },
-    { icon: "Users", title: "Formations", description: "Développez la performance de vos équipes en compétences concrètes et mesurables.", ctaText: "Nos experts", link: "/catalogue-formations" },
-    { icon: "Landmark", title: "Académie NFL", description: "Montée en compétences continue formée aux exigences du terrain.", ctaText: "Nos experts", link: "/catalogue-formations" },
+    { icon: "Building2", title: "Séminaires", description: "Accompagnement stratégique et organisation de séminaires sur mesure avec rigueur.", ctaText: "Nos événements", link: "#evenements" },
+    { icon: "Users", title: "Formations", description: "Développez la performance de vos équipes en compétences concrètes et mesurables.", ctaText: "Télécharger le catalogue", link: "https://drive.google.com/file/d/1MVP2W51296Hn19gFA6wuS_gYwkjjUSrZ/view?usp=sharing" },
+    { icon: "Landmark", title: "Académie NFL", description: "Montée en compétences continue formée aux exigences du terrain.", ctaText: "Prendre contact", link: "/contact" },
   ],
+  keyStats: {
+    title: "L'Excellence & L'Impact NFL",
+    subtitle: "Des résultats concrets et mesurables qui témoignent de notre engagement auprès des entreprises et des dirigeants.",
+    stats: [
+      { number: "70+", label: "Entreprises accompagnées" },
+      { number: "9/10", label: "Taux de satisfaction client" },
+      { number: "1200+", label: "Cadres & Leaders formés" },
+      { number: "25+", label: "Années d'expérience cumulées" },
+    ],
+  },
   eventsSection: {
     eyebrow: "AGENDA",
     title: "Événements d'Exception",
     ctaText: "VOIR TOUS LES ÉVÉNEMENTS",
-    ctaLink: "/events",
+    ctaLink: "#evenements",
   },
   spotlight: {
     badge: "ACADÉMIE NFL",
     titleLines: ["Le Séminaire", "Commercial", "pour Performer"],
     description: "Développez les compétences de vos équipes avec nos programmes de formation d'élite. Nous transformons le potentiel en performance réelle à travers une approche immersive et des méthodologies éprouvées.",
     bullets: ["Psychologie de la vente haut de gamme", "Maîtrise de l'argumentaire stratégique", "Closing et fidélisation de clientèle prestige"],
-    ctaText: "CONSULTER LE CATALOGUE FORMATION",
-    ctaLink: "/catalogue-formations",
+    ctaText: "TÉLÉCHARGER LE CATALOGUE",
+    ctaLink: "https://drive.google.com/file/d/1MVP2W51296Hn19gFA6wuS_gYwkjjUSrZ/view?usp=sharing",
     image: "",
   },
   about: {
@@ -158,6 +168,11 @@ function mergeHomeContent(fetched?: HomeContent): Required<HomeContent> {
     pillars: f.pillars?.length ? f.pillars : DEFAULT_HOME_CONTENT.pillars!,
     partners: f.partners?.length ? f.partners : DEFAULT_HOME_CONTENT.partners!,
     eventsSection: { ...DEFAULT_HOME_CONTENT.eventsSection, ...f.eventsSection },
+    keyStats: {
+      title: f.keyStats?.title || DEFAULT_HOME_CONTENT.keyStats?.title,
+      subtitle: f.keyStats?.subtitle || DEFAULT_HOME_CONTENT.keyStats?.subtitle,
+      stats: f.keyStats?.stats?.length ? f.keyStats.stats : DEFAULT_HOME_CONTENT.keyStats?.stats,
+    },
     spotlight: { ...DEFAULT_HOME_CONTENT.spotlight, ...f.spotlight },
     about: { ...DEFAULT_HOME_CONTENT.about, ...f.about },
     ctaSection: { ...DEFAULT_HOME_CONTENT.ctaSection, ...f.ctaSection },
@@ -258,6 +273,35 @@ const Index = () => {
     return saveHomeSection({ [sectionKey]: { ...(content as any)[sectionKey], [listKey]: list } } as any);
   };
 
+  const saveKeyStatField = async (index: number, field: string, value: string) => {
+    const currentStats = [...(content.keyStats?.stats || DEFAULT_HOME_CONTENT.keyStats!.stats!)];
+    currentStats[index] = { ...currentStats[index], [field]: value };
+    await saveHomeSection({
+      keyStats: {
+        ...content.keyStats,
+        stats: currentStats,
+      },
+    } as any);
+  };
+
+  const saveKeyStatsTitle = async (title: string) => {
+    await saveHomeSection({
+      keyStats: {
+        ...content.keyStats,
+        title,
+      },
+    } as any);
+  };
+
+  const saveKeyStatsSubtitle = async (subtitle: string) => {
+    await saveHomeSection({
+      keyStats: {
+        ...content.keyStats,
+        subtitle,
+      },
+    } as any);
+  };
+
   const { data: siteSettings } = useQuery<SiteSettings>({
     queryKey: ["siteSettings"],
     queryFn: SiteSettingsAPI.get,
@@ -316,9 +360,9 @@ const Index = () => {
               "logo": "${siteSettings?.logo_url || "https://nfl-ga.com/favicon.jpg"}",
               "contactPoint": {
                 "@type": "ContactPoint",
-                "telephone": "${siteSettings?.phone || "+241 066 69 23 38"}",
+                "telephone": "${siteSettings?.phone || "+241 66 69 23 38"}",
                 "contactType": "customer service",
-                "email": "${siteSettings?.contact_email || "seminaireslao@outlook.fr"}",
+                "email": "${siteSettings?.contact_email || "contact@nfl-ga.com"}",
                 "areaServed": "GA",
                 "availableLanguage": "French"
               },
@@ -334,12 +378,7 @@ const Index = () => {
               "@context": "https://schema.org",
               "@type": "WebSite",
               "url": "${siteSettings?.site_url || "https://nfl-ga.com"}",
-              "name": "NFL-GA",
-              "potentialAction": {
-                "@type": "SearchAction",
-                "target": "${siteSettings?.site_url || "https://nfl-ga.com"}/events?q={search_term_string}",
-                "query-input": "required name=search_term_string"
-              }
+              "name": "NFL-GA"
             }
           `}
         </script>
@@ -372,7 +411,7 @@ const Index = () => {
             title: "Nouveau pilier",
             description: "Description de votre nouveau programme d'accompagnement...",
             ctaText: "En savoir plus",
-            link: "/catalogue-formations",
+            link: "/contact",
           });
         }}
         onRemovePillar={async (idx) => {
@@ -381,10 +420,17 @@ const Index = () => {
       />
 
       {/* 2.5 CHIFFRES CLÉS & VITRINE VIDÉO */}
-      <KeyStatsSection />
+      <KeyStatsSection
+        title={content.keyStats?.title}
+        subtitle={content.keyStats?.subtitle}
+        stats={content.keyStats?.stats}
+        onSaveStat={saveKeyStatField}
+        onSaveTitle={saveKeyStatsTitle}
+        onSaveSubtitle={saveKeyStatsSubtitle}
+      />
 
       {/* 3. EVENEMENTS D'EXCEPTION */}
-      <section id="evenements" className="section-y bg-gradient-to-b from-[#fbf5e6] via-[#f7ebd7] to-[#fbf5e6] border-y border-[#d4af37]/25 relative overflow-hidden">
+      <section id="evenements" className="section-y bg-gradient-to-b from-[#fbf5e6] via-[#f7ebd7] to-[#fbf5e6] border-y border-[#d4af37]/25 relative overflow-hidden scroll-mt-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl relative z-10">
           {isEditMode && (
             <div className="flex items-center gap-2 text-ink/60 text-lvl-footer mb-4 bg-black/5 border border-black/10 rounded-lg px-4 py-2.5 w-fit">
@@ -403,7 +449,7 @@ const Index = () => {
       </section>
 
       {/* 5. TEMOIGNAGES - DUAL-ROW MARQUEE (EXACTEMENT COMME LA MAQUETTE RÉFÉRENCE) */}
-      <section className="section-y bg-[#fcfbfa] overflow-hidden relative border-t border-black/5">
+      <section id="temoignages" className="section-y bg-[#fcfbfa] overflow-hidden relative border-t border-black/5 scroll-mt-20">
         <motion.div
           className="container mx-auto px-4 mb-12 sm:mb-16 text-center max-w-3xl"
           initial="hidden"
@@ -640,7 +686,7 @@ const Index = () => {
       </section>
 
       {/* 7. NOTRE HISTOIRE - C'EST QUOI NFL ? (AVEC SLIDER VERTICAL INFINI À DROITE) */}
-      <section className="section-y bg-[#fdfbf7] border-t border-black/5 relative overflow-hidden">
+      <section id="a-propos" className="section-y bg-[#fdfbf7] border-t border-black/5 relative overflow-hidden scroll-mt-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
             

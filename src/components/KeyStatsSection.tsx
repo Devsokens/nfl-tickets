@@ -16,28 +16,32 @@ interface KeyStatsSectionProps {
   videoUrl?: string;
   onSaveStat?: (index: number, field: string, val: string) => Promise<void>;
   onSaveTitle?: (val: string) => Promise<void>;
+  onSaveSubtitle?: (val: string) => Promise<void>;
 }
 
 const DEFAULT_STATS: StatItem[] = [
-  { number: "150+", label: "Événements & Séminaires" },
-  { number: "25+", label: "Années d'Expérience Cumulées" },
+  { number: "70+", label: "Entreprises Accompagnées" },
+  { number: "9/10", label: "Taux de Satisfaction Client" },
   { number: "1200+", label: "Cadres & Leaders Formés" },
-  { number: "50+", label: "Experts & Consultants Certifiés" },
+  { number: "25+", label: "Années d'Expérience Cumulées" },
 ];
 
 // Composant de compteur animé quand visible à l'écran
-function AnimatedCounter({ value }: { value: string }) {
+function AnimatedCounter({ value = "" }: { value?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
 
-  const match = value.match(/^(\d+)(.*)$/);
-  const targetNum = match ? parseInt(match[1], 10) : 0;
-  const suffix = match ? match[2] : value;
+  const raw = (value ?? "").trim();
+  // Support des formats comme "9/10", "70+", "+50", "95%", "1200+"
+  const match = raw.match(/^([^\d]*)(\d+)(.*)$/);
+  const prefix = match ? match[1] : "";
+  const targetNum = match ? parseInt(match[2], 10) : 0;
+  const suffix = match ? match[3] : raw;
 
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    if (!isInView || !targetNum) return;
+    if (!isInView || !match) return;
 
     const duration = 1800; // 1.8s
     const startTime = performance.now();
@@ -58,14 +62,15 @@ function AnimatedCounter({ value }: { value: string }) {
     };
 
     requestAnimationFrame(animate);
-  }, [isInView, targetNum]);
+  }, [isInView, targetNum, match]);
 
   if (!match) {
-    return <span ref={ref}>{value}</span>;
+    return <span ref={ref}>{raw}</span>;
   }
 
   return (
     <span ref={ref} className="inline-flex items-baseline">
+      {prefix && <span className="text-[#8c591a] font-semibold mr-0.5">{prefix}</span>}
       <span>{count}</span>
       <span className="text-[#8c591a] font-semibold ml-0.5">{suffix}</span>
     </span>
@@ -79,12 +84,13 @@ export const KeyStatsSection = ({
   videoUrl = "https://assets.mixkit.co/videos/preview/mixkit-business-people-meeting-in-a-modern-office-42776-large.mp4",
   onSaveStat,
   onSaveTitle,
+  onSaveSubtitle,
 }: KeyStatsSectionProps) => {
   const isEditMode = useIsEditMode();
-  const displayStats = stats && stats.length >= 4 ? stats.slice(0, 4) : DEFAULT_STATS;
+  const displayStats = stats && stats.length > 0 ? stats.slice(0, 4) : DEFAULT_STATS;
 
   return (
-    <section className="section-y bg-[#fcfbfa] relative overflow-hidden text-[#100906]">
+    <section id="chiffres" className="section-y bg-[#fcfbfa] relative overflow-hidden text-[#100906] scroll-mt-20">
       {/* Halo de lumière en arrière-plan */}
       <div className="absolute top-1/2 right-10 -translate-y-1/2 w-[500px] h-[500px] bg-[#d4af37]/10 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute bottom-0 left-10 w-[400px] h-[400px] bg-[#8a4216]/10 rounded-full blur-[120px] pointer-events-none" />
@@ -111,7 +117,11 @@ export const KeyStatsSection = ({
                 )}
               </h2>
               <p className="text-[#555] text-base sm:text-lg leading-relaxed font-normal mt-4 max-w-xl">
-                {subtitle}
+                {isEditMode && onSaveSubtitle ? (
+                  <EditableText value={subtitle} onSave={onSaveSubtitle} label="Sous-titre de la section" multiline as="span" />
+                ) : (
+                  subtitle
+                )}
               </p>
             </div>
 
