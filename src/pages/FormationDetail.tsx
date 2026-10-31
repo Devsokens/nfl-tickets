@@ -30,44 +30,34 @@ const FormationDetail = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [nbPlaces, setNbPlaces] = useState("1 Place");
+  const [company, setCompany] = useState("");
+  const [groupSize, setGroupSize] = useState("2 à 5 participants");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const gallery = formation?.gallery || [];
 
+  // Tarif uniquement s'il est renseigné dans l'admin ; sinon "Sur devis".
   const formationPrice = formation?.price ? Number(formation.price) : 0;
-  const corporatePrice = formationPrice > 0 ? Math.round(formationPrice * 5.5) : 0;
+  // Prestation de conseil (audit) : pas d'"inscription" mais une demande.
+  const isConsulting = formation?.category === "conseil";
+  // Individuel = une seule personne : pas de nombre de participants ni
+  // d'entreprise. Ces champs n'ont de sens que pour un groupe (ou un audit,
+  // qui s'adresse toujours à une organisation).
+  const isGroup = !isConsulting && selectedFormule === "corporate";
+  const needsCompany = isConsulting || isGroup;
 
-  // Inclusions standards pour les formations
-  const formationIncludes = (formation?.bullets && formation.bullets.length > 0)
-    ? formation.bullets
-    : [
-        "Support pédagogique complet et supports de cours numériques",
-        "Ateliers pratiques immersifs et études de cas réels",
-        "Accompagnement et feedbacks personnalisés par les experts",
-        "Attestation officielle & certification professionnelle NFL",
-        "Accès exclusif au réseau des Alumni NFL Courtier",
-        "Déjeuners d'affaires & pauses networking VIP",
-      ];
-
-  // Programme de formation
-  const defaultProgram = [
-    { title: "Fondamentaux & Cadre Stratégique", time: "Jour 1", description: "Maîtrise des concepts clés, analyse des enjeux sectoriels et diagnostic initial." },
-    { title: "Outils Pratiques & Études de Cas", time: "Jour 2", description: "Mises en situation réelles, simulation et élaboration de stratégies opérationnelles." },
-    { title: "Optimisation, Synthèse & Certification", time: "Jour 3", description: "Restitution de projet, évaluation continue des compétences et validation finale." },
-  ];
-
-  const program = (formation?.program && formation.program.length > 0)
-    ? formation.program.map((p: any, idx: number) => ({
-        title: p.title || p.name || `Module ${idx + 1}`,
-        time: p.time || p.category || `Module 0${idx + 1}`,
-        description: p.description || "Session approfondie et méthodologie pratique.",
-      }))
-    : defaultProgram;
+  // Uniquement le contenu saisi dans l'admin : pas de texte de remplacement inventé.
+  const formationIncludes = formation?.bullets || [];
+  const outcomes = formation?.expertise_points || [];
+  const program = (formation?.program || []).map((p: any, idx: number) => ({
+    title: p.title || p.name || `Module ${idx + 1}`,
+    time: p.time || p.category || `Module ${idx + 1}`,
+    description: p.description,
+  }));
 
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !email || !phone) {
+    if (!fullName || !email || !phone || (needsCompany && !company.trim())) {
       toast({
         variant: "destructive",
         title: "Champs requis",
@@ -78,29 +68,40 @@ const FormationDetail = () => {
 
     setIsSubmitting(true);
     toast({
-      title: "Demande d'inscription reçue !",
-      description: "Redirection vers WhatsApp pour finaliser votre inscription...",
+      title: isConsulting ? "Demande reçue !" : "Demande d'inscription reçue !",
+      description: "Redirection vers WhatsApp pour finaliser votre demande...",
     });
+
+    // Détails selon le cas : rien sur le groupe pour une inscription individuelle.
+    const details: [string, string][] = [
+      ...(needsCompany ? [["Entreprise", company.trim()] as [string, string]] : []),
+      ...(!isConsulting ? [["Formule", isGroup ? "Entreprise / Groupe" : "Individuel"] as [string, string]] : []),
+      ...(isGroup ? [["Nombre de participants", groupSize] as [string, string]] : []),
+      ["Téléphone WhatsApp", phone],
+    ];
 
     // Trace côté admin (module Demandes)
     ContactAPI.send({
       name: fullName,
       email,
-      subject: `Inscription formation : ${formation?.title || "Formation"}`,
-      message: `Formule : ${selectedFormule}\nNombre de places : ${nbPlaces}\nTéléphone WhatsApp : ${phone}`,
+      subject: `${isConsulting ? "Demande d'audit" : "Inscription formation"} : ${formation?.title || "Formation"}`,
+      message: details.map(([label, value]) => `${label} : ${value}`).join("\n"),
       type: "formation",
       formation_id: formation?.id,
     }).catch((err) => console.error("Échec de l'enregistrement de la demande formation :", err));
 
-    const message = `Bonjour NFL Courtier & Service,\n\n` +
-                    `Je souhaite m'inscrire à la formation *${formation?.title || "Formation"}*.\n\n` +
-                    `*Détails du participant :*\n` +
+    const message = `Bonjour Cabinet NFL,\n\n` +
+                    (isConsulting
+                      ? `Je souhaite échanger sur une prestation *${formation?.title || "Audit commercial"}*.\n\n`
+                      : `Je souhaite m'inscrire à la formation *${formation?.title || "Formation"}*.\n\n`) +
+                    `*Détails de la demande :*\n` +
                     `- *Nom complet* : ${fullName}\n` +
                     `- *Email* : ${email}\n` +
-                    `- *Formule* : ${selectedFormule === "individuel" ? "Individuel" : "Corporate (Entreprise)"}\n` +
-                    `- *Nombre de places* : ${nbPlaces}\n` +
-                    `- *Téléphone WhatsApp* : ${phone}\n\n` +
-                    `Merci de me contacter avec le programme complet et les modalités d'accès.`;
+                    details.map(([label, value]) => `- *${label}* : ${value}\n`).join("") +
+                    `\n` +
+                    (isConsulting
+                      ? `Merci de me recontacter pour cadrer le périmètre de l'audit.`
+                      : `Merci de me contacter avec le programme complet et les modalités d'accès.`);
 
     const whatsappUrl = `https://wa.me/24166692338?text=${encodeURIComponent(message)}`;
     setTimeout(() => {
@@ -139,8 +140,8 @@ const FormationDetail = () => {
   return (
     <div className="min-h-screen bg-[#fcfbfa] text-[#100906] flex flex-col font-sans">
       <Helmet>
-        <title>{`${formation.title} | NFL Courtier & Service`}</title>
-        <meta name="description" content={formation.description || `Formation d'Excellence : ${formation.title} dispensée par NFL Courtier & Service.`} />
+        <title>{`${formation.title} | Cabinet NFL`}</title>
+        <meta name="description" content={formation.description || `${formation.title} — Cabinet NFL.`} />
       </Helmet>
 
       <Navbar />
@@ -178,7 +179,7 @@ const FormationDetail = () => {
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#d4af37] flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-pulse" />
-                  Programme Certifiant
+                  {formation.badge || "Formation"}
                 </span>
                 <span className="text-[10px] font-bold text-white/70 uppercase">
                   {formationPrice > 0 ? `${formationPrice.toLocaleString()} FCFA` : "Sur devis"}
@@ -189,21 +190,21 @@ const FormationDetail = () => {
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div className="bg-white/10 border border-white/10 p-2 rounded-xl">
                   <span className="text-xs sm:text-sm font-extrabold text-[#d4af37] block leading-tight truncate">
-                    {formation.duration || "3 Jours"}
+                    {formation.duration || "Sur mesure"}
                   </span>
                   <span className="text-[9px] uppercase font-bold text-white/70">Durée</span>
                 </div>
                 <div className="bg-white/10 border border-white/10 p-2 rounded-xl">
                   <span className="text-xs sm:text-sm font-extrabold text-[#d4af37] block leading-tight truncate">
-                    {formation.level || "Exécutif"}
+                    {formation.level || "—"}
                   </span>
-                  <span className="text-[9px] uppercase font-bold text-white/70">Niveau</span>
+                  <span className="text-[9px] uppercase font-bold text-white/70">Public</span>
                 </div>
                 <div className="bg-white/10 border border-white/10 p-2 rounded-xl">
                   <span className="text-xs sm:text-sm font-extrabold text-[#d4af37] block leading-tight truncate">
-                    {formation.certification || "NFL"}
+                    {formation.certification || "—"}
                   </span>
-                  <span className="text-[9px] uppercase font-bold text-white/70">Certif.</span>
+                  <span className="text-[9px] uppercase font-bold text-white/70">Inclus</span>
                 </div>
               </div>
 
@@ -211,7 +212,7 @@ const FormationDetail = () => {
                 onClick={() => document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth" })}
                 className="w-full bg-gradient-to-r from-[#d4af37] via-[#e3bd51] to-[#d4af37] hover:opacity-95 text-black font-extrabold py-3 px-5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-wider group cursor-pointer"
               >
-                <span>S'inscrire maintenant</span>
+                <span>{isConsulting ? "Demander un audit" : "S'inscrire maintenant"}</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
 
@@ -240,43 +241,45 @@ const FormationDetail = () => {
                 </div>
                 <div>
                   <span className="block text-[#100906]">
-                    {formation.duration || "Formation intensive — 3 à 5 jours"}
+                    {formation.duration || "Durée sur mesure"}
                   </span>
                   <span className="text-xs text-[#666] font-normal block">
-                    Horaires flexibles adaptés aux cadres et dirigeants
+                    {isConsulting ? "Prestation de conseil" : "De 08h00 à 16h00 · groupes jusqu'à 20 participants"}
                   </span>
                 </div>
               </div>
 
-              {/* FORMAT ROW WITH GLOBE / LOCATION ICON */}
+              {/* FORMAT ROW WITH LOCATION ICON */}
               <div className="flex items-center gap-3 text-sm sm:text-base font-semibold text-[#333]">
                 <div className="w-10 h-10 rounded-xl bg-[#8c591a]/10 border border-[#8c591a]/20 flex items-center justify-center shrink-0">
                   <Globe className="w-5 h-5 text-[#8c591a]" />
                 </div>
                 <div>
                   <span className="block text-[#100906]">
-                    Présentiel à Libreville &amp; Visioconférence
+                    Sur site, dans vos locaux
                   </span>
                   <span className="text-xs text-[#666] font-normal block">
-                    Accès aux replays, supports numériques et plateforme e-learning
+                    Hors site ou hors Libreville : sur devis
                   </span>
                 </div>
               </div>
 
-              {/* CERTIFICATION ROW */}
-              <div className="flex items-center gap-3 py-3 border-y border-black/5">
-                <div className="w-10 h-10 rounded-xl bg-[#8c591a]/10 border border-[#8c591a]/20 flex items-center justify-center shrink-0">
-                  <Award className="w-5 h-5 text-[#8c591a]" />
+              {/* LIVRABLES ROW */}
+              {formation.certification && (
+                <div className="flex items-center gap-3 py-3 border-y border-black/5">
+                  <div className="w-10 h-10 rounded-xl bg-[#8c591a]/10 border border-[#8c591a]/20 flex items-center justify-center shrink-0">
+                    <Award className="w-5 h-5 text-[#8c591a]" />
+                  </div>
+                  <div>
+                    <span className="block text-[#100906] font-bold text-sm sm:text-base">
+                      {formation.certification}
+                    </span>
+                    <span className="text-xs text-[#666] font-normal block">
+                      Livrables compris dans la prestation
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <span className="block text-[#100906] font-bold text-sm sm:text-base">
-                    {formation.certification || "Certification Professionnelle NFL Courtier"}
-                  </span>
-                  <span className="text-xs text-[#666] font-normal block">
-                    Attestation de compétences et validation des acquis reconnue
-                  </span>
-                </div>
-              </div>
+              )}
 
               {/* SECTION À PROPOS */}
               <div className="space-y-3">
@@ -290,19 +293,43 @@ const FormationDetail = () => {
                       .split("\n").filter(Boolean).map((para, idx) => (
                         <p key={idx}>{para.trim()}</p>
                       ))
-                  ) : (
-                    <p className="italic text-[#888]">
-                      Cette formation de haut niveau est conçue pour outiller les professionnels et dirigeants avec des méthodes concrètes et directement applicables.
-                    </p>
-                  )}
+                  ) : null}
                 </div>
               </div>
+
+              {/* À L'ISSUE DU PARCOURS (objectifs, "Titre : détail") */}
+              {outcomes.length > 0 && (
+                <div className="space-y-4 pt-4 border-t border-black/5">
+                  <h2 className="text-xl sm:text-2xl font-extrabold text-[#100906]">
+                    {isConsulting ? "Ce que l'audit établit" : "À l'issue du parcours"}
+                  </h2>
+                  <div className="space-y-3">
+                    {outcomes.map((point, idx) => {
+                      const [head, ...rest] = point.split(" : ");
+                      return (
+                        <div key={idx} className="flex items-start gap-3">
+                          <CheckCircle2 className="w-5 h-5 text-[#8c591a] shrink-0 mt-0.5" />
+                          <p className="text-sm text-[#444] leading-relaxed">
+                            {rest.length > 0 ? (
+                              <>
+                                <strong className="text-[#100906]">{head}</strong> — {rest.join(" : ")}
+                              </>
+                            ) : (
+                              point
+                            )}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* PROGRAMME DÉTAILLÉ DE LA FORMATION */}
               {program.length > 0 && (
                 <div className="space-y-4 pt-4 border-t border-black/5">
                   <h2 className="text-xl sm:text-2xl font-extrabold text-[#100906]">
-                    Programme de la formation
+                    {isConsulting ? "Déroulé de l'audit" : "Programme de la formation"}
                   </h2>
                   <div className="space-y-3">
                     {program.map((p: any, idx: number) => (
@@ -323,9 +350,10 @@ const FormationDetail = () => {
               )}
 
               {/* CE QUE VOTRE INSCRIPTION COMPREND */}
+              {formationIncludes.length > 0 && (
               <div className="space-y-4 pt-4 border-t border-black/5">
                 <h2 className="text-xl sm:text-2xl font-extrabold text-[#100906]">
-                  Votre inscription comprend
+                  {isConsulting ? "La prestation comprend" : "Votre inscription comprend"}
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {formationIncludes.map((item, idx) => (
@@ -336,6 +364,7 @@ const FormationDetail = () => {
                   ))}
                 </div>
               </div>
+              )}
 
               {/* GALERIE PHOTOS (SI DISPONIBLE) */}
               {gallery.length > 0 && (
@@ -372,17 +401,20 @@ const FormationDetail = () => {
 
                 <div className="space-y-1 relative z-10">
                   <span className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#d4af37] block">
-                    Formulaire d'Inscription
+                    {isConsulting ? "Demande d'audit" : "Formulaire d'Inscription"}
                   </span>
                   <h3 className="text-2xl font-extrabold text-white">
-                    Réservez votre place
+                    {isConsulting ? "Parlons de votre situation" : "Réservez votre place"}
                   </h3>
                   <p className="text-xs text-white/70">
-                    Remplissez vos informations pour réserver votre place et recevoir la documentation complète.
+                    {isConsulting
+                      ? "Laissez vos coordonnées : nous revenons vers vous pour cadrer le périmètre de l'audit."
+                      : "Remplissez vos informations pour réserver votre place et recevoir la documentation complète."}
                   </p>
                 </div>
 
-                {/* SÉLECTEUR DE FORMULE */}
+                {/* SÉLECTEUR DE FORMULE (pas pour un audit : toujours une organisation) */}
+                {!isConsulting && (
                 <div className="grid grid-cols-2 gap-2 p-1 bg-black/40 border border-white/10 rounded-xl relative z-10">
                   <button
                     type="button"
@@ -407,6 +439,7 @@ const FormationDetail = () => {
                     Entreprise / Groupe
                   </button>
                 </div>
+                )}
 
                 {/* FORMULAIRE DES CHAMPS */}
                 <form onSubmit={handleBooking} className="space-y-4 relative z-10">
@@ -425,37 +458,55 @@ const FormationDetail = () => {
                     />
                   </div>
 
+                  {needsCompany && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-white/80 block">
+                        Entreprise / organisation
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={company}
+                        onChange={(e) => setCompany(e.target.value)}
+                        placeholder="Ex: Société ABC"
+                        className="w-full bg-black/40 border border-white/10 text-sm text-white px-4 py-3 rounded-xl placeholder:text-white/30 focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all"
+                      />
+                    </div>
+                  )}
+
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-white/80 block">
-                      Adresse Email professionnelle
+                      {needsCompany ? "Adresse email professionnelle" : "Adresse email"}
                     </label>
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="jean.dupont@entreprise.com"
+                      placeholder={needsCompany ? "jean.dupont@entreprise.com" : "jean.dupont@example.com"}
                       className="w-full bg-black/40 border border-white/10 text-sm text-white px-4 py-3 rounded-xl placeholder:text-white/30 focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all"
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-white/80 block">
-                        Nombre de participants
-                      </label>
-                      <select
-                        value={nbPlaces}
-                        onChange={(e) => setNbPlaces(e.target.value)}
-                        className="w-full bg-black/40 border border-white/10 text-sm text-white px-3 py-3 rounded-xl focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all"
-                      >
-                        <option value="1 Place" className="bg-[#100906]">1 Participant</option>
-                        <option value="2 Places" className="bg-[#100906]">2 Participants</option>
-                        <option value="3 Places" className="bg-[#100906]">3 Participants</option>
-                        <option value="5 Places" className="bg-[#100906]">5 Participants (Équipe)</option>
-                        <option value="Session sur-mesure (+10)" className="bg-[#100906]">Session sur-mesure (+10)</option>
-                      </select>
-                    </div>
+                  <div className={`grid gap-3 ${isGroup ? "grid-cols-2" : "grid-cols-1"}`}>
+                    {isGroup && (
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-white/80 block">
+                          Nombre de participants
+                        </label>
+                        <select
+                          value={groupSize}
+                          onChange={(e) => setGroupSize(e.target.value)}
+                          className="w-full bg-black/40 border border-white/10 text-sm text-white px-3 py-3 rounded-xl focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all"
+                        >
+                          {/* Groupes jusqu'à 20 participants (catalogue) ; au-delà, plusieurs sessions. */}
+                          <option value="2 à 5 participants" className="bg-[#100906]">2 à 5 participants</option>
+                          <option value="6 à 10 participants" className="bg-[#100906]">6 à 10 participants</option>
+                          <option value="11 à 20 participants" className="bg-[#100906]">11 à 20 participants</option>
+                          <option value="Plus de 20 participants (plusieurs sessions)" className="bg-[#100906]">Plus de 20 (plusieurs sessions)</option>
+                        </select>
+                      </div>
+                    )}
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-white/80 block">
@@ -482,13 +533,11 @@ const FormationDetail = () => {
                     <div>
                       <span className="text-[10px] uppercase font-bold text-white/50 block">Montant</span>
                       <span className="text-xs text-white/70">
-                        {selectedFormule === "individuel" ? "Tarif individuel" : "Formule Entreprise"}
+                        {isConsulting ? "Prestation de conseil" : isGroup ? "Formule Entreprise / Groupe" : "Tarif individuel"}
                       </span>
                     </div>
                     <span className="text-lg font-extrabold text-[#d4af37]">
-                      {selectedFormule === "individuel"
-                        ? (formationPrice > 0 ? `${formationPrice.toLocaleString()} FCFA` : "Sur devis")
-                        : (corporatePrice > 0 ? `${corporatePrice.toLocaleString()} FCFA` : "Sur devis")}
+                      {!needsCompany && formationPrice > 0 ? `${formationPrice.toLocaleString()} FCFA` : "Sur devis"}
                     </span>
                   </div>
 
@@ -501,7 +550,7 @@ const FormationDetail = () => {
                       "Confirmation..."
                     ) : (
                       <>
-                        <span>Confirmer mon inscription</span>
+                        <span>{isConsulting ? "Envoyer ma demande" : "Confirmer mon inscription"}</span>
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </>
                     )}
@@ -509,7 +558,7 @@ const FormationDetail = () => {
 
                   <div className="flex items-center justify-center gap-2 pt-1 text-white/40 text-[11px] font-medium">
                     <ShieldCheck className="w-4 h-4 text-[#d4af37]" />
-                    <span>Accompagnement &amp; validation directe NFL Courtier</span>
+                    <span>Validation directe avec le Cabinet NFL</span>
                   </div>
 
                 </form>

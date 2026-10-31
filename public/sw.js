@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nfl-ga-pwa-v2';
+const CACHE_NAME = 'nfl-ga-pwa-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -28,7 +28,7 @@ self.addEventListener('push', (event) => {
       icon: '/favicon.jpg',
       badge: '/favicon.jpg',
       tag: payload.tag,
-      data: { url: payload.url || '/admin' },
+      data: { url: payload.url || '/espace-nfladmin' },
     })
   );
 });
@@ -36,7 +36,7 @@ self.addEventListener('push', (event) => {
 // Clic sur la notification : ouvre (ou refocus) l'onglet admin sur la bonne page.
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || '/admin';
+  const targetUrl = event.notification.data?.url || '/espace-nfladmin';
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
@@ -105,7 +105,7 @@ self.addEventListener('fetch', (event) => {
             return cachedResponse;
           }
           if (event.request.headers.get('accept')?.includes('text/html')) {
-            // Toute route SPA (ex: /admin) retombe sur l'index caché.
+            // Toute route SPA (ex: /espace-nfladmin) retombe sur l'index caché.
             return caches.match('/').then((indexResponse) => {
               if (indexResponse) return indexResponse;
               // Rien en cache non plus : jamais renvoyer `undefined` à

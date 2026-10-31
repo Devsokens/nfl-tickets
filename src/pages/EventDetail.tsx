@@ -75,15 +75,18 @@ const EventDetail = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [nbPlaces, setNbPlaces] = useState("1 Place");
+  const [company, setCompany] = useState("");
+  // Individuel = 1 place ; Corporate = une table de 8 places au nom d'une entreprise.
   const [selectedFormule, setSelectedFormule] = useState<"individuel" | "corporate">("individuel");
+  const isCorporate = selectedFormule === "corporate";
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const eventTitle = event?.title || "Événement NFL Courtier & Service";
   const eventLocation = event?.location || "Libreville, Gabon";
   const eventImage = event?.image_url || event?.image || nflImg1;
   const eventPrice = event?.price || 0;
-  const corporatePrice = eventPrice > 0 ? eventPrice * 8 : 100000;
+  // Table de 8 au tarif unitaire ; sans tarif renseigné, "Sur devis" (plus de montant inventé).
+  const corporatePrice = eventPrice * 8;
   const isPast = event?.date ? new Date(event.date) < new Date(new Date().setHours(0, 0, 0, 0)) : false;
 
   const DEFAULT_INCLUDES = [
@@ -97,7 +100,10 @@ const EventDetail = () => {
 
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !email || !phone) {
+    // Inscriptions closes une fois l'événement passé (le formulaire n'est alors
+    // plus affiché, garde-fou supplémentaire).
+    if (isPast) return;
+    if (!fullName || !email || !phone || (isCorporate && !company.trim())) {
       toast({
         variant: "destructive",
         title: "Champs requis",
@@ -123,17 +129,16 @@ const EventDetail = () => {
         description: "Redirection vers WhatsApp pour finaliser votre ticket...",
       });
 
-      const priceStr = selectedFormule === "individuel"
-        ? `${eventPrice.toLocaleString()} FCFA`
-        : `${corporatePrice.toLocaleString()} FCFA`;
-      const message = `Bonjour NFL Courtier & Service,\n\n` +
+      const total = isCorporate ? corporatePrice : eventPrice;
+      const priceStr = total > 0 ? `${total.toLocaleString()} FCFA` : (isCorporate ? "sur devis" : "gratuit");
+      const message = `Bonjour Cabinet NFL,\n\n` +
                       `Je souhaite réserver pour l'événement : *${eventTitle}*.\n\n` +
                       `*Détails de la réservation :*\n` +
                       `- *Nom complet* : ${fullName}\n` +
+                      (isCorporate ? `- *Entreprise* : ${company.trim()}\n` : "") +
                       `- *Email* : ${email}\n` +
-                      `- *Nombre de places* : ${nbPlaces}\n` +
                       `- *Téléphone WhatsApp* : ${phone}\n` +
-                      `- *Formule choisie* : ${selectedFormule === "individuel" ? "Tarif individuel" : "Table Corporate (8 pers.)"} (${priceStr})\n\n` +
+                      `- *Formule choisie* : ${isCorporate ? "Table Corporate (8 places)" : "Individuel (1 place)"} (${priceStr})\n\n` +
                       `Merci de valider ma réservation.`;
 
       const whatsappNumber = (event?.whatsapp_number || siteSettings?.whatsapp_number || "24166692338").replace(/[^\d]/g, "");
@@ -218,13 +223,23 @@ const EventDetail = () => {
                 </div>
               )}
 
-              <button
-                onClick={() => document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth" })}
-                className="w-full bg-gradient-to-r from-[#d4af37] via-[#e3bd51] to-[#d4af37] hover:opacity-95 text-black font-extrabold py-3 px-5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-wider group"
-              >
-                <span>S'inscrire maintenant</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
+              {isPast ? (
+                <Link
+                  to="/events"
+                  className="w-full border border-white/30 hover:border-white text-white font-bold py-3 px-5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-wider group"
+                >
+                  <span>Voir nos prochains événements</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              ) : (
+                <button
+                  onClick={() => document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth" })}
+                  className="w-full bg-gradient-to-r from-[#d4af37] via-[#e3bd51] to-[#d4af37] hover:opacity-95 text-black font-extrabold py-3 px-5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-wider group"
+                >
+                  <span>S'inscrire maintenant</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </button>
+              )}
 
             </div>
           </div>
@@ -288,10 +303,10 @@ const EventDetail = () => {
                 </div>
                 <div>
                   <span className="block text-[#100906] font-bold text-sm sm:text-base">
-                    {event?.capacity ? `${event.capacity} places disponibles` : "35 personnes inscrites"}
+                    {isPast ? "Inscriptions closes" : event?.capacity ? `${event.capacity} places disponibles` : "35 personnes inscrites"}
                   </span>
                   <span className="text-xs text-[#666] font-normal block">
-                    Rejoignez les participants à cet événement d'exception
+                    {isPast ? "Cet événement a eu lieu. Merci à tous les participants !" : "Rejoignez les participants à cet événement d'exception"}
                   </span>
                 </div>
               </div>
@@ -389,9 +404,41 @@ const EventDetail = () => {
             {/* DROITE (DESKTOP STICKY): FORMULAIRE DE RÉSERVATION / INSCRIPTION */}
             <div id="booking-form" className="lg:col-span-5 lg:sticky lg:top-28 scroll-mt-24">
               <div className="bg-gradient-to-br from-[#100906] via-[#1f120c] to-[#3a2012] text-white p-6 sm:p-8 rounded-[2.5rem] shadow-2xl border border-white/10 space-y-6 relative overflow-hidden">
-                
+
                 <div className="absolute top-0 right-0 w-48 h-48 bg-[#d4af37]/10 rounded-full blur-3xl pointer-events-none" />
 
+                {isPast ? (
+                  // Événement terminé : plus de formulaire, on oriente vers l'agenda ou le contact.
+                  <div className="space-y-5 relative z-10">
+                    <div className="space-y-1">
+                      <span className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#d4af37] block">
+                        Événement terminé
+                      </span>
+                      <h3 className="text-2xl font-extrabold text-white">
+                        Inscriptions closes
+                      </h3>
+                      <p className="text-xs text-white/70">
+                        Cet événement a déjà eu lieu. Retrouvez nos prochaines dates dans l'agenda, ou contactez-nous pour organiser une session pour vos équipes.
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-2.5">
+                      <Link
+                        to="/events"
+                        className="w-full bg-gradient-to-r from-[#d4af37] via-[#e3bd51] to-[#d4af37] hover:opacity-95 text-black font-extrabold text-xs sm:text-sm uppercase tracking-wider py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group"
+                      >
+                        <span>Voir nos prochains événements</span>
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </Link>
+                      <Link
+                        to="/contact"
+                        className="w-full border border-white/30 hover:border-white text-white font-bold text-xs sm:text-sm uppercase tracking-wider py-3.5 px-6 rounded-xl transition-colors flex items-center justify-center"
+                      >
+                        Nous contacter
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                <>
                 <div className="space-y-1 relative z-10">
                   <span className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#d4af37] block">
                     Formulaire d'Inscription
@@ -426,7 +473,7 @@ const EventDetail = () => {
                         : "text-white/70 hover:text-white"
                     }`}
                   >
-                    Corporate (8 pers.)
+                    Corporate (table de 8)
                   </button>
                 </div>
 
@@ -447,41 +494,40 @@ const EventDetail = () => {
                     />
                   </div>
 
+                  {isCorporate && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-white/80 block">
+                        Entreprise
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={company}
+                        onChange={(e) => setCompany(e.target.value)}
+                        placeholder="Ex: Société ABC"
+                        className="w-full bg-black/40 border border-white/10 text-sm text-white px-4 py-3 rounded-xl placeholder:text-white/30 focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all"
+                      />
+                    </div>
+                  )}
+
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-white/80 block">
-                      Adresse Email
+                      {isCorporate ? "Adresse email professionnelle" : "Adresse email"}
                     </label>
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="jean.dupont@example.com"
+                      placeholder={isCorporate ? "jean.dupont@entreprise.com" : "jean.dupont@example.com"}
                       className="w-full bg-black/40 border border-white/10 text-sm text-white px-4 py-3 rounded-xl placeholder:text-white/30 focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all"
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3">
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-white/80 block">
-                        Nombre de places
-                      </label>
-                      <select
-                        value={nbPlaces}
-                        onChange={(e) => setNbPlaces(e.target.value)}
-                        className="w-full bg-black/40 border border-white/10 text-sm text-white px-3 py-3 rounded-xl focus:outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition-all"
-                      >
-                        <option value="1 Place" className="bg-[#100906]">1 Place</option>
-                        <option value="2 Places" className="bg-[#100906]">2 Places</option>
-                        <option value="3 Places" className="bg-[#100906]">3 Places</option>
-                        <option value="4 Places" className="bg-[#100906]">4 Places</option>
-                        <option value="Table Corporate (8 places)" className="bg-[#100906]">Table Corporate (8 pers.)</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-white/80 block">
-                        Téléphone
+                        Téléphone WhatsApp
                       </label>
                       <div className="relative flex items-center">
                         <div className="absolute left-3 flex items-center gap-1 text-[11px] text-white/60 font-semibold pointer-events-none">
@@ -504,13 +550,13 @@ const EventDetail = () => {
                     <div>
                       <span className="text-[10px] uppercase font-bold text-white/50 block">Montant Total</span>
                       <span className="text-xs text-white/70">
-                        {selectedFormule === "individuel" ? "Tarif unitaire" : "Formule Entreprise"}
+                        {isCorporate ? "Table de 8 places" : "1 place"}
                       </span>
                     </div>
                     <span className="text-lg font-extrabold text-[#d4af37]">
-                      {selectedFormule === "individuel"
-                        ? (eventPrice > 0 ? `${eventPrice.toLocaleString()} FCFA` : "Gratuit")
-                        : `${corporatePrice.toLocaleString()} FCFA`}
+                      {isCorporate
+                        ? (corporatePrice > 0 ? `${corporatePrice.toLocaleString()} FCFA` : "Sur devis")
+                        : (eventPrice > 0 ? `${eventPrice.toLocaleString()} FCFA` : "Gratuit")}
                     </span>
                   </div>
 
@@ -531,10 +577,12 @@ const EventDetail = () => {
 
                   <div className="flex items-center justify-center gap-2 pt-1 text-white/40 text-[11px] font-medium">
                     <ShieldCheck className="w-4 h-4 text-[#d4af37]" />
-                    <span>Validation directe avec NFL Courtier &amp; Service</span>
+                    <span>Validation directe avec le Cabinet NFL</span>
                   </div>
 
                 </form>
+                </>
+                )}
 
               </div>
             </div>

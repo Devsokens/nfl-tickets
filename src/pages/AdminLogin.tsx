@@ -8,7 +8,9 @@ import { Link } from "react-router-dom";
 
 import authBg from "@/assets/nfl img3.jpeg";
 import { AuthAPI } from "@/lib/api";
+import { ADMIN_PATH } from "@/lib/adminPaths";
 import { useToast } from "@/hooks/use-toast";
+import { Helmet } from "react-helmet-async";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -30,7 +32,7 @@ const AdminLogin = () => {
           title: "Connexion réussie",
           description: "Bienvenue dans l'espace d'administration.",
         });
-        navigate("/admin");
+        navigate(ADMIN_PATH);
       }
     } catch (err: any) {
       toast({
@@ -45,6 +47,10 @@ const AdminLogin = () => {
 
   return (
     <div className="min-h-screen bg-background flex overflow-hidden">
+      <Helmet>
+        <title>Connexion | Cabinet NFL</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       {/* Côté Gauche - Image */}
       <div className="hidden lg:block lg:w-1/2 relative bg-primary">
         <div className="absolute inset-0 bg-[#32140c]/40 z-10" />

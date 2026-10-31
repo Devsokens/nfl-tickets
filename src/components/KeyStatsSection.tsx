@@ -32,47 +32,45 @@ function AnimatedCounter({ value = "" }: { value?: string }) {
   const isInView = useInView(ref, { once: true, margin: "-50px" });
 
   const raw = (value ?? "").trim();
-  // Support des formats comme "9/10", "70+", "+50", "95%", "1200+"
+  // Support des formats comme "9/10", "70+", "+50", "95%", "1200+" : seul le
+  // premier nombre est animé, le reste est affiché tel quel.
   const match = raw.match(/^([^\d]*)(\d+)(.*)$/);
   const prefix = match ? match[1] : "";
   const targetNum = match ? parseInt(match[2], 10) : 0;
-  const suffix = match ? match[3] : raw;
+  const suffix = match ? match[3] : "";
 
   const [count, setCount] = useState(0);
 
+  // Dépend uniquement du nombre cible : `match` est un nouveau tableau à chaque
+  // rendu, l'avoir en dépendance relançait une animation depuis 0 à chaque image
+  // (chiffres bloqués vers 0 qui « tremblent »).
   useEffect(() => {
-    if (!isInView || !match) return;
+    if (!isInView) return;
 
     const duration = 1800; // 1.8s
     const startTime = performance.now();
+    let frame = 0;
 
     const animate = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
+      const progress = Math.min((currentTime - startTime) / duration, 1);
       const easeProgress = 1 - Math.pow(1 - progress, 3);
-      const currentCount = Math.floor(easeProgress * targetNum);
-
-      setCount(currentCount);
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        setCount(targetNum);
-      }
+      setCount(Math.round(easeProgress * targetNum));
+      if (progress < 1) frame = requestAnimationFrame(animate);
     };
 
-    requestAnimationFrame(animate);
-  }, [isInView, targetNum, match]);
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [isInView, targetNum]);
 
   if (!match) {
     return <span ref={ref}>{raw}</span>;
   }
 
   return (
-    <span ref={ref} className="inline-flex items-baseline">
+    <span ref={ref} className="inline-flex items-baseline tabular-nums">
       {prefix && <span className="text-[#8c591a] font-semibold mr-0.5">{prefix}</span>}
       <span>{count}</span>
-      <span className="text-[#8c591a] font-semibold ml-0.5">{suffix}</span>
+      {suffix && <span className="text-[#8c591a] font-semibold ml-0.5">{suffix}</span>}
     </span>
   );
 }

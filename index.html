@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NFL Courtier & Service — Billetterie et Événements au Gabon (NFL-GA)</title>
-    <meta name="description" content="NFL-GA : La plateforme officielle de NFL Courtier & Service au Gabon. Réservez vos tickets pour nos masterclass, formations et événements exclusifs à Libreville." />
-    <meta name="keywords" content="NFL, NFL-GA, NFL Gabon, Billetterie Gabon, Courtier Libreville, Formation Vente Gabon, Masterclass Gabon, Evénements Libreville" />
-    <meta name="author" content="NFL Courtier & Service" />
+    <title>Cabinet NFL — Formation, conseil et performance commerciale</title>
+    <meta name="description" content="Cabinet NFL : formations en techniques de vente, pilotage de la performance commerciale et management d'équipe, audit commercial et masterclass au Gabon, conçus et animés par Louise-Audyll Ongoum." />
+    <meta name="keywords" content="Cabinet NFL, NFL Gabon, formation commerciale Gabon, techniques de vente, performance commerciale, management d'équipe, audit commercial, masterclass Libreville" />
+    <meta name="author" content="Cabinet NFL" />
     <link rel="canonical" href="https://nfl-ga.com" />
     <link rel="icon" type="image/jpeg" href="/favicon.jpg" />
 
@@ -25,17 +25,20 @@
     <meta name="msapplication-TileColor" content="#0c0d0f" />
     <meta name="msapplication-TileImage" content="/favicon.jpg" />
 
-    <meta property="og:site_name" content="NFL Courtier & Service" />
-    <meta property="og:title" content="NFL-GA — Billetterie & Formations au Gabon" />
-    <meta property="og:description" content="Réservez vos places pour les meilleurs événements et masterclass de NFL Courtier & Service au Gabon. Simple, rapide et sécurisé." />
+    <meta property="og:site_name" content="Cabinet NFL" />
+    <meta property="og:title" content="Cabinet NFL — Formation, conseil et performance commerciale" />
+    <meta property="og:description" content="Formations en techniques de vente, pilotage de la performance commerciale, management d'équipe, audit commercial et masterclass au Gabon." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://nfl-ga.com" />
-    <meta property="og:image" content="https://nfl-ga.com/favicon.jpg" />
+    <meta property="og:image" content="https://nfl-ga.com/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Logo du Cabinet NFL" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="NFL-GA — Billetterie & Formations au Gabon" />
-    <meta name="twitter:description" content="Découvrez nos événements exclusifs et réservez votre place en un clic sur NFL-GA." />
-    <meta name="twitter:image" content="https://nfl-ga.com/favicon.jpg" />
+    <meta name="twitter:title" content="Cabinet NFL — Formation, conseil et performance commerciale" />
+    <meta name="twitter:description" content="Formations en techniques de vente, pilotage de la performance commerciale, management d'équipe, audit commercial et masterclass au Gabon." />
+    <meta name="twitter:image" content="https://nfl-ga.com/og-image.jpg" />
 
     <style>
       #nfl-splash {
@@ -101,33 +104,8 @@
       <span class="splash-text">Chargement...</span>
     </div>
     <div id="root"></div>
-    <script>
-      (function () {
-        var splash = document.getElementById('nfl-splash');
-        var hideSplash = function () {
-          if (splash) splash.classList.add('hidden');
-          setTimeout(function () { if (splash && splash.parentNode) splash.parentNode.removeChild(splash); }, 700);
-        };
-        window.addEventListener('load', function () {
-          setTimeout(hideSplash, 800);
-        });
-        setTimeout(hideSplash, 4500);
-      })();
-    </script>
+    <!-- Écran de chargement + service worker : dans un fichier, aucun script inline (CSP). -->
+    <script src="/boot.js"></script>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function () {
-          navigator.serviceWorker.register('/sw.js').then(
-            function (registration) {
-              console.log('PWA ServiceWorker actif :', registration.scope);
-            },
-            function (err) {
-              console.log('Erreur d\'enregistrement ServiceWorker PWA :', err);
-            }
-          );
-        });
-      }
-    </script>
   </body>
 </html>

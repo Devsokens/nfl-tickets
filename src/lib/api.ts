@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { ADMIN_LOGIN_PATH, ADMIN_PATH } from './adminPaths';
 
 // En mode développement, on utilise le backend local si le serveur tourne,
 // sinon on pointe vers le backend de production sur Render.
@@ -29,6 +30,8 @@ export interface Event {
   gallery?: string[];
   /** "Votre participation comprend" — liste de points inclus. */
   includes?: string[];
+  /** Post LinkedIn de l'événement, affiché dans le pop-up de résumé sur l'accueil. */
+  linkedin_url?: string | null;
 }
 
 export interface EventSpeaker {
@@ -90,8 +93,25 @@ export interface HomeContent {
   featureStrip?: { icon?: string; title?: string; subtitle?: string }[];
   /** Logos partenaires & sponsors — marquee partagé (accueil, catalogue formations). */
   partners?: { name?: string; logo_url?: string }[];
-  pillars?: { icon?: string; title?: string; description?: string; ctaText?: string; link?: string }[];
+  pillars?: {
+    icon?: string;
+    title?: string;
+    description?: string;
+    ctaText?: string;
+    link?: string;
+    /** Points clés du pilier. */
+    bullets?: string[];
+    /** Petite mention sous les points clés, cliquable vers la page Contact (ex. conditions hors site). */
+    note?: string;
+    /** PDF du pilier : si renseigné, le bouton ouvre un pop-up "Télécharger le PDF / Ouvrir la page (link)". */
+    pdfUrl?: string;
+  }[];
+  /** Badge chiffré affiché sur les photos des piliers (commun à tous les piliers). */
+  pillarsSection?: { badgeNumber?: string; badgeLabel?: string };
   eventsSection?: { eyebrow?: string; title?: string; ctaText?: string; ctaLink?: string };
+  /** En-tête de la section Événements de l'accueil (colonne de gauche du carrousel). */
+  eventsIntro?: { eyebrow?: string; title?: string; subtitle?: string };
+  faq?: { items?: { q: string; a: string }[] };
   keyStats?: {
     title?: string;
     subtitle?: string;
@@ -207,14 +227,16 @@ api.interceptors.request.use((config) => {
 });
 
 // Intercepteur de réponse : un 401 signifie token absent/invalide/expiré.
-// On nettoie la session et on renvoie vers la connexion admin, sauf si on
-// est déjà sur la page de login (évite une boucle de redirection).
+// On nettoie la session et on renvoie vers la connexion admin — uniquement
+// depuis l'espace admin (un visiteur du site public ne doit jamais être
+// envoyé sur cette page), et jamais depuis la connexion elle-même (boucle).
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error?.response?.status === 401 && !window.location.pathname.startsWith('/admin/login')) {
+    const path = window.location.pathname;
+    if (error?.response?.status === 401 && path.startsWith(ADMIN_PATH) && !path.startsWith(ADMIN_LOGIN_PATH)) {
       localStorage.removeItem('nfl_token');
-      window.location.href = '/admin/login';
+      window.location.href = ADMIN_LOGIN_PATH;
     }
     return Promise.reject(error);
   }
@@ -240,14 +262,8 @@ export const EventsAPI = {
           return JSON.parse(cached);
         } catch (_) {}
       }
-      // If cache is empty, we fall back to mock data
-      const { mockEvents } = await import('./mockData');
-      return mockEvents.map(e => ({
-        ...e,
-        image_url: e.image,
-        whatsapp_number: e.whatsappNumber,
-        status: 'publié' as const
-      }));
+      // Jamais d'événements fictifs sur le site public : liste vide plutôt.
+      return [];
     }
   },
   getOne: async (id: string): Promise<Event> => {
@@ -536,6 +552,11 @@ export const SiteSettingsAPI = {
       return {};
     }
   },
+  /** Version complète, réglages internes compris (notifications, réservations) : admin uniquement. */
+  getAdmin: async (): Promise<SiteSettings> => {
+    const res = await api.get('/site-settings/admin');
+    return res.data;
+  },
   update: async (data: Partial<SiteSettings>): Promise<SiteSettings> => {
     const { id, created_at, updated_at, ...cleanData } = data as any;
     const res = await api.patch('/site-settings', cleanData);
@@ -601,6 +622,17 @@ export const TestimonialsAPI = {
   },
   submit: async (data: { ticket_id: string; token: string; quote: string; author_role?: string; author_company?: string; avatar_url?: string }) => {
     const res = await api.post('/testimonials/submit', data);
+    return res.data;
+  },
+  /** Photo du témoin depuis le lien privé (la route d'upload générale est réservée à l'admin). */
+  uploadAvatar: async (ticketId: string, token: string, file: File): Promise<{ imageUrl: string }> => {
+    const formData = new FormData();
+    formData.append('ticket_id', ticketId);
+    formData.append('token', token);
+    formData.append('file', file);
+    const res = await api.post('/testimonials/avatar', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return res.data;
   },
 };

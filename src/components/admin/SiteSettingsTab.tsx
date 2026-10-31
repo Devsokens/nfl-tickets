@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { SiteSettingsAPI, EmailTemplatesAPI, type SiteSettings, type EmailTemplate } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, Save, Search, ScrollText, Info, Mail, Bell, TicketX, Phone } from "lucide-react";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 
 // Toolbar volontairement réduite (pas de titres/couleurs) : un email
 // automatique reste un message court, pas une page à mettre en page.
@@ -160,11 +160,13 @@ const EmailTemplatesSection = () => {
  * directement depuis l'onglet "Éditeur visuel".
  */
 const SiteSettingsTab = () => {
+  // Version admin : contient les réglages internes absents de la version publique.
   const { data, isLoading } = useQuery<SiteSettings>({
-    queryKey: ["siteSettings"],
-    queryFn: SiteSettingsAPI.get,
+    queryKey: ["siteSettingsAdmin"],
+    queryFn: SiteSettingsAPI.getAdmin,
   });
 
+  const queryClient = useQueryClient();
   const [form, setForm] = useState<SiteSettings>(emptySettings);
   const [isSaving, setIsSaving] = useState(false);
   const [activeSection, setActiveSection] = useState<string>(SECTIONS[0].id);
@@ -209,7 +211,11 @@ const SiteSettingsTab = () => {
     setIsSaving(true);
     try {
       const { id, created_at, updated_at, ...cleanData } = form as any;
-      await SiteSettingsAPI.update(cleanData);
+      const updated = await SiteSettingsAPI.update(cleanData);
+      // Sans ça, le site (footer, contact...) garde l'ancienne version en cache
+      // et donne l'impression que l'enregistrement n'a pas fonctionné.
+      queryClient.setQueryData(["siteSettingsAdmin"], updated);
+      queryClient.invalidateQueries({ queryKey: ["siteSettings"] });
       toast.success("Réglages enregistrés !");
     } catch (err: any) {
       toast.error("Erreur : " + (err.response?.data?.message || err.message));
@@ -269,7 +275,6 @@ const SiteSettingsTab = () => {
           <Field label="Lien Facebook" value={form.facebook_url} onChange={set("facebook_url")} placeholder="https://facebook.com/..." />
           <Field label="Lien LinkedIn" value={form.linkedin_url} onChange={set("linkedin_url")} placeholder="https://linkedin.com/..." />
           <Field label="Lien Instagram" value={form.instagram_url} onChange={set("instagram_url")} placeholder="https://instagram.com/..." />
-          <Field label="Lien Twitter / X" value={form.twitter_url} onChange={set("twitter_url")} placeholder="https://x.com/..." />
           <Field label="Lien YouTube" value={form.youtube_url} onChange={set("youtube_url")} placeholder="https://youtube.com/..." />
         </Section>
 
@@ -299,8 +304,8 @@ const SiteSettingsTab = () => {
         </Section>
 
         <Section id="settings-legal" icon={<ScrollText className="h-5 w-5 text-gold" />} title="Mentions légales">
-          <Field label="Lien Mentions légales" value={form.legal_mentions_url} onChange={set("legal_mentions_url")} placeholder="https://... ou #" />
-          <Field label="Lien Politique de confidentialité" value={form.privacy_policy_url} onChange={set("privacy_policy_url")} placeholder="https://... ou #" />
+          <Field label="Lien Mentions légales" value={form.legal_mentions_url} onChange={set("legal_mentions_url")} placeholder="Vide = page /mentions-legales du site" />
+          <Field label="Lien Politique de confidentialité" value={form.privacy_policy_url} onChange={set("privacy_policy_url")} placeholder="Vide = section Confidentialité des mentions légales" />
         </Section>
 
         <div id="settings-emails" className="space-y-5 scroll-mt-6">

@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronUp, Facebook, Instagram, Linkedin, Twitter, Youtube, ArrowRight, ArrowUpRight } from "lucide-react";
+import { ChevronUp, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiteSettingsAPI, NewsletterAPI, type SiteSettings } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { useIsEditMode } from "@/lib/EditModeContext";
 import { EditableText } from "@/components/admin/editable/EditableText";
+import { getLegalLinks, getSocialLinks } from "@/lib/socialLinks";
+import WhatsAppButton from "@/components/WhatsAppButton";
 
 const DEFAULT_SETTINGS: SiteSettings = {
   site_name: "NFL Courtier & Service",
@@ -40,6 +42,8 @@ const Footer = () => {
   const [override, setOverride] = useState<SiteSettings | null>(null);
   useEffect(() => setOverride(null), [settingsRaw]);
   const settings = { ...DEFAULT_SETTINGS, ...settingsRaw, ...override };
+  const socialLinks = getSocialLinks(settings);
+  const legalLinks = getLegalLinks(settings);
 
   const saveSettingsField = (field: keyof SiteSettings) => async (value: string) => {
     setOverride((prev) => ({ ...prev, [field]: value }));
@@ -118,15 +122,13 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <a href="/#formations" onClick={isEditMode ? (e) => e.preventDefault() : undefined} className="inline-flex items-center gap-1 hover:text-[#e3bd51] transition-colors">
-                  <span>Formations</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-[#d4af37]/70" />
+                <a href="/#formations" onClick={isEditMode ? (e) => e.preventDefault() : undefined} className="hover:text-[#e3bd51] transition-colors">
+                  Nos offres
                 </a>
               </li>
               <li>
-                <a href="/#evenements" onClick={isEditMode ? (e) => e.preventDefault() : undefined} className="inline-flex items-center gap-1 hover:text-[#e3bd51] transition-colors">
-                  <span>Événements</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-[#d4af37]/70" />
+                <a href="/#evenements" onClick={isEditMode ? (e) => e.preventDefault() : undefined} className="hover:text-[#e3bd51] transition-colors">
+                  Événements
                 </a>
               </li>
               <li>
@@ -135,9 +137,13 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <a href={settings.privacy_policy_url || "#"} onClick={isEditMode ? (e) => e.preventDefault() : undefined} className="inline-flex items-center gap-1 hover:text-[#e3bd51] transition-colors">
-                  <span>Confidentialité</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-[#d4af37]/70" />
+                <a href={legalLinks.legal} onClick={isEditMode ? (e) => e.preventDefault() : undefined} className="hover:text-[#e3bd51] transition-colors">
+                  Mentions légales
+                </a>
+              </li>
+              <li>
+                <a href={legalLinks.privacy} onClick={isEditMode ? (e) => e.preventDefault() : undefined} className="hover:text-[#e3bd51] transition-colors">
+                  Confidentialité
                 </a>
               </li>
             </ul>
@@ -182,34 +188,29 @@ const Footer = () => {
           
           <div className="flex items-center gap-4">
             <span className="text-white/40"><EditableText value={settings.footer_tagline || ""} onSave={saveSettingsField("footer_tagline")} label="Phrase du bas" /></span>
-            <div className="flex items-center gap-2">
-              <a href={settings.facebook_url || "#"} target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-[#e3bd51] transition-colors">
-                <Facebook className="w-3.5 h-3.5" />
-              </a>
-              <a href={settings.linkedin_url || "#"} target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-[#e3bd51] transition-colors">
-                <Linkedin className="w-3.5 h-3.5" />
-              </a>
-              <a href={settings.twitter_url || "#"} target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-[#e3bd51] transition-colors">
-                <Twitter className="w-3.5 h-3.5" />
-              </a>
-              <a href={settings.instagram_url || "#"} target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-[#e3bd51] transition-colors">
-                <Instagram className="w-3.5 h-3.5" />
-              </a>
-              <a href={settings.youtube_url || "#"} target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-[#e3bd51] transition-colors">
-                <Youtube className="w-3.5 h-3.5" />
-              </a>
-            </div>
+            {socialLinks.length > 0 && (
+              <div className="flex items-center gap-2">
+                {socialLinks.map(({ key, label, url, Icon }) => (
+                  <a key={key} href={url} target="_blank" rel="noopener noreferrer" aria-label={label} className="text-white/50 hover:text-[#e3bd51] transition-colors">
+                    <Icon className="w-3.5 h-3.5" />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
       </div>
 
-      {/* BOUTON RETOUR HAUT DE PAGE */}
+      {/* BOUTON WHATSAPP FLOTTANT (en bas à droite, toujours visible) */}
+      {!isEditMode && <WhatsAppButton number={settings.whatsapp_number || settings.phone} />}
+
+      {/* BOUTON RETOUR HAUT DE PAGE (au-dessus du bouton WhatsApp) */}
       {showBackToTop && (
         <Button
           variant="gold"
           size="icon"
-          className="fixed bottom-6 right-6 z-[60] rounded-full w-10 h-10 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300 bg-[#8c591a] hover:bg-[#100906] text-white border border-white/20"
+          className="fixed bottom-[5.5rem] right-7 z-[60] rounded-full w-10 h-10 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-300 bg-[#8c591a] hover:bg-[#100906] text-white border border-white/20"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         >
           <ChevronUp className="h-5 w-5" />

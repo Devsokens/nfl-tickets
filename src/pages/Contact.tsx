@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Helmet } from "react-helmet-async";
-import { MapPin, Phone, Mail, ArrowUpRight, ArrowRight, ArrowLeft, Info, Facebook, Linkedin, Youtube, Instagram } from "lucide-react";
+import { MapPin, Phone, Mail, ArrowRight, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { SiteSettingsAPI, ContactAPI, type SiteSettings } from "@/lib/api";
+import { getSocialLinks } from "@/lib/socialLinks";
 import { useIsEditMode } from "@/lib/EditModeContext";
 import { EditableText } from "@/components/admin/editable/EditableText";
 
@@ -25,6 +26,8 @@ const Contact = () => {
     queryKey: ["siteSettings"],
     queryFn: SiteSettingsAPI.get,
   });
+
+  const socialLinks = getSocialLinks(siteSettings);
 
   const saveSettingsField = (field: keyof SiteSettings) => async (value: string) => {
     const updated = await SiteSettingsAPI.update({ [field]: value });
@@ -78,8 +81,8 @@ const Contact = () => {
   return (
     <div className="min-h-screen bg-[#fdfbf7] flex flex-col text-[#100906] relative overflow-hidden">
       <Helmet>
-        <title>Contactez-nous | NFL Courtier & Service</title>
-        <meta name="description" content="Contactez l'équipe de NFL Courtier & Service pour vos accompagnements, formations et événements d'exception." />
+        <title>Contactez-nous | Cabinet NFL</title>
+        <meta name="description" content="Contactez l'équipe du Cabinet NFL pour vos formations, masterclass, audits commerciaux et accompagnements sur mesure." />
       </Helmet>
       
       <Navbar />
@@ -199,59 +202,28 @@ const Contact = () => {
                   </span>
                 </div>
 
-                {/* SOCIAL LINKS (FOLLOW US ON) */}
-                <div className="bg-white/90 border border-black/10 rounded-xl p-2.5 sm:p-3.5 shadow-sm flex flex-col justify-center min-w-0">
-                  <span className="text-[10px] sm:text-[11px] font-bold text-ink/60 uppercase tracking-wider block mb-2">
-                    Suivez-nous
-                  </span>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <a
-                      href={siteSettings?.facebook_url || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="Facebook"
-                      className="w-7 h-7 rounded-md bg-white border border-black/10 flex items-center justify-center text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all shrink-0"
-                    >
-                      <Facebook className="w-3 h-3" />
-                    </a>
-                    <a
-                      href={siteSettings?.linkedin_url || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="LinkedIn"
-                      className="w-7 h-7 rounded-md bg-white border border-black/10 flex items-center justify-center text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all shrink-0"
-                    >
-                      <Linkedin className="w-3 h-3" />
-                    </a>
-                    <a
-                      href={siteSettings?.twitter_url || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="Twitter X"
-                      className="w-7 h-7 rounded-md bg-white border border-black/10 flex items-center justify-center font-bold text-[10px] text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all shrink-0"
-                    >
-                      X
-                    </a>
-                    <a
-                      href={siteSettings?.youtube_url || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="YouTube"
-                      className="w-7 h-7 rounded-md bg-white border border-black/10 flex items-center justify-center text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all shrink-0"
-                    >
-                      <Youtube className="w-3 h-3" />
-                    </a>
-                    <a
-                      href={siteSettings?.instagram_url || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="Instagram"
-                      className="w-7 h-7 rounded-md bg-white border border-black/10 flex items-center justify-center text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all shrink-0"
-                    >
-                      <Instagram className="w-3 h-3" />
-                    </a>
+                {/* SOCIAL LINKS (FOLLOW US ON) — seulement les réseaux renseignés dans les Paramètres */}
+                {socialLinks.length > 0 && (
+                  <div className="bg-white/90 border border-black/10 rounded-xl p-2.5 sm:p-3.5 shadow-sm flex flex-col justify-center min-w-0">
+                    <span className="text-[10px] sm:text-[11px] font-bold text-ink/60 uppercase tracking-wider block mb-2">
+                      Suivez-nous
+                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {socialLinks.map(({ key, label, url, Icon }) => (
+                        <a
+                          key={key}
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={label}
+                          className="w-7 h-7 rounded-md bg-white border border-black/10 flex items-center justify-center text-ink/70 hover:text-[#8c591a] hover:border-[#8c591a] hover:shadow-sm transition-all shrink-0"
+                        >
+                          <Icon className="w-3 h-3" />
+                        </a>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
             </div>

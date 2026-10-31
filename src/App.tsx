@@ -1,18 +1,24 @@
 import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider, dehydrate, hydrate } from "@tanstack/react-query";
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { AnalyticsAPI } from "@/lib/api";
+import { ADMIN_LOGIN_PATH, ADMIN_PATH } from "@/lib/adminPaths";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { HelmetProvider } from 'react-helmet-async';
-import { mockEvents } from "@/lib/mockData";
 
 // Lazy loading for optimized bundle size
 const Index = lazy(() => import("./pages/Index.tsx"));
 const NewsletterUnsubscribe = lazy(() => import("./pages/NewsletterUnsubscribe.tsx"));
 const Contact = lazy(() => import("./pages/Contact.tsx"));
+const MentionsLegales = lazy(() => import("./pages/MentionsLegales.tsx"));
+const Catalog = lazy(() => import("./pages/Catalog.tsx"));
+const EventDetail = lazy(() => import("./pages/EventDetail.tsx"));
+const GalleryPage = lazy(() => import("./pages/GalleryPage.tsx"));
+const CatalogueFormation = lazy(() => import("./pages/CatalogueFormation.tsx"));
+const FormationDetail = lazy(() => import("./pages/FormationDetail.tsx"));
 const TestimonialSubmission = lazy(() => import("./pages/TestimonialSubmission.tsx"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard.tsx"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin.tsx"));
@@ -44,22 +50,14 @@ const queryClient = new QueryClient({
   },
 });
 
-// Restore Query Client Cache state from localStorage or pre-populate with mock data
+// Restore Query Client Cache state from localStorage. Pas de données fictives
+// au premier passage : elles restaient affichées 5 min (staleTime) à la place
+// des vrais événements.
 try {
   const cachedState = localStorage.getItem('nfl_query_cache');
   if (cachedState) {
     const parsed = JSON.parse(cachedState);
     hydrate(queryClient, parsed);
-  } else {
-    // Pre-populate query cache with mock events so there is no loading delay on first visit
-    const formattedMocks = mockEvents.map(e => ({
-      ...e,
-      image_url: e.image,
-      whatsapp_number: e.whatsappNumber,
-      status: 'publié' as const
-    }));
-    queryClient.setQueryData(["allEvents"], formattedMocks);
-    queryClient.setQueryData(["upcomingEvents"], formattedMocks);
   }
 } catch (e) {
   console.error("Failed to restore query cache:", e);
@@ -80,7 +78,7 @@ const AnalyticsTracker = () => {
 
   useEffect(() => {
     // Ne pas traquer les visites sur le dashboard admin
-    if (!location.pathname.startsWith('/admin')) {
+    if (!location.pathname.startsWith(ADMIN_PATH)) {
       AnalyticsAPI.track(location.pathname);
     }
   }, [location.pathname]);
@@ -94,21 +92,23 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <BrowserRouter>
           <AnalyticsTracker />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<Index />} />
-              {/* Redirections one-pager vers les sections de l'accueil */}
-              <Route path="/events" element={<Navigate to="/#evenements" replace />} />
-              <Route path="/event/*" element={<Navigate to="/" replace />} />
-              <Route path="/catalogue-formations" element={<Navigate to="/#formations" replace />} />
-              <Route path="/formation/*" element={<Navigate to="/" replace />} />
+              <Route path="/events" element={<Catalog />} />
+              <Route path="/event/:id" element={<EventDetail />} />
+              <Route path="/event/:id/galerie" element={<GalleryPage type="event" />} />
+              <Route path="/catalogue-formations" element={<CatalogueFormation />} />
+              <Route path="/formation/:id" element={<FormationDetail />} />
+              <Route path="/formation/:id/galerie" element={<GalleryPage type="formation" />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/mentions-legales" element={<MentionsLegales />} />
               <Route path="/temoignage/:ticketId" element={<TestimonialSubmission />} />
               <Route path="/newsletter/desabonnement" element={<NewsletterUnsubscribe />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path={ADMIN_PATH} element={<AdminDashboard />} />
+              <Route path={ADMIN_LOGIN_PATH} element={<AdminLogin />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

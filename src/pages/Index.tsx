@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, type Variants } from "framer-motion";
-import { ArrowRight, ShieldCheck, CheckCircle2, Info, X, Award, GraduationCap, Calendar, Briefcase, TrendingUp, Users, Crown } from "lucide-react";
+import { ArrowRight, ShieldCheck, CheckCircle2, Info, X, GraduationCap, Calendar, TrendingUp, Users, Crown } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import HighlightEventCard from "@/components/HighlightEventCard";
-import { Button } from "@/components/ui/button";
 import {
   Accordion,
   AccordionContent,
@@ -27,18 +25,16 @@ import nflTourisme from "@/assets/nfl-tourisme.jpg";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { EventsAPI, HomeContentAPI, SiteSettingsAPI, TestimonialsAPI, type Event, type HomeContent, type SiteSettings, type Testimonial } from "@/lib/api";
-import { getIcon } from "@/lib/iconMap";
 import { useIsEditMode } from "@/lib/EditModeContext";
 import { EditableText } from "@/components/admin/editable/EditableText";
 import { EditableImage } from "@/components/admin/editable/EditableImage";
-import { EditableIcon } from "@/components/admin/editable/EditableIcon";
 import { RemoveItemButton, AddCardButton, AddInlineButton } from "@/components/admin/editable/EditableListControls";
-import { HeroImagesManager } from "@/components/admin/editable/HeroImagesManager";
 import GrevyHeroSection from "@/components/GrevyHeroSection";
 import ExpertisePillarsSection from "@/components/ExpertisePillarsSection";
 import KeyStatsSection from "@/components/KeyStatsSection";
 import EventsCarousel from "@/components/EventsCarousel";
 import { InfiniteSlider } from "@/components/core/infinite-slider";
+import { CATALOGUE_PDF_URL } from "@/lib/catalogue";
 
 const HERO_IMAGES = [heroImage1, nflImg1, nflImg5, nflImg2];
 
@@ -70,11 +66,40 @@ const DEFAULT_HOME_CONTENT: HomeContent = {
     { name: "TotalEnergies", logo_url: "" },
     { name: "Gabon Telecom", logo_url: "" },
   ],
+  // Les points clés / mentions servent aussi de repli, par position, aux
+  // piliers enregistrés avant que ces champs soient éditables.
   pillars: [
-    { icon: "Building2", title: "Séminaires", description: "Accompagnement stratégique et organisation de séminaires sur mesure avec rigueur.", ctaText: "Nos événements", link: "#evenements" },
-    { icon: "Users", title: "Formations", description: "Développez la performance de vos équipes en compétences concrètes et mesurables.", ctaText: "Télécharger le catalogue", link: "https://drive.google.com/file/d/1MVP2W51296Hn19gFA6wuS_gYwkjjUSrZ/view?usp=sharing" },
-    { icon: "Landmark", title: "Académie NFL", description: "Montée en compétences continue formée aux exigences du terrain.", ctaText: "Prendre contact", link: "/contact" },
+    {
+      icon: "Building2",
+      title: "Formations",
+      description: "Techniques de vente, pilotage de la performance commerciale, management d'équipe : des parcours de 4 jours adaptés à vos produits, vos clients et vos chiffres réels.",
+      ctaText: "Voir le catalogue",
+      link: "/catalogue-formations",
+      pdfUrl: CATALOGUE_PDF_URL,
+      bullets: ["Adaptées à vos produits", "Sur site : sans frais de déplacement*", "Jusqu'à 20 participants"],
+      note: "* Hors site, hors Libreville ou en ligne : sur devis",
+    },
+    {
+      icon: "Users",
+      title: "Masterclass",
+      description: "Une matinée par trimestre, avec des experts invités, pour faire progresser vos équipes sur un thème précis : accueil, impact, motivation, recadrage et bien d'autres.",
+      ctaText: "Voir l'agenda",
+      link: "#evenements",
+      bullets: ["Une matinée par trimestre", "Experts invités"],
+    },
+    {
+      icon: "Landmark",
+      title: "Audit & coaching",
+      description: "Un diagnostic objectif avant d'investir en formations, et un accompagnement individuel des managers.",
+      ctaText: "Nous contacter",
+      link: "/contact",
+      bullets: ["Diagnostic en 2 jours", "Coaching individuel de managers"],
+    },
   ],
+  pillarsSection: {
+    badgeNumber: "16",
+    badgeLabel: "organisations accompagnées",
+  },
   keyStats: {
     title: "L'Excellence & L'Impact NFL",
     subtitle: "Des résultats concrets et mesurables qui témoignent de notre engagement auprès des entreprises et des dirigeants.",
@@ -91,13 +116,18 @@ const DEFAULT_HOME_CONTENT: HomeContent = {
     ctaText: "VOIR TOUS LES ÉVÉNEMENTS",
     ctaLink: "#evenements",
   },
+  eventsIntro: {
+    eyebrow: "Agenda de prestige",
+    title: "Nos événements d'élite",
+    subtitle: "Séminaires de prestige, masterclasses privées et conférences d'exception pour les dirigeants au Gabon.",
+  },
   spotlight: {
     badge: "ACADÉMIE NFL",
     titleLines: ["Le Séminaire", "Commercial", "pour Performer"],
     description: "Développez les compétences de vos équipes avec nos programmes de formation d'élite. Nous transformons le potentiel en performance réelle à travers une approche immersive et des méthodologies éprouvées.",
     bullets: ["Psychologie de la vente haut de gamme", "Maîtrise de l'argumentaire stratégique", "Closing et fidélisation de clientèle prestige"],
     ctaText: "TÉLÉCHARGER LE CATALOGUE",
-    ctaLink: "https://drive.google.com/file/d/1MVP2W51296Hn19gFA6wuS_gYwkjjUSrZ/view?usp=sharing",
+    ctaLink: CATALOGUE_PDF_URL,
     image: "",
   },
   about: {
@@ -106,6 +136,15 @@ const DEFAULT_HOME_CONTENT: HomeContent = {
     paragraph: "Animée par le désir de partager son expérience, LOUISE-AUDYLL Ongoum fonde NFL Services & Courtier en 2019. Activement développé depuis 2023, le cabinet accompagne les entreprises dans le renforcement de leur efficacité commerciale, la formation des équipes, le management, le leadership et la culture de la performance. À travers des master classes, des formations et des accompagnements sur mesure, les organisations transforment leurs ambitions en résultats concrets.",
     valuesIntro: "Notre approche repose sur trois principes :",
     values: ["Excellence", "Accompagnement", "Résultat"],
+  },
+  faq: {
+    items: [
+      { q: "Quels types de formations proposez-vous ?", a: "Nous proposons des masterclass intensives (publiques), des séminaires d'entreprise intra et inter, ainsi que des formations privées sur-mesure axées sur le leadership, le management et le closing commercial." },
+      { q: "Comment puis-je réserver ma place pour un événement ?", a: "Vous pouvez réserver directement en ligne via la section 'Prochaines dates' de notre site. Une fois le paiement validé, vous recevrez votre billet sécurisé par email avec un QR code." },
+      { q: "Avez-vous des programmes d'accompagnement spécifiques pour les cadres dirigeants ?", a: "Tout à fait. LOUISE AUDYLL Ongoum accompagne personnellement des cadres dirigeants en One-to-One pour débloquer leur potentiel de leadership et affiner leur vision stratégique." },
+      { q: "Intervenez-vous en dehors du Gabon ?", a: "Oui, nous pouvons concevoir et délivrer des formations dans toute l'Afrique francophone et à l'international, selon la demande des entreprises." },
+      { q: "Quels sont les modes de paiement acceptés pour vos formations ?", a: "Pour les séminaires publics, vous pouvez payer via Mobile Money (Airtel Money, Moov Africa) ou par carte bancaire. Pour les formations privées en entreprise, un virement bancaire classique est mis en place." },
+    ],
   },
   ctaSection: {
     title: "Prêt à élever vos standards ?",
@@ -162,12 +201,19 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
 
 function mergeHomeContent(fetched?: HomeContent): Required<HomeContent> {
   const f = fetched || {};
+  const defaultPillars = DEFAULT_HOME_CONTENT.pillars!;
   return {
     hero: { ...DEFAULT_HOME_CONTENT.hero, ...f.hero },
     featureStrip: f.featureStrip?.length ? f.featureStrip : DEFAULT_HOME_CONTENT.featureStrip!,
-    pillars: f.pillars?.length ? f.pillars : DEFAULT_HOME_CONTENT.pillars!,
+    pillars: (f.pillars?.length ? f.pillars : defaultPillars).map((p, i) => ({
+      bullets: defaultPillars[i]?.bullets || [],
+      note: defaultPillars[i]?.note,
+      ...p,
+    })),
+    pillarsSection: { ...DEFAULT_HOME_CONTENT.pillarsSection, ...f.pillarsSection },
     partners: f.partners?.length ? f.partners : DEFAULT_HOME_CONTENT.partners!,
     eventsSection: { ...DEFAULT_HOME_CONTENT.eventsSection, ...f.eventsSection },
+    eventsIntro: { ...DEFAULT_HOME_CONTENT.eventsIntro, ...f.eventsIntro },
     keyStats: {
       title: f.keyStats?.title || DEFAULT_HOME_CONTENT.keyStats?.title,
       subtitle: f.keyStats?.subtitle || DEFAULT_HOME_CONTENT.keyStats?.subtitle,
@@ -175,13 +221,9 @@ function mergeHomeContent(fetched?: HomeContent): Required<HomeContent> {
     },
     spotlight: { ...DEFAULT_HOME_CONTENT.spotlight, ...f.spotlight },
     about: { ...DEFAULT_HOME_CONTENT.about, ...f.about },
+    faq: { items: f.faq?.items?.length ? f.faq.items : DEFAULT_HOME_CONTENT.faq!.items },
     ctaSection: { ...DEFAULT_HOME_CONTENT.ctaSection, ...f.ctaSection },
   } as Required<HomeContent>;
-}
-
-// Un lien de section commence par "#" (ancre sur la page) ; sinon c'est une route.
-function isAnchor(link?: string) {
-  return !!link && link.startsWith("#");
 }
 
 // Motion design — variants réutilisés pour les animations d'apparition au scroll.
@@ -200,6 +242,40 @@ const staggerContainer: Variants = {
 
 const viewportOnce = { once: true, margin: "-80px" };
 
+const TestimonialCard = ({ testimonial: t }: { testimonial: Testimonial }) => {
+  const initials = t.author_name
+    ? t.author_name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
+    : "NFL";
+  return (
+    <div className="bg-[#f6f4ef] border border-[#e6e1d4] p-6 sm:p-7 rounded-[1.8rem] flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300 h-full">
+      <div>
+        <div className="text-[#8c591a] text-3xl font-serif font-black leading-none mb-3 opacity-80">
+          “
+        </div>
+        <p className="text-[#121212] font-medium text-sm sm:text-base leading-relaxed mb-6 font-normal">
+          "{t.quote}"
+        </p>
+      </div>
+
+      <div className="flex items-center gap-3.5 pt-4 border-t border-black/5 mt-auto">
+        {t.avatar_url ? (
+          <img src={t.avatar_url} alt={t.author_name} className="w-11 h-11 rounded-full object-cover shrink-0 border border-[#d4af37]/40 shadow-sm" />
+        ) : (
+          <div className="w-11 h-11 bg-[#100906] text-[#d4af37] font-bold text-xs flex items-center justify-center rounded-full shrink-0 border border-white/20 shadow-sm">
+            {initials}
+          </div>
+        )}
+        <div>
+          <p className="text-[#100906] font-bold text-sm sm:text-base leading-tight">{t.author_name}</p>
+          <p className="text-[#666] text-xs font-medium mt-0.5">
+            {[t.author_role, t.author_company].filter(Boolean).join(", ")}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Index = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -210,7 +286,7 @@ const Index = () => {
   const [heroSlideIndex, setHeroSlideIndex] = useState(0);
 
   // Fetch ALL events (past and upcoming)
-  const { data: allEvents = [], isLoading } = useQuery<Event[]>({
+  const { data: allEvents = [], isLoading: isLoadingEvents } = useQuery<Event[]>({
     queryKey: ["allEvents"],
     queryFn: () => EventsAPI.getAll(),
   });
@@ -302,6 +378,12 @@ const Index = () => {
     } as any);
   };
 
+  // FAQ : liste de questions/réponses
+  const faqItems = content.faq.items || [];
+  const saveFaqItems = (items: { q: string; a: string }[]) => saveHomeSection({ faq: { ...content.faq, items } });
+  const saveFaqField = (index: number, field: "q" | "a") => (value: string) =>
+    saveFaqItems(faqItems.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
+
   const { data: siteSettings } = useQuery<SiteSettings>({
     queryKey: ["siteSettings"],
     queryFn: SiteSettingsAPI.get,
@@ -313,9 +395,6 @@ const Index = () => {
   });
 
   const allTestimonialsList = fetchedTestimonials.length > 0 ? fetchedTestimonials : DEFAULT_TESTIMONIALS;
-  const halfTestimonials = Math.ceil(allTestimonialsList.length / 2);
-  const row1Testimonials = allTestimonialsList.slice(0, halfTestimonials);
-  const row2Testimonials = allTestimonialsList.slice(halfTestimonials);
 
   const heroImages = content.hero.images?.length ? content.hero.images : HERO_IMAGES;
 
@@ -345,49 +424,41 @@ const Index = () => {
     if (node) node.scrollIntoView({ behavior: "smooth" });
   }, [location.hash]);
 
+  const siteUrl = siteSettings?.site_url || "https://nfl-ga.com";
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: siteSettings?.site_name || "Cabinet NFL",
+    url: siteUrl,
+    logo: siteSettings?.logo_url || `${siteUrl}/og-image.jpg`,
+    contactPoint: {
+      "@type": "ContactPoint",
+      telephone: siteSettings?.phone || "+241 66 69 23 38",
+      contactType: "customer service",
+      email: siteSettings?.contact_email || "contact@nfl-ga.com",
+      areaServed: "GA",
+      availableLanguage: "French",
+    },
+    sameAs: [siteSettings?.facebook_url, siteSettings?.linkedin_url].filter(Boolean),
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Helmet>
-        <title>{siteSettings?.site_name || "NFL Courtier & Service"} — Accueil | Billetterie & Formations au Gabon</title>
-        <meta name="description" content={siteSettings?.meta_description_default || "Bienvenue chez NFL Courtier & Service. Découvrez nos prochains événements, masterclass et services de formation pour les entreprises au Gabon."} />
-        <script type="application/ld+json">
-          {`
-            {
-              "@context": "https://schema.org",
-              "@type": "Organization",
-              "name": "${siteSettings?.site_name || "NFL Courtier & Service"}",
-              "url": "${siteSettings?.site_url || "https://nfl-ga.com"}",
-              "logo": "${siteSettings?.logo_url || "https://nfl-ga.com/favicon.jpg"}",
-              "contactPoint": {
-                "@type": "ContactPoint",
-                "telephone": "${siteSettings?.phone || "+241 66 69 23 38"}",
-                "contactType": "customer service",
-                "email": "${siteSettings?.contact_email || "contact@nfl-ga.com"}",
-                "areaServed": "GA",
-                "availableLanguage": "French"
-              },
-              "sameAs": [
-                "${siteSettings?.facebook_url || "https://www.facebook.com/nflgabon"}"
-              ]
-            }
-          `}
-        </script>
+        <title>{siteSettings?.site_name || "Cabinet NFL"} — Formation, conseil et performance commerciale</title>
+        <meta name="description" content={siteSettings?.meta_description_default || "Cabinet NFL : formations en techniques de vente, pilotage de la performance commerciale et management d'équipe, audit commercial et masterclass au Gabon."} />
+        <script type="application/ld+json">{JSON.stringify(organizationJsonLd)}</script>
         <script type="application/ld+json">
           {`
             {
               "@context": "https://schema.org",
               "@type": "WebSite",
-              "url": "${siteSettings?.site_url || "https://nfl-ga.com"}",
+              "url": "${siteUrl}",
               "name": "NFL-GA"
             }
           `}
         </script>
       </Helmet>
-
-      {/* 1. TOP BANNER */}
-      {/* <div className="bg-gradient-to-r from-gold-dark via-gold to-gold-light text-primary font-bold text-center py-2.5 text-sm uppercase tracking-[0.2em] animate-fade-in shadow-md relative z-50">
-        SEMINAIRES LAO devient "NFL"
-      </div> */}
 
       <Navbar />
 
@@ -399,297 +470,11 @@ const Index = () => {
         }}
       />
 
-
-
-      {/* 2. NOS PILIERS D'ACCOMPAGNEMENT (Présentation interactive par onglets) */}
-      <ExpertisePillarsSection
-        pillars={content.pillars}
-        onSaveItemField={(index, field, value) => makeArrayItemFieldSaver("pillars", index, field)(value)}
-        onAddPillar={async () => {
-          await addListItem("pillars", {
-            icon: "Star",
-            title: "Nouveau pilier",
-            description: "Description de votre nouveau programme d'accompagnement...",
-            ctaText: "En savoir plus",
-            link: "/contact",
-          });
-        }}
-        onRemovePillar={async (idx) => {
-          await removeListItem("pillars", idx);
-        }}
-      />
-
-      {/* 2.5 CHIFFRES CLÉS & VITRINE VIDÉO */}
-      <KeyStatsSection
-        title={content.keyStats?.title}
-        subtitle={content.keyStats?.subtitle}
-        stats={content.keyStats?.stats}
-        onSaveStat={saveKeyStatField}
-        onSaveTitle={saveKeyStatsTitle}
-        onSaveSubtitle={saveKeyStatsSubtitle}
-      />
-
-      {/* 3. EVENEMENTS D'EXCEPTION */}
-      <section id="evenements" className="section-y bg-gradient-to-b from-[#fbf5e6] via-[#f7ebd7] to-[#fbf5e6] border-y border-[#d4af37]/25 relative overflow-hidden scroll-mt-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl relative z-10">
-          {isEditMode && (
-            <div className="flex items-center gap-2 text-ink/60 text-lvl-footer mb-4 bg-black/5 border border-black/10 rounded-lg px-4 py-2.5 w-fit">
-              <Info className="w-3.5 h-3.5 text-gold-dark shrink-0" />
-              Les événements affichés ici sont gérés depuis l'onglet <strong className="text-ink/80">Événements</strong>.
-            </div>
-          )}
-          {featuredEvents.length === 0 ? (
-            <div className="text-center py-16 text-ink/50 border border-black/10 rounded-2xl">
-              Aucun événement à afficher pour le moment.
-            </div>
-          ) : (
-            <EventsCarousel events={featuredEvents} isEditMode={isEditMode} />
-          )}
-        </div>
-      </section>
-
-      {/* 5. TEMOIGNAGES - DUAL-ROW MARQUEE (EXACTEMENT COMME LA MAQUETTE RÉFÉRENCE) */}
-      <section id="temoignages" className="section-y bg-[#fcfbfa] overflow-hidden relative border-t border-black/5 scroll-mt-20">
-        <motion.div
-          className="container mx-auto px-4 mb-12 sm:mb-16 text-center max-w-3xl"
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewportOnce}
-          variants={fadeUp}
-        >
-          <h2 className="font-sans text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-[#100906]">
-            Ce que disent nos clients &amp; partenaires
-          </h2>
-          <div className="w-20 h-[3px] bg-gradient-to-r from-[#8a4216] via-[#d4af37] to-[#8a4216] mx-auto mt-5 rounded-full" />
-        </motion.div>
-
-        <div className="w-full relative space-y-6">
-          {/* Dégradés latéraux fluides pour l'effet de transition */}
-          <div className="absolute top-0 bottom-0 left-0 w-24 sm:w-40 bg-gradient-to-r from-[#fcfbfa] via-[#fcfbfa]/80 to-transparent z-10 pointer-events-none" />
-          <div className="absolute top-0 bottom-0 right-0 w-24 sm:w-40 bg-gradient-to-l from-[#fcfbfa] via-[#fcfbfa]/80 to-transparent z-10 pointer-events-none" />
-
-          {isEditMode && (
-            <div className="container mx-auto px-4">
-              <div className="flex items-center gap-2 text-ink/60 text-lvl-footer mb-4 bg-black/5 border border-black/10 rounded-lg px-4 py-2.5 w-fit relative z-20">
-                <Info className="w-3.5 h-3.5 text-gold-dark shrink-0" />
-                Les témoignages affichés ici sont gérés depuis l'onglet <strong className="text-ink/80">Témoignages</strong>.
-              </div>
-            </div>
-          )}
-
-          {/* RANGÉE 1 (DÉFILEMENT VERS LA GAUCHE) */}
-          <div className={`flex animate-marquee gap-6 w-max ${isEditMode ? "pointer-events-none" : ""}`}>
-            {[...row1Testimonials, ...row1Testimonials, ...row1Testimonials].map((t, index) => {
-              const initials = t.author_name
-                ? t.author_name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
-                : "NFL";
-              return (
-                <div
-                  key={`r1-${t.id || index}-${index}`}
-                  className="w-[300px] sm:w-[380px] bg-[#f6f4ef] border border-[#e6e1d4] p-6 sm:p-7 rounded-[1.8rem] flex flex-col justify-between shrink-0 shadow-sm hover:shadow-md transition-all duration-300 h-full"
-                >
-                  <div>
-                    <div className="text-[#8c591a] text-3xl font-serif font-black leading-none mb-3 opacity-80">
-                      “
-                    </div>
-                    <p className="text-[#121212] font-medium text-sm sm:text-base leading-relaxed mb-6 font-normal">
-                      "{t.quote}"
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-3.5 pt-4 border-t border-black/5 mt-auto">
-                    {t.avatar_url ? (
-                      <img src={t.avatar_url} alt={t.author_name} className="w-11 h-11 rounded-full object-cover shrink-0 border border-[#d4af37]/40 shadow-sm" />
-                    ) : (
-                      <div className="w-11 h-11 bg-[#100906] text-[#d4af37] font-bold text-xs flex items-center justify-center rounded-full shrink-0 border border-white/20 shadow-sm">
-                        {initials}
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-[#100906] font-bold text-sm sm:text-base leading-tight">{t.author_name}</p>
-                      <p className="text-[#666] text-xs font-medium mt-0.5">
-                        {[t.author_role, t.author_company].filter(Boolean).join(", ")}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* RANGÉE 2 (DÉFILEMENT INVERSE VERS LA DROITE) */}
-          <div className={`flex animate-marquee-reverse gap-6 w-max ${isEditMode ? "pointer-events-none" : ""}`}>
-            {[...row2Testimonials, ...row2Testimonials, ...row2Testimonials].map((t, index) => {
-              const initials = t.author_name
-                ? t.author_name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
-                : "NFL";
-              return (
-                <div
-                  key={`r2-${t.id || index}-${index}`}
-                  className="w-[300px] sm:w-[380px] bg-[#f6f4ef] border border-[#e6e1d4] p-6 sm:p-7 rounded-[1.8rem] flex flex-col justify-between shrink-0 shadow-sm hover:shadow-md transition-all duration-300 h-full"
-                >
-                  <div>
-                    <div className="text-[#8c591a] text-3xl font-serif font-black leading-none mb-3 opacity-80">
-                      “
-                    </div>
-                    <p className="text-[#121212] font-medium text-sm sm:text-base leading-relaxed mb-6 font-normal">
-                      "{t.quote}"
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-3.5 pt-4 border-t border-black/5 mt-auto">
-                    {t.avatar_url ? (
-                      <img src={t.avatar_url} alt={t.author_name} className="w-11 h-11 rounded-full object-cover shrink-0 border border-[#d4af37]/40 shadow-sm" />
-                    ) : (
-                      <div className="w-11 h-11 bg-[#100906] text-[#d4af37] font-bold text-xs flex items-center justify-center rounded-full shrink-0 border border-white/20 shadow-sm">
-                        {initials}
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-[#100906] font-bold text-sm sm:text-base leading-tight">{t.author_name}</p>
-                      <p className="text-[#666] text-xs font-medium mt-0.5">
-                        {[t.author_role, t.author_company].filter(Boolean).join(", ")}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-        </div>
-      </section>
-
-      {/* 6. PRÊT À ÉLEVER VOS STANDARDS ? (TEMPLATE ORBITE - ACCENT SOMBRE DE LUXE) */}
-      <section id="contact" className="section-y bg-[#100906] text-white relative overflow-hidden py-16 sm:py-20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl relative z-10">
-          <motion.div
-            className="bg-[#18110d] rounded-[2.5rem] p-8 sm:p-12 lg:p-16 border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] relative overflow-hidden"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={viewportOnce}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {/* GLOW DE FOND DANS LA CARTE SOMBRE */}
-            <div className="absolute -right-20 -top-20 w-[400px] h-[400px] bg-[#d4af37]/15 rounded-full blur-[140px] pointer-events-none" />
-            <div className="absolute -left-20 -bottom-20 w-[400px] h-[400px] bg-[#8c591a]/15 rounded-full blur-[140px] pointer-events-none" />
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center relative z-10">
-              
-              {/* GAUCHE : TEXTE & BOUTONS D'ACTION */}
-              <div className="lg:col-span-6 space-y-6 text-left">
-
-                <h2 className="font-sans text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white">
-                  <EditableText value={content.ctaSection.title || "Prêt à élever vos standards ?"} onSave={makeFieldSaver("ctaSection", "title")} label="Titre" />
-                </h2>
-
-                <p className="text-base sm:text-lg text-white/70 font-normal leading-relaxed max-w-xl">
-                  <EditableText 
-                    value={content.ctaSection.description || "Qu'il s'agisse de sécuriser vos actifs ou d'orchestrer votre prochain grand événement, notre équipe est prête à relever le défi de l'excellence."} 
-                    onSave={makeFieldSaver("ctaSection", "description")} 
-                    label="Description" 
-                    multiline 
-                    as="div" 
-                  />
-                </p>
-
-                <div className="flex flex-row gap-2 sm:gap-4 pt-2">
-                  <button
-                    onClick={isEditMode ? undefined : () => navigate("/contact")}
-                    className="flex-1 sm:flex-initial gradient-gold text-accent-foreground font-bold text-[10px] sm:text-xs uppercase tracking-tight sm:tracking-wider py-3 px-3 sm:py-4 sm:px-8 rounded-full shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all inline-flex items-center justify-center gap-1 sm:gap-2 group whitespace-nowrap min-w-0"
-                  >
-                    <span>
-                      {isEditMode ? (
-                        <EditableText value={content.ctaSection.primaryBtnText || "PRENDRE RENDEZ-VOUS"} onSave={makeFieldSaver("ctaSection", "primaryBtnText")} label="Bouton principal" />
-                      ) : (content.ctaSection.primaryBtnText || "PRENDRE RENDEZ-VOUS")}
-                    </span>
-                    <ArrowRight className="hidden sm:inline-block w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </button>
-
-                  <button
-                    onClick={isEditMode ? undefined : () => navigate("/contact")}
-                    className="flex-1 sm:flex-initial border border-white/30 hover:border-white bg-transparent text-white font-bold text-[10px] sm:text-xs uppercase tracking-tight sm:tracking-wider py-3 px-3 sm:py-4 sm:px-8 rounded-full transition-all duration-300 inline-flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap min-w-0"
-                  >
-                    <span>
-                      {isEditMode ? (
-                        <EditableText value={content.ctaSection.secondaryBtnText || "NOUS CONTACTER"} onSave={makeFieldSaver("ctaSection", "secondaryBtnText")} label="Bouton secondaire" />
-                      ) : (content.ctaSection.secondaryBtnText || "NOUS CONTACTER")}
-                    </span>
-                  </button>
-                </div>
-
-              </div>
-
-              {/* DROITE : ANIMATION DE CERCLES CONCENTRIQUES & ICÔNES EN ORBITE */}
-              <div className="lg:col-span-6 flex justify-center items-center relative min-h-[340px] sm:min-h-[400px]">
-                
-                {/* LOGO NFL AU CENTRE AVEC PULSATION */}
-                <motion.div 
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md shadow-2xl flex items-center justify-center p-3.5 z-20 relative"
-                >
-                  <img 
-                    src="/assets/Logo_NFL_fond_marron__écrits_jaune_-removebg-preview.png" 
-                    alt="NFL Logo Center" 
-                    className="w-full h-full object-contain" 
-                  />
-                </motion.div>
-
-                {/* ANNEAU D'ORBITE 1 (PETIT - ROTATION HORAIRE) */}
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ repeat: Infinity, duration: 30, ease: "linear" }}
-                  className="absolute w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] rounded-full border border-dashed border-white/25 pointer-events-none"
-                >
-                  <div className="absolute -top-5 left-1/2 -translate-x-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#201611] border border-white/20 shadow-lg flex items-center justify-center text-[#e3bd51] pointer-events-auto hover:scale-110 transition-transform">
-                    <ShieldCheck className="w-5 h-5 text-[#e3bd51]" />
-                  </div>
-                  <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#e3bd51] text-[#100906] font-bold text-xs flex items-center justify-center pointer-events-auto hover:scale-110 transition-transform shadow-lg">
-                    <Crown className="w-5 h-5 text-[#100906]" />
-                  </div>
-                </motion.div>
-
-                {/* ANNEAU D'ORBITE 2 (MOYEN - ROTATION ANTI-HORAIRE) */}
-                <motion.div
-                  animate={{ rotate: -360 }}
-                  transition={{ repeat: Infinity, duration: 45, ease: "linear" }}
-                  className="absolute w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] rounded-full border border-dashed border-white/20 pointer-events-none"
-                >
-                  <div className="absolute top-1/2 -right-5 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#201611] border border-white/20 shadow-lg flex items-center justify-center text-[#e3bd51] pointer-events-auto hover:scale-110 transition-transform">
-                    <GraduationCap className="w-5 h-5 text-[#e3bd51]" />
-                  </div>
-                  <div className="absolute top-1/2 -left-5 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#201611] border border-white/20 shadow-lg flex items-center justify-center text-[#e3bd51] pointer-events-auto hover:scale-110 transition-transform">
-                    <Calendar className="w-5 h-5 text-[#e3bd51]" />
-                  </div>
-                </motion.div>
-
-                {/* ANNEAU D'ORBITE 3 (GRAND - ROTATION DOUCE HORAIRE) */}
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ repeat: Infinity, duration: 60, ease: "linear" }}
-                  className="absolute w-[370px] h-[370px] sm:w-[420px] sm:h-[420px] rounded-full border border-dashed border-white/15 pointer-events-none hidden sm:block"
-                >
-                  <div className="absolute -top-5 left-1/4 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#201611] border border-white/20 shadow-lg flex items-center justify-center text-[#e3bd51] pointer-events-auto hover:scale-110 transition-transform">
-                    <TrendingUp className="w-5 h-5 text-[#e3bd51]" />
-                  </div>
-                  <div className="absolute -bottom-5 right-1/4 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#201611] border border-white/20 shadow-lg flex items-center justify-center text-[#e3bd51] pointer-events-auto hover:scale-110 transition-transform">
-                    <Users className="w-5 h-5 text-[#e3bd51]" />
-                  </div>
-                </motion.div>
-
-              </div>
-
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* 7. NOTRE HISTOIRE - C'EST QUOI NFL ? (AVEC SLIDER VERTICAL INFINI À DROITE) */}
+      {/* 2. QUI SOMMES-NOUS (AVEC SLIDER VERTICAL INFINI À DROITE) */}
       <section id="a-propos" className="section-y bg-[#fdfbf7] border-t border-black/5 relative overflow-hidden scroll-mt-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
-            
+
             {/* COLONNE GAUCHE : TEXTE CENTRÉ ET ÉLÉGANT */}
             <motion.div
               className="lg:col-span-7 space-y-6"
@@ -713,7 +498,7 @@ const Index = () => {
 
               {/* VALEURS ET ENGAGEMENTS */}
               <div className="pt-2 border-t border-black/5">
-                <p className="text-[#100906] text-xs font-bold uppercase tracking-wider mb-3">
+                <p className="text-base sm:text-lg text-[#8c591a] font-semibold mb-3">
                   <EditableText value={content.about.valuesIntro || "Notre approche repose sur trois principes :"} onSave={makeFieldSaver("about", "valuesIntro")} label="Intro des valeurs" />
                 </p>
                 <div className="flex flex-wrap items-center gap-3">
@@ -740,7 +525,6 @@ const Index = () => {
               </div>
             </motion.div>
 
-            {/* COLONNE DROITE : SLIDER VERTICAL INFINI (EXACTEMENT SELON LE CODE DU CLIENT) */}
             {/* COLONNE DROITE : SLIDER VERTICAL INFINI (DÉFILEMENT LIBRE SANS BOÎTE CONTENEUR) */}
             <motion.div
               className="lg:col-span-5 flex justify-center"
@@ -829,83 +613,29 @@ const Index = () => {
         </div>
       </section>
 
-      {/* 8. FAQ - DESIGN INSPIRÉ DE LA SECONDE MAQUETTE RÉFÉRENCE */}
-      <section id="faq" className="section-y bg-[#fcfbfa] border-t border-black/5 relative overflow-hidden">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
-            
-            {/* GAUCHE : TITRE + CARTE DE CONTACT SUPPORT (STYLE MAQUETTE 2) */}
-            <motion.div
-              className="lg:col-span-5 space-y-8"
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportOnce}
-              variants={fadeUp}
-            >
-              <div>
-                <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[#8c591a] mb-2">
-                  <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-pulse" />
-                  FAQs
-                </span>
-                <h2 className="font-sans text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-[#100906]">
-                  Foire aux questions
-                </h2>
-              </div>
+      {/* 3. NOS PILIERS D'ACCOMPAGNEMENT (Présentation interactive par onglets) */}
+      <ExpertisePillarsSection
+        pillars={content.pillars}
+        badge={content.pillarsSection}
+        onSaveItemField={(index, field, value) => makeArrayItemFieldSaver("pillars", index, field)(value)}
+        onSaveBadgeField={(field, value) => makeFieldSaver("pillarsSection", field)(value)}
+        onAddPillar={async () => {
+          await addListItem("pillars", {
+            icon: "Star",
+            title: "Nouveau pilier",
+            description: "Description de votre nouveau programme d'accompagnement...",
+            ctaText: "En savoir plus",
+            link: "/contact",
+            bullets: [],
+          });
+        }}
+        onRemovePillar={async (idx) => {
+          await removeListItem("pillars", idx);
+        }}
+      />
 
-              {/* CARTE BOOK CALL / CONTACT DIRECT (STYLE MAQUETTE 2) */}
-              <div className="bg-white rounded-[2.2rem] p-7 sm:p-8 border border-black/10 shadow-[0_20px_50px_rgba(0,0,0,0.06)] relative overflow-hidden">
-                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#d4af37] mb-5 shadow-md">
-                  <img src={louisePhoto} alt="Louise Ongoum" className="w-full h-full object-cover" />
-                </div>
-                <h3 className="font-sans text-xl sm:text-2xl font-bold text-[#100906] mb-2">
-                  Une question spécifique ?
-                </h3>
-                <p className="text-[#666] text-xs sm:text-sm leading-relaxed mb-6 font-normal">
-                  Échangez directement avec notre équipe pour discuter de vos besoins en formation ou accompagnement.
-                </p>
-                <Link
-                  to="/contact"
-                  className="block w-full text-center bg-[#100906] hover:bg-[#8c591a] text-white font-bold text-xs uppercase tracking-wider py-3.5 px-6 rounded-full transition-colors shadow-sm"
-                >
-                  Prendre Rendez-vous
-                </Link>
-              </div>
-            </motion.div>
-
-            {/* DROITE : ACCORDÉON PILLULES (STYLE MAQUETTE 2) */}
-            <motion.div
-              className="lg:col-span-7"
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportOnce}
-              variants={fadeUp}
-            >
-              <Accordion type="single" collapsible className="w-full space-y-3.5">
-                {[
-                  { q: "Quels types de formations proposez-vous ?", a: "Nous proposons des masterclass intensives (publiques), des séminaires d'entreprise intra et inter, ainsi que des formations privées sur-mesure axées sur le leadership, le management et le closing commercial." },
-                  { q: "Comment puis-je réserver ma place pour un événement ?", a: "Vous pouvez réserver directement en ligne via la section 'Prochaines dates' de notre site. Une fois le paiement validé, vous recevrez votre billet sécurisé par email avec un QR code." },
-                  { q: "Avez-vous des programmes d'accompagnement spécifiques pour les cadres dirigeants ?", a: "Tout à fait. LOUISE AUDYLL Ongoum accompagne personnellement des cadres dirigeants en One-to-One pour débloquer leur potentiel de leadership et affiner leur vision stratégique." },
-                  { q: "Intervenez-vous en dehors du Gabon ?", a: "Oui, nous pouvons concevoir et délivrer des formations dans toute l'Afrique francophone et à l'international, selon la demande des entreprises." },
-                  { q: "Quels sont les modes de paiement acceptés pour vos formations ?", a: "Pour les séminaires publics, vous pouvez payer via Mobile Money (Airtel Money, Moov Africa) ou par carte bancaire. Pour les formations privées en entreprise, un virement bancaire classique est mis en place." },
-                ].map((item, idx) => (
-                  <AccordionItem key={idx} value={`item-${idx}`} className="bg-white border border-black/10 rounded-[1.5rem] px-6 shadow-sm data-[state=open]:shadow-md data-[state=open]:border-[#d4af37]/50 transition-all duration-300 overflow-hidden">
-                    <AccordionTrigger className="text-base sm:text-lg font-bold text-[#100906] hover:text-[#8c591a] hover:no-underline py-5 text-left">
-                      <span>{item.q}</span>
-                    </AccordionTrigger>
-                    <AccordionContent className="text-[#555] text-sm sm:text-base leading-relaxed pb-6 pt-1 font-normal">
-                      {item.a}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </motion.div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* PARTENAIRES & SPONSORS — logos gérés depuis l'éditeur visuel */}
-      <section className="py-10 bg-[#100906] border-t border-[#d4af37]/15 overflow-hidden relative">
+      {/* 4. ILS NOUS FONT CONFIANCE — logos gérés depuis l'éditeur visuel */}
+      <section id="references" className="py-10 bg-[#100906] border-t border-[#d4af37]/15 overflow-hidden relative scroll-mt-20">
         <p className="text-center text-xs font-bold uppercase tracking-[0.25em] text-[#e3bd51] mb-6">
           Ils nous font confiance
         </p>
@@ -956,7 +686,7 @@ const Index = () => {
                       <img
                         key={idx}
                         src={p.logo_url}
-                        alt={p.name || "Partenaire NFL Courtier & Service"}
+                        alt={p.name || "Partenaire du Cabinet NFL"}
                         className="h-16 sm:h-20 w-auto max-w-[180px] sm:max-w-[240px] object-contain opacity-90 hover:opacity-100 hover:scale-105 transition-all shrink-0"
                       />
                     ) : (
@@ -973,6 +703,301 @@ const Index = () => {
             </div>
           </div>
         )}
+      </section>
+
+      {/* 5. ÉVÉNEMENTS */}
+      <section id="evenements" className="section-y bg-gradient-to-b from-[#fbf5e6] via-[#f7ebd7] to-[#fbf5e6] border-y border-[#d4af37]/25 relative overflow-hidden scroll-mt-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl relative z-10">
+          {isEditMode && (
+            <div className="flex items-center gap-2 text-ink/60 text-lvl-footer mb-4 bg-black/5 border border-black/10 rounded-lg px-4 py-2.5 w-fit">
+              <Info className="w-3.5 h-3.5 text-gold-dark shrink-0" />
+              Les événements affichés ici sont gérés depuis l'onglet <strong className="text-ink/80">Événements</strong>.
+            </div>
+          )}
+          {featuredEvents.length === 0 ? (
+            <div className="text-center py-16 text-ink/50 border border-black/10 rounded-2xl">
+              {isLoadingEvents ? "Chargement des événements..." : "Aucun événement à afficher pour le moment."}
+            </div>
+          ) : (
+            <EventsCarousel
+              events={featuredEvents}
+              intro={content.eventsIntro}
+              onSaveIntroField={(field, value) => makeFieldSaver("eventsIntro", field)(value)}
+            />
+          )}
+        </div>
+      </section>
+
+      {/* 6. TÉMOIGNAGES — chaque témoignage affiché une seule fois */}
+      <section id="temoignages" className="section-y bg-[#fcfbfa] overflow-hidden relative border-t border-black/5 scroll-mt-20">
+        <motion.div
+          className="container mx-auto px-4 mb-12 sm:mb-16 text-center max-w-3xl"
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          variants={fadeUp}
+        >
+          <h2 className="font-sans text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-[#100906]">
+            Ce que disent nos clients &amp; partenaires
+          </h2>
+          <div className="w-20 h-[3px] bg-gradient-to-r from-[#8a4216] via-[#d4af37] to-[#8a4216] mx-auto mt-5 rounded-full" />
+        </motion.div>
+
+        <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl">
+          {isEditMode && (
+            <div className="flex items-center gap-2 text-ink/60 text-lvl-footer mb-6 bg-black/5 border border-black/10 rounded-lg px-4 py-2.5 w-fit">
+              <Info className="w-3.5 h-3.5 text-gold-dark shrink-0" />
+              Les témoignages affichés ici sont gérés depuis l'onglet <strong className="text-ink/80">Témoignages</strong>.
+            </div>
+          )}
+
+          {/* Mobile : défilement horizontal ; à partir de sm : grille centrée (3 + 2 pour 5 témoignages) */}
+          <motion.div
+            className="flex gap-6 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 pb-2 sm:mx-0 sm:px-0 sm:pb-0 sm:overflow-visible sm:flex-wrap sm:justify-center"
+            style={{ scrollbarWidth: "none" }}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+            variants={staggerContainer}
+          >
+            {allTestimonialsList.map((t, index) => (
+              <motion.div
+                key={t.id || index}
+                variants={fadeUp}
+                className="w-[85%] shrink-0 snap-center sm:w-[calc(50%-12px)] lg:w-[calc((100%-48px)/3)]"
+              >
+                <TestimonialCard testimonial={t} />
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* 7. CHIFFRES CLÉS */}
+      <KeyStatsSection
+        title={content.keyStats?.title}
+        subtitle={content.keyStats?.subtitle}
+        stats={content.keyStats?.stats}
+        onSaveStat={saveKeyStatField}
+        onSaveTitle={saveKeyStatsTitle}
+        onSaveSubtitle={saveKeyStatsSubtitle}
+      />
+
+      {/* 8. FAQ - DESIGN INSPIRÉ DE LA SECONDE MAQUETTE RÉFÉRENCE */}
+      <section id="faq" className="section-y bg-[#fcfbfa] border-t border-black/5 relative overflow-hidden scroll-mt-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+
+            {/* GAUCHE : TITRE + CARTE DE CONTACT SUPPORT (STYLE MAQUETTE 2) */}
+            <motion.div
+              className="lg:col-span-5 space-y-8"
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+              variants={fadeUp}
+            >
+              <div>
+                <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[#8c591a] mb-2">
+                  <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-pulse" />
+                  FAQs
+                </span>
+                <h2 className="font-sans text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-[#100906]">
+                  Foire aux questions
+                </h2>
+              </div>
+
+              {/* CARTE BOOK CALL / CONTACT DIRECT (STYLE MAQUETTE 2) */}
+              <div className="bg-white rounded-[2.2rem] p-7 sm:p-8 border border-black/10 shadow-[0_20px_50px_rgba(0,0,0,0.06)] relative overflow-hidden">
+                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#d4af37] mb-5 shadow-md">
+                  <img src={louisePhoto} alt="Louise Ongoum" className="w-full h-full object-cover" />
+                </div>
+                <h3 className="font-sans text-xl sm:text-2xl font-bold text-[#100906] mb-2">
+                  Une question spécifique ?
+                </h3>
+                <p className="text-[#666] text-xs sm:text-sm leading-relaxed mb-6 font-normal">
+                  Échangez directement avec notre équipe pour discuter de vos besoins en formation ou accompagnement.
+                </p>
+                <Link
+                  to="/contact"
+                  className="block w-full text-center bg-[#100906] hover:bg-[#8c591a] text-white font-bold text-xs uppercase tracking-wider py-3.5 px-6 rounded-full transition-colors shadow-sm"
+                >
+                  Prendre Rendez-vous
+                </Link>
+              </div>
+            </motion.div>
+
+            {/* DROITE : ACCORDÉON PILLULES (STYLE MAQUETTE 2) */}
+            <motion.div
+              className="lg:col-span-7"
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportOnce}
+              variants={fadeUp}
+            >
+              {isEditMode ? (
+                // Éditeur : questions et réponses affichées à plat (un accordéon
+                // se refermerait à chaque clic sur un texte à modifier).
+                <div className="space-y-3.5">
+                  {faqItems.map((item, idx) => (
+                    <div key={idx} className="group relative bg-white border border-black/10 rounded-[1.5rem] px-6 py-5 shadow-sm space-y-2">
+                      <RemoveItemButton onClick={() => saveFaqItems(faqItems.filter((_, i) => i !== idx))} label="Retirer cette question" />
+                      <p className="text-base sm:text-lg font-bold text-[#100906]">
+                        <EditableText value={item.q} onSave={saveFaqField(idx, "q")} label="Question" multiline />
+                      </p>
+                      <p className="text-[#555] text-sm sm:text-base leading-relaxed font-normal">
+                        <EditableText value={item.a} onSave={saveFaqField(idx, "a")} label="Réponse" multiline as="div" />
+                      </p>
+                    </div>
+                  ))}
+                  <AddCardButton
+                    onClick={() => saveFaqItems([...faqItems, { q: "Nouvelle question ?", a: "Réponse à compléter." }])}
+                    label="Ajouter une question"
+                    className="w-full min-h-[80px] rounded-[1.5rem]"
+                  />
+                </div>
+              ) : (
+                <Accordion type="single" collapsible className="w-full space-y-3.5">
+                  {faqItems.map((item, idx) => (
+                    <AccordionItem key={idx} value={`item-${idx}`} className="bg-white border border-black/10 rounded-[1.5rem] px-6 shadow-sm data-[state=open]:shadow-md data-[state=open]:border-[#d4af37]/50 transition-all duration-300 overflow-hidden">
+                      <AccordionTrigger className="text-base sm:text-lg font-bold text-[#100906] hover:text-[#8c591a] hover:no-underline py-5 text-left">
+                        <span>{item.q}</span>
+                      </AccordionTrigger>
+                      <AccordionContent className="text-[#555] text-sm sm:text-base leading-relaxed pb-6 pt-1 font-normal whitespace-pre-line">
+                        {item.a}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              )}
+            </motion.div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 9. PRÊT À ÉLEVER VOS STANDARDS ? (TEMPLATE ORBITE - ACCENT SOMBRE DE LUXE) */}
+      <section id="contact" className="section-y bg-[#100906] text-white relative overflow-hidden py-16 sm:py-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-10 max-w-7xl relative z-10">
+          <motion.div
+            className="bg-[#18110d] rounded-[2.5rem] p-8 sm:p-12 lg:p-16 border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] relative overflow-hidden"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={viewportOnce}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {/* GLOW DE FOND DANS LA CARTE SOMBRE */}
+            <div className="absolute -right-20 -top-20 w-[400px] h-[400px] bg-[#d4af37]/15 rounded-full blur-[140px] pointer-events-none" />
+            <div className="absolute -left-20 -bottom-20 w-[400px] h-[400px] bg-[#8c591a]/15 rounded-full blur-[140px] pointer-events-none" />
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center relative z-10">
+
+              {/* GAUCHE : TEXTE & BOUTONS D'ACTION */}
+              <div className="lg:col-span-6 space-y-6 text-left">
+
+                <h2 className="font-sans text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white">
+                  <EditableText value={content.ctaSection.title || "Prêt à élever vos standards ?"} onSave={makeFieldSaver("ctaSection", "title")} label="Titre" />
+                </h2>
+
+                <p className="text-base sm:text-lg text-white/70 font-normal leading-relaxed max-w-xl">
+                  <EditableText
+                    value={content.ctaSection.description || "Qu'il s'agisse de sécuriser vos actifs ou d'orchestrer votre prochain grand événement, notre équipe est prête à relever le défi de l'excellence."}
+                    onSave={makeFieldSaver("ctaSection", "description")}
+                    label="Description"
+                    multiline
+                    as="div"
+                  />
+                </p>
+
+                <div className="flex flex-row gap-2 sm:gap-4 pt-2">
+                  <button
+                    onClick={isEditMode ? undefined : () => navigate("/contact")}
+                    className="flex-1 sm:flex-initial gradient-gold text-accent-foreground font-bold text-[10px] sm:text-xs uppercase tracking-tight sm:tracking-wider py-3 px-3 sm:py-4 sm:px-8 rounded-full shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all inline-flex items-center justify-center gap-1 sm:gap-2 group whitespace-nowrap min-w-0"
+                  >
+                    <span>
+                      {isEditMode ? (
+                        <EditableText value={content.ctaSection.primaryBtnText || "PRENDRE RENDEZ-VOUS"} onSave={makeFieldSaver("ctaSection", "primaryBtnText")} label="Bouton principal" />
+                      ) : (content.ctaSection.primaryBtnText || "PRENDRE RENDEZ-VOUS")}
+                    </span>
+                    <ArrowRight className="hidden sm:inline-block w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </button>
+
+                  <button
+                    onClick={isEditMode ? undefined : () => navigate("/contact")}
+                    className="flex-1 sm:flex-initial border border-white/30 hover:border-white bg-transparent text-white font-bold text-[10px] sm:text-xs uppercase tracking-tight sm:tracking-wider py-3 px-3 sm:py-4 sm:px-8 rounded-full transition-all duration-300 inline-flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap min-w-0"
+                  >
+                    <span>
+                      {isEditMode ? (
+                        <EditableText value={content.ctaSection.secondaryBtnText || "NOUS CONTACTER"} onSave={makeFieldSaver("ctaSection", "secondaryBtnText")} label="Bouton secondaire" />
+                      ) : (content.ctaSection.secondaryBtnText || "NOUS CONTACTER")}
+                    </span>
+                  </button>
+                </div>
+
+              </div>
+
+              {/* DROITE : ANIMATION DE CERCLES CONCENTRIQUES & ICÔNES EN ORBITE */}
+              <div className="lg:col-span-6 flex justify-center items-center relative min-h-[340px] sm:min-h-[400px]">
+
+                {/* LOGO NFL AU CENTRE AVEC PULSATION */}
+                <motion.div
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md shadow-2xl flex items-center justify-center p-3.5 z-20 relative"
+                >
+                  <img
+                    src="/assets/Logo_NFL_fond_marron__écrits_jaune_-removebg-preview.png"
+                    alt="NFL Logo Center"
+                    className="w-full h-full object-contain"
+                  />
+                </motion.div>
+
+                {/* ANNEAU D'ORBITE 1 (PETIT - ROTATION HORAIRE) */}
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 30, ease: "linear" }}
+                  className="absolute w-[180px] h-[180px] sm:w-[220px] sm:h-[220px] rounded-full border border-dashed border-white/25 pointer-events-none"
+                >
+                  <div className="absolute -top-5 left-1/2 -translate-x-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#201611] border border-white/20 shadow-lg flex items-center justify-center text-[#e3bd51] pointer-events-auto hover:scale-110 transition-transform">
+                    <ShieldCheck className="w-5 h-5 text-[#e3bd51]" />
+                  </div>
+                  <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#e3bd51] text-[#100906] font-bold text-xs flex items-center justify-center pointer-events-auto hover:scale-110 transition-transform shadow-lg">
+                    <Crown className="w-5 h-5 text-[#100906]" />
+                  </div>
+                </motion.div>
+
+                {/* ANNEAU D'ORBITE 2 (MOYEN - ROTATION ANTI-HORAIRE) */}
+                <motion.div
+                  animate={{ rotate: -360 }}
+                  transition={{ repeat: Infinity, duration: 45, ease: "linear" }}
+                  className="absolute w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] rounded-full border border-dashed border-white/20 pointer-events-none"
+                >
+                  <div className="absolute top-1/2 -right-5 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#201611] border border-white/20 shadow-lg flex items-center justify-center text-[#e3bd51] pointer-events-auto hover:scale-110 transition-transform">
+                    <GraduationCap className="w-5 h-5 text-[#e3bd51]" />
+                  </div>
+                  <div className="absolute top-1/2 -left-5 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#201611] border border-white/20 shadow-lg flex items-center justify-center text-[#e3bd51] pointer-events-auto hover:scale-110 transition-transform">
+                    <Calendar className="w-5 h-5 text-[#e3bd51]" />
+                  </div>
+                </motion.div>
+
+                {/* ANNEAU D'ORBITE 3 (GRAND - ROTATION DOUCE HORAIRE) */}
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 60, ease: "linear" }}
+                  className="absolute w-[370px] h-[370px] sm:w-[420px] sm:h-[420px] rounded-full border border-dashed border-white/15 pointer-events-none hidden sm:block"
+                >
+                  <div className="absolute -top-5 left-1/4 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#201611] border border-white/20 shadow-lg flex items-center justify-center text-[#e3bd51] pointer-events-auto hover:scale-110 transition-transform">
+                    <TrendingUp className="w-5 h-5 text-[#e3bd51]" />
+                  </div>
+                  <div className="absolute -bottom-5 right-1/4 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#201611] border border-white/20 shadow-lg flex items-center justify-center text-[#e3bd51] pointer-events-auto hover:scale-110 transition-transform">
+                    <Users className="w-5 h-5 text-[#e3bd51]" />
+                  </div>
+                </motion.div>
+
+              </div>
+
+            </div>
+          </motion.div>
+        </div>
       </section>
 
       <Footer />

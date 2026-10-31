@@ -220,8 +220,8 @@ const Catalog = () => {
   return (
     <div className="min-h-screen bg-[#100906] flex flex-col text-white">
       <Helmet>
-        <title>Événements | NFL Courtier & Service</title>
-        <meta name="description" content="Découvrez tous les événements exclusifs, galas et masterclass de NFL Courtier & Service au Gabon." />
+        <title>Événements | Cabinet NFL</title>
+        <meta name="description" content="Tous les séminaires, masterclasses et conférences du Cabinet NFL au Gabon." />
       </Helmet>
       <Navbar />
 

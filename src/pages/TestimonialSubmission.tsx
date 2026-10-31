@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { TestimonialsAPI, EventsAPI } from "@/lib/api";
+import { TestimonialsAPI } from "@/lib/api";
 import { toast } from "sonner";
 
 /**
@@ -38,13 +38,11 @@ const TestimonialSubmission = () => {
 
   const handleAvatarUpload = async (file: File) => {
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
     try {
-      const res = await EventsAPI.uploadImage(formData);
+      const res = await TestimonialsAPI.uploadAvatar(ticketId!, token, file);
       setAvatarUrl(res.imageUrl);
-    } catch {
-      toast.error("Échec de l'upload de la photo.");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Échec de l'upload de la photo.");
     } finally {
       setIsUploading(false);
     }
@@ -151,7 +149,7 @@ const TestimonialSubmission = () => {
             ) : (
               <ImagePlus className="h-5 w-5 text-[#e3bd51]/60" />
             )}
-            <input id="testimonial-avatar" type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); }} />
+            <input id="testimonial-avatar" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); }} />
           </div>
           <p className="text-xs text-white/50">Photo (optionnel) — clique pour ajouter</p>
         </div>

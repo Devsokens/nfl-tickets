@@ -1,15 +1,12 @@
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowDown, Download, CheckCircle2, Loader2, GraduationCap, Sparkles, Award } from "lucide-react";
-import { FormationsAPI, HomeContentAPI, SiteSettingsAPI, type Formation, type HomeContent } from "@/lib/api";
-import { useIsEditMode } from "@/lib/EditModeContext";
+import { ArrowDown, Download, Loader2, GraduationCap } from "lucide-react";
+import { FormationsAPI, HomeContentAPI, type Formation, type HomeContent } from "@/lib/api";
 import { EditableText } from "@/components/admin/editable/EditableText";
-import { generateFormationsCatalogPdf } from "@/lib/formationsPdf";
-import { useToast } from "@/hooks/use-toast";
+import { getCataloguePdfUrl, toDownloadUrl } from "@/lib/catalogue";
 import FormationStackCards from "@/components/FormationStackCards";
 import HighlightFormationCard from "@/components/HighlightFormationCard";
 
@@ -17,45 +14,20 @@ type FormationsPageContent = Required<NonNullable<HomeContent["formationsPage"]>
 
 const DEFAULT_FORMATIONS_PAGE_CONTENT: FormationsPageContent = {
   hero: {
-    eyebrow: "ACADÉMIE D'ÉLITE & FORMATION PROFESSIONNELLE",
-    title: "Maîtrisez l'Art de l'Excellence.",
-    description: "NFL Courtier & Service conçoit des parcours de formation certifiants de très haut niveau, alliant rigueur académique et immersion opérationnelle pour propulser vos standards de performance.",
+    eyebrow: "CATALOGUE DE FORMATIONS",
+    title: "Nos formations en entreprise.",
+    description: "Quatre offres construites et éprouvées sur le terrain : techniques de vente, pilotage de la performance commerciale, management d'équipe et audit commercial. Chaque parcours est adapté à votre secteur lors d'un cadrage, au plus tard quinze jours avant la session.",
     image: "",
   },
 };
 
 const CatalogueFormation = () => {
-  const navigate = useNavigate();
-  const isEditMode = useIsEditMode();
   const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const { data: formations = [], isLoading } = useQuery<Formation[]>({
     queryKey: ["formations"],
     queryFn: () => FormationsAPI.getAll(false),
   });
-
-  const { data: siteSettings } = useQuery({
-    queryKey: ["siteSettings"],
-    queryFn: SiteSettingsAPI.get,
-  });
-
-  const handleDownloadCatalog = async () => {
-    if (isGeneratingPdf || formations.length === 0) return;
-    setIsGeneratingPdf(true);
-    try {
-      await generateFormationsCatalogPdf(formations, siteSettings);
-    } catch (err) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de générer le catalogue PDF pour le moment.",
-      });
-    } finally {
-      setIsGeneratingPdf(false);
-    }
-  };
 
   const handleScrollToFormations = () => {
     const el = document.getElementById("formations-catalogue");
@@ -75,18 +47,12 @@ const CatalogueFormation = () => {
   useEffect(() => setOverride(null), [homeContentRaw]);
   const content = override || merged;
 
+  // Le vrai PDF du catalogue (celui réglé dans l'admin), téléchargé directement.
+  const catalogueDownloadUrl = toDownloadUrl(getCataloguePdfUrl(homeContentRaw));
+
   // Logos partenaires & sponsors : gérés une seule fois depuis l'éditeur
   // visuel (onglet Accueil), partagés ici en lecture seule.
-  const partnersList = homeContentRaw?.partners?.length
-    ? homeContentRaw.partners
-    : [
-        { name: "SMAG", logo_url: "" },
-        { name: "ODILLON", logo_url: "" },
-        { name: "OGOUUE LABS", logo_url: "" },
-        { name: "GMT", logo_url: "" },
-        { name: "CANAL BOX", logo_url: "" },
-        { name: "TRANSFO...", logo_url: "" },
-      ];
+  const partnersList = homeContentRaw?.partners || [];
 
   const saveFormationsPageSection = async (patch: Partial<FormationsPageContent>) => {
     const next = { ...content, ...patch };
@@ -101,8 +67,8 @@ const CatalogueFormation = () => {
   return (
     <div className="min-h-screen bg-[#100906] flex flex-col text-white">
       <Helmet>
-        <title>Catalogue Formations | NFL Courtier & Service</title>
-        <meta name="description" content="Découvrez nos modules de formation de haut niveau destinées aux professionnels exigeants." />
+        <title>Catalogue Formations | Cabinet NFL</title>
+        <meta name="description" content="Catalogue de formations du Cabinet NFL : techniques de vente, pilotage de la performance commerciale, management d'équipe et audit commercial." />
       </Helmet>
       <Navbar />
 
@@ -144,24 +110,16 @@ const CatalogueFormation = () => {
                   <ArrowDown className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
                 </button>
 
-                {/* Button 2: Download PDF catalog */}
-                <button
-                  onClick={handleDownloadCatalog}
-                  disabled={isGeneratingPdf || formations.length === 0}
-                  className="flex-1 sm:flex-initial rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/30 text-white font-semibold text-[9px] sm:text-sm uppercase tracking-wider py-2.5 px-3 sm:py-4 sm:px-8 transition-all duration-300 shadow-[0_10px_40px_rgba(0,0,0,0.3)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-1 sm:gap-2 shrink-0 whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                {/* Button 2: Download PDF catalog (le PDF final du client) */}
+                <a
+                  href={catalogueDownloadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 sm:flex-initial rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/30 text-white font-semibold text-[9px] sm:text-sm uppercase tracking-wider py-2.5 px-3 sm:py-4 sm:px-8 transition-all duration-300 shadow-[0_10px_40px_rgba(0,0,0,0.3)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-1 sm:gap-2 shrink-0 whitespace-nowrap cursor-pointer"
                 >
-                  {isGeneratingPdf ? (
-                    <>
-                      <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin text-[#d4af37] shrink-0" />
-                      <span>GÉNÉRATION...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
-                      <span>TÉLÉCHARGER LE CATALOGUE</span>
-                    </>
-                  )}
-                </button>
+                  <Download className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
+                  <span>TÉLÉCHARGER LE CATALOGUE</span>
+                </a>
               </div>
             </div>
 
@@ -176,29 +134,21 @@ const CatalogueFormation = () => {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
             <div>
               <h2 className="font-sans text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-[#100906]">
-                Nos Modules de Formation
+                Nos formations en un coup d'œil
               </h2>
               <p className="text-[#555] text-xs sm:text-base font-medium max-w-xl mt-2">
-                Découvrez nos parcours exclusifs conçus pour forger les leaders de demain dans le secteur du management, du luxe et de la finance.
+                Quatre offres construites et éprouvées. Chaque programme peut être suivi en globalité ou en modules séparés.
               </p>
             </div>
-            <button
-              onClick={handleDownloadCatalog}
-              disabled={isGeneratingPdf || formations.length === 0}
-              className="bg-gradient-to-r from-[#d4af37] via-[#e3bd51] to-[#d4af37] hover:opacity-95 text-black font-extrabold text-xs sm:text-sm uppercase tracking-wider py-3.5 px-6 rounded-full transition-all shadow-md flex items-center justify-center gap-2 shrink-0 whitespace-nowrap cursor-pointer disabled:opacity-50"
+            <a
+              href={catalogueDownloadUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-gradient-to-r from-[#d4af37] via-[#e3bd51] to-[#d4af37] hover:opacity-95 text-black font-extrabold text-xs sm:text-sm uppercase tracking-wider py-3.5 px-6 rounded-full transition-all shadow-md flex items-center justify-center gap-2 shrink-0 whitespace-nowrap cursor-pointer"
             >
-              {isGeneratingPdf ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin text-black" />
-                  <span>GÉNÉRATION...</span>
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4" />
-                  <span>TÉLÉCHARGER LE CATALOGUE (PDF)</span>
-                </>
-              )}
-            </button>
+              <Download className="w-4 h-4" />
+              <span>TÉLÉCHARGER LE CATALOGUE (PDF)</span>
+            </a>
           </div>
 
           {/* Grid of Formation Cards — EXACTEMENT COMME LES ÉVÉNEMENTS (2 sur mobile grid-cols-2, 3 sur desktop) */}
@@ -222,6 +172,7 @@ const CatalogueFormation = () => {
       </section>
 
       {/* 3. PARTNERS LOGO TICKER — logos gérés depuis l'éditeur visuel (onglet Accueil) */}
+      {partnersList.length > 0 && (
       <section className="py-10 bg-[#100906] text-white/70 border-t border-[#d4af37]/15 overflow-hidden">
         <p className="text-center text-xs font-bold uppercase tracking-[0.25em] text-[#e3bd51] mb-6">
           Ils nous font confiance
@@ -234,7 +185,7 @@ const CatalogueFormation = () => {
                   <img
                     key={idx}
                     src={p.logo_url}
-                    alt={p.name || "Partenaire NFL Courtier & Service"}
+                    alt={p.name || "Partenaire du Cabinet NFL"}
                     className="h-16 sm:h-20 w-auto max-w-[180px] sm:max-w-[240px] object-contain opacity-80 hover:opacity-100 transition-all shrink-0"
                   />
                 ) : (
@@ -247,6 +198,7 @@ const CatalogueFormation = () => {
           ))}
         </div>
       </section>
+      )}
 
       <Footer />
     </div>

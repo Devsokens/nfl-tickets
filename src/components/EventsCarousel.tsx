@@ -1,16 +1,100 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, Calendar, ChevronLeft, ChevronRight, Linkedin, MapPin } from "lucide-react";
 import type { Event } from "@/lib/api";
 import HighlightEventCard from "@/components/HighlightEventCard";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { EditableText } from "@/components/admin/editable/EditableText";
+
+type IntroField = "eyebrow" | "title" | "subtitle";
 
 interface EventsCarouselProps {
   events: Event[];
-  isEditMode?: boolean;
+  intro: Partial<Record<IntroField, string>>;
+  onSaveIntroField: (field: IntroField, value: string) => Promise<void>;
 }
 
-export const EventsCarousel = ({ events }: EventsCarouselProps) => {
+// Les dates d'événement sont des jours ("2025-03-15", lus en UTC) : on les
+// formate en UTC pour ne jamais décaler d'un jour selon le fuseau du visiteur.
+function formatEventDate(event: Event) {
+  const d = new Date(event.date);
+  if (isNaN(d.getTime())) return "";
+  const day = d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+  return event.time ? `${day} · ${event.time.slice(0, 5).replace(":", "h")}` : day;
+}
+
+const EventSummaryDialog = ({ event, onClose }: { event: Event | null; onClose: () => void }) => {
+  const image = event?.image_url || event?.image;
+  const isPast = event ? new Date(event.date) < new Date(new Date().setHours(0, 0, 0, 0)) : false;
+
+  return (
+    <Dialog open={!!event} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden overflow-y-auto max-h-[90vh] bg-gradient-to-br from-[#100906] via-[#1f120c] to-[#3a2012] text-white border-white/10 rounded-[1.75rem] sm:rounded-[1.75rem]">
+        {event && (
+          <>
+            {image && (
+              <div className="relative w-full h-48 sm:h-56 bg-black/40">
+                <img src={image} alt={event.title} className="w-full h-full object-cover" />
+                <span className={`absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm ${isPast ? "text-black bg-white/90" : "text-black bg-[#d4af37]"}`}>
+                  {isPast ? "Terminé" : "À venir"}
+                </span>
+              </div>
+            )}
+
+            <div className="p-6 sm:p-7 space-y-4">
+              <DialogHeader className="text-left space-y-2">
+                <DialogTitle className="font-sans text-xl sm:text-2xl font-bold text-white leading-snug pr-6">
+                  {event.title}
+                </DialogTitle>
+                <div className="flex flex-col gap-1.5 text-xs sm:text-sm text-white/80 font-medium">
+                  <span className="inline-flex items-center gap-2">
+                    <Calendar className="w-3.5 h-3.5 text-[#d4af37] shrink-0" />
+                    {formatEventDate(event)}
+                  </span>
+                  {event.location && (
+                    <span className="inline-flex items-center gap-2">
+                      <MapPin className="w-3.5 h-3.5 text-[#d4af37] shrink-0" />
+                      {event.location}
+                    </span>
+                  )}
+                </div>
+              </DialogHeader>
+
+              <DialogDescription className="text-white/75 text-sm leading-relaxed whitespace-pre-line">
+                {event.description || "Résumé de l'événement à venir."}
+              </DialogDescription>
+
+              <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
+                {event.linkedin_url && (
+                  <a
+                    href={event.linkedin_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 inline-flex items-center justify-center gap-2 bg-[#d4af37] hover:bg-white text-black font-bold rounded-full py-2.5 px-4 text-xs uppercase tracking-wider transition-colors"
+                  >
+                    <Linkedin className="w-3.5 h-3.5" />
+                    Voir le post LinkedIn
+                  </a>
+                )}
+                <Link
+                  to={`/event/${event.slug || event.id}`}
+                  className="flex-1 inline-flex items-center justify-center gap-2 border border-white/30 hover:border-white text-white font-bold rounded-full py-2.5 px-4 text-xs uppercase tracking-wider transition-colors"
+                >
+                  Voir le détail
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export const EventsCarousel = ({ events, intro, onSaveIntroField }: EventsCarouselProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const activeIndexRef = useRef(0); // ref toujours à jour pour l'interval
   const totalCards = events.length + 1;
@@ -76,16 +160,16 @@ export const EventsCarousel = ({ events }: EventsCarouselProps) => {
           {/* Eyebrow — identique aux autres sections */}
           <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[#8c591a]">
             <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-pulse" />
-            Agenda de prestige
+            <EditableText value={intro.eyebrow || ""} onSave={(v) => onSaveIntroField("eyebrow", v)} label="Surtitre" />
           </span>
 
           {/* H2 — identique aux autres sections */}
           <h2 className="font-sans text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-[#100906]">
-            Nos événements d'élite
+            <EditableText value={intro.title || ""} onSave={(v) => onSaveIntroField("title", v)} label="Titre" />
           </h2>
 
           <p className="text-black/65 text-sm sm:text-base leading-relaxed font-normal max-w-xs">
-            Séminaires de prestige, masterclasses privées et conférences d'exception pour les dirigeants au Gabon.
+            <EditableText value={intro.subtitle || ""} onSave={(v) => onSaveIntroField("subtitle", v)} label="Sous-titre" multiline as="span" />
           </p>
 
           {/* ── DOTS + BOUTONS — en bas de la colonne ── */}
@@ -146,14 +230,14 @@ export const EventsCarousel = ({ events }: EventsCarouselProps) => {
                 key={event.id}
                 className="w-[220px] sm:w-[245px] lg:w-[260px] shrink-0 snap-start"
               >
-                <HighlightEventCard event={event} />
+                <HighlightEventCard event={event} onOpen={() => setSelectedEvent(event)} />
               </div>
             ))}
 
-            {/* CARTE "ÉVÉNEMENT SUR MESURE" */}
+            {/* CARTE "TOUS NOS ÉVÉNEMENTS" → page liste /events */}
             <div className="w-[220px] sm:w-[245px] lg:w-[260px] shrink-0 snap-start">
               <Link
-                to="/contact"
+                to="/events"
                 className="group bg-gradient-to-br from-[#100906] via-[#1f120c] to-[#3a2012] text-white rounded-2xl border border-white/10 p-4 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between h-full hover:-translate-y-1 relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#d4af37]/15 rounded-full blur-2xl pointer-events-none" />
@@ -167,17 +251,17 @@ export const EventsCarousel = ({ events }: EventsCarouselProps) => {
 
                   <div className="px-0.5">
                     <h3 className="font-sans text-sm font-bold text-white group-hover:text-[#d4af37] transition-colors line-clamp-2 leading-snug mb-1.5">
-                      Événement sur mesure
+                      Tous nos événements
                     </h3>
                     <p className="text-white/60 text-[11px] leading-relaxed line-clamp-2 mb-3 font-normal">
-                      Organisez votre séminaire ou masterclass avec l'équipe de NFL Courtier & Service.
+                      Retrouvez l'ensemble de nos séminaires, masterclasses et conférences.
                     </p>
                   </div>
                 </div>
 
                 <div className="pt-2.5 border-t border-white/10 mt-auto">
                   <div className="w-full bg-[#d4af37] group-hover:bg-white text-black font-bold rounded-full py-2 px-3 text-[10px] uppercase tracking-wider transition-colors duration-300 flex items-center justify-center gap-1.5 shadow-sm">
-                    <span>Demander un devis</span>
+                    <span>Voir tous les événements</span>
                     <ArrowRight className="w-3 h-3 transition-transform duration-300 group-hover:translate-x-1" />
                   </div>
                 </div>
@@ -188,6 +272,8 @@ export const EventsCarousel = ({ events }: EventsCarouselProps) => {
         </div>
 
       </div>
+
+      <EventSummaryDialog event={selectedEvent} onClose={() => setSelectedEvent(null)} />
     </div>
   );
 };

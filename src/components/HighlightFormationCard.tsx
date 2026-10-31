@@ -33,12 +33,14 @@ export const HighlightFormationCard = ({ formation }: HighlightFormationCardProp
             </div>
           )}
 
-          {/* STATUS / CERTIFICATION BADGE TOP-RIGHT */}
-          <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10">
-            <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider text-black bg-[#d4af37] backdrop-blur-md px-2 py-0.5 sm:px-3 sm:py-1 rounded-full shadow-sm border border-[#d4af37]/40 font-extrabold">
-              {formation.badge || "Certifiant"}
-            </span>
-          </div>
+          {/* BADGE TOP-RIGHT (ex. "FORMATION 01") */}
+          {formation.badge && (
+            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10">
+              <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider text-black bg-[#d4af37] backdrop-blur-md px-2 py-0.5 sm:px-3 sm:py-1 rounded-full shadow-sm border border-[#d4af37]/40 font-extrabold">
+                {formation.badge}
+              </span>
+            </div>
+          )}
 
           {/* CIRCULAR BADGE OVERLAPPING IMAGE */}
           <div className="absolute bottom-[-10px] left-2 sm:bottom-[-14px] sm:left-4 w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-[#100906] text-white border-2 border-[#d4af37] flex flex-col items-center justify-center text-center shadow-lg z-20 shrink-0">
@@ -52,9 +54,11 @@ export const HighlightFormationCard = ({ formation }: HighlightFormationCardProp
             {formation.title}
           </h3>
 
-          <p className="text-[#666] text-[10px] sm:text-xs leading-relaxed line-clamp-2 mb-2 sm:mb-4 font-normal">
-            {formation.description || "Formation d'excellence et perfectionnement exécutif dispensée par NFL Courtier & Service."}
-          </p>
+          {formation.description && (
+            <p className="text-[#666] text-[10px] sm:text-xs leading-relaxed line-clamp-2 mb-2 sm:mb-4 font-normal">
+              {formation.description}
+            </p>
+          )}
         </div>
       </div>
 
@@ -63,7 +67,7 @@ export const HighlightFormationCard = ({ formation }: HighlightFormationCardProp
         <div className="flex items-center justify-between gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-[#555] font-medium">
           <div className="flex items-center gap-1 sm:gap-1.5 truncate">
             <Award className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#8c591a] shrink-0" />
-            <span className="truncate">{formation.certification || formation.level || "Programme Élite"}</span>
+            <span className="truncate">{formation.level || formation.certification}</span>
           </div>
           {formation.duration && (
             <div className="flex items-center gap-1 text-[10px] text-[#777] shrink-0">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Award, Target, CheckCircle2 } from "lucide-react";
+import { Target, Wrench, Gauge } from "lucide-react";
 
 export interface StackCardData {
   id: number;
@@ -11,33 +11,35 @@ export interface StackCardData {
   icon: React.ComponentType<{ className?: string }>;
 }
 
+// Engagements repris du catalogue PDF du client (pages « Notre approche » et
+// « L'ancrage post-formation »).
 const CARDS: StackCardData[] = [
   {
     id: 1,
     number: "1",
-    badge: "Accréditation & Normes",
-    title: "Modules de formation certifiants",
+    badge: "Approche terrain",
+    title: "70 % de pratique, jamais de théorie hors-sol",
     description:
-      "Des programmes certifiés conformes aux exigences professionnelles les plus strictes, garantissant une valorisation immédiate et pérenne de vos compétences sur le marché de l'emploi et des affaires.",
-    icon: Award,
+      "Des cas issus de votre réalité sectorielle : mises en situation, argumentaires et exercices sont adaptés à vos produits et à vos enjeux réels lors d'un cadrage, au plus tard quinze jours avant la session.",
+    icon: Target,
   },
   {
     id: 2,
     number: "2",
-    badge: "Méthodologie Immersive",
-    title: "Approche pratique axée résultats",
+    badge: "Outils inclus",
+    title: "Des outils directement applicables",
     description:
-      "Études de cas réels d'entreprise, ateliers interactifs et méthodologies concrètes directement exploitables pour générer un retour sur investissement tangible au sein de vos équipes.",
-    icon: Target,
+      "Grilles, trames, tableaux de bord, plans d'action et livret accompagnent les participants. Chaque session donne lieu à une note de synthèse écrite adressée à l'entreprise.",
+    icon: Wrench,
   },
   {
     id: 3,
     number: "3",
-    badge: "Progression Mesurée",
-    title: "Évaluation continue des compétences",
+    badge: "Ancrage J+30 · J+60 · J+90",
+    title: "Des résultats mesurables",
     description:
-      "Un dispositif d'évaluation continue, feedbacks réguliers dispensés par des formateurs certifiés et accompagnement sur-mesure pour ancrer durablement la maîtrise opérationnelle.",
-    icon: CheckCircle2,
+      "Des indicateurs définis en amont et évalués à J+90, et un dispositif d'ancrage (ateliers à J+30, J+60 et J+90) pour que les acquis ne s'évaporent pas.",
+    icon: Gauge,
   },
 ];
 

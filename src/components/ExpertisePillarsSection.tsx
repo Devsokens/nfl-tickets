@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, CheckCircle2, ChevronRight, ShieldCheck, Sparkles, Users, Award, Download } from "lucide-react";
+import { ArrowRight, CheckCircle2, Users, Download, X } from "lucide-react";
 import { EditableText } from "@/components/admin/editable/EditableText";
-import { EditableIcon } from "@/components/admin/editable/EditableIcon";
-import { RemoveItemButton, AddCardButton } from "@/components/admin/editable/EditableListControls";
+import { RemoveItemButton, AddInlineButton } from "@/components/admin/editable/EditableListControls";
 import { useIsEditMode } from "@/lib/EditModeContext";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toDownloadUrl } from "@/lib/catalogue";
 
 // Assets local pour le visuel à gauche
 import seminaireImg1 from "@/assets/nfl img 4.jpeg";
@@ -26,58 +27,46 @@ interface Pillar {
   description?: string;
   ctaText?: string;
   link?: string;
+  bullets?: string[];
+  note?: string;
+  pdfUrl?: string;
 }
 
 interface ExpertisePillarsSectionProps {
   pillars: Pillar[];
+  badge: { badgeNumber?: string; badgeLabel?: string };
   onSaveItemField: (index: number, field: string, value: any) => Promise<void>;
+  onSaveBadgeField: (field: "badgeNumber" | "badgeLabel", value: string) => Promise<void>;
   onAddPillar: () => Promise<void>;
   onRemovePillar: (index: number) => Promise<void>;
 }
 
-// Données visuelles pour chaque pilier
+// Photos de chaque pilier (dans l'ordre des onglets). Les textes — points clés,
+// badge chiffré — viennent du contenu éditable, pas d'ici.
 const PILLAR_VISUALS = [
-  {
-    mainImg: seminaireImg1,
-    subImg1: seminaireImg2,
-    subImg2: seminaireImg3,
-    statNumber: "100%",
-    statLabel: "Séminaires sur mesure",
-    badgeIcon: ShieldCheck,
-    bullets: ["Logistique & Organisation clé en main", "Format immersif & prestige", "Lieux d'exception au Gabon"],
-  },
-  {
-    mainImg: formationImg1,
-    subImg1: formationImg2,
-    subImg2: formationImg3,
-    statNumber: "50+",
-    statLabel: "Organisations formées",
-    badgeIcon: Users,
-    bullets: ["Modules de formation certifiants", "Approche pratique axée résultats", "Évaluation continue des compétences"],
-  },
-  {
-    mainImg: academieImg2,
-    subImg1: academieImg1,
-    subImg2: academieImg3,
-    statNumber: "1000+",
-    statLabel: "Leaders & Cadres accompagnés",
-    badgeIcon: Award,
-    bullets: ["Coaching individuel & d'équipe", "Psychologie de la haute performance", "Leadership & Management d'élite"],
-  },
+  { mainImg: seminaireImg1, subImg1: seminaireImg2, subImg2: seminaireImg3 },
+  { mainImg: formationImg1, subImg1: formationImg2, subImg2: formationImg3 },
+  { mainImg: academieImg2, subImg1: academieImg1, subImg2: academieImg3 },
 ];
 
 export const ExpertisePillarsSection = ({
   pillars = [],
+  badge,
   onSaveItemField,
+  onSaveBadgeField,
   onAddPillar,
   onRemovePillar,
 }: ExpertisePillarsSectionProps) => {
   const isEditMode = useIsEditMode();
   const [activeIndex, setActiveIndex] = useState(0);
+  // Pop-up "Télécharger le PDF / Ouvrir la page", pour un pilier qui a un PDF
+  const [catalogOpen, setCatalogOpen] = useState(false);
 
   const activePillar = pillars[activeIndex] || pillars[0] || {};
   const currentVisual = PILLAR_VISUALS[activeIndex % PILLAR_VISUALS.length];
-  const BadgeIcon = currentVisual.badgeIcon || Sparkles;
+  const bullets = activePillar.bullets || [];
+
+  const saveBullets = (list: string[]) => onSaveItemField(activeIndex, "bullets", list);
 
   return (
     <section id="formations" className="section-y bg-[#fdfbf7] relative overflow-hidden text-[#100906] scroll-mt-20">
@@ -177,14 +166,14 @@ export const ExpertisePillarsSection = ({
                   className="absolute bottom-[4%] left-[2%] w-[42%] h-[38%] rounded-[1.8rem] bg-gradient-to-br from-[#100906] via-[#1f120c] to-[#3a2012] text-white p-5 flex flex-col justify-between border-2 border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-20"
                 >
                   <div className="w-9 h-9 rounded-xl bg-[#d4af37]/20 border border-[#d4af37]/30 flex items-center justify-center">
-                    <BadgeIcon className="w-5 h-5 text-[#d4af37]" />
+                    <Users className="w-5 h-5 text-[#d4af37]" />
                   </div>
                   <div>
                     <span className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-[#e3bd51]">
-                      {currentVisual.statNumber}
+                      <EditableText value={badge.badgeNumber || ""} onSave={(v) => onSaveBadgeField("badgeNumber", v)} label="Chiffre du badge" />
                     </span>
                     <p className="text-white/80 text-xs sm:text-sm font-medium leading-tight mt-0.5">
-                      {currentVisual.statLabel}
+                      <EditableText value={badge.badgeLabel || ""} onSave={(v) => onSaveBadgeField("badgeLabel", v)} label="Texte du badge" />
                     </p>
                   </div>
                 </motion.div>
@@ -280,13 +269,50 @@ export const ExpertisePillarsSection = ({
                     {/* Points clés */}
                     <div className="pt-2">
                       <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        {currentVisual.bullets.map((bullet, bIdx) => (
-                          <li key={bIdx} className="flex items-center gap-2.5 text-sm text-[#222] font-medium">
+                        {bullets.map((bullet, bIdx) => (
+                          <li key={bIdx} className="group flex items-center gap-2.5 text-sm text-[#222] font-medium">
                             <CheckCircle2 className="w-4 h-4 text-[#8c591a] shrink-0" />
-                            <span>{bullet}</span>
+                            <span>
+                              <EditableText
+                                value={bullet}
+                                onSave={(v) => saveBullets(bullets.map((b, i) => (i === bIdx ? v : b)))}
+                                label="Point clé"
+                              />
+                            </span>
+                            {isEditMode && (
+                              <button
+                                onClick={() => saveBullets(bullets.filter((_, i) => i !== bIdx))}
+                                title="Retirer ce point"
+                                className="text-destructive opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </li>
                         ))}
                       </ul>
+                      {isEditMode && (
+                        <AddInlineButton onClick={() => saveBullets([...bullets, "Nouveau point clé"])} label="Ajouter un point clé" />
+                      )}
+
+                      {/* Mention complémentaire (ex. conditions hors site) → page Contact */}
+                      {isEditMode ? (
+                        <p className="mt-3 text-xs text-[#8c591a]">
+                          <EditableText
+                            value={activePillar.note || ""}
+                            onSave={(v) => onSaveItemField(activeIndex, "note", v)}
+                            label="Mention (renvoie vers la page Contact)"
+                            placeholder="Ajouter une mention (optionnel)"
+                          />
+                        </p>
+                      ) : activePillar.note ? (
+                        <Link
+                          to="/contact"
+                          className="inline-block mt-3 text-xs text-[#8c591a] underline underline-offset-2 hover:text-[#100906] transition-colors"
+                        >
+                          {activePillar.note}
+                        </Link>
+                      ) : null}
                     </div>
                   </motion.div>
                 </AnimatePresence>
@@ -313,14 +339,45 @@ export const ExpertisePillarsSection = ({
                 {/* Bouton d'action / CTA */}
                 <div>
                   {isEditMode ? (
-                    <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#8c591a]">
-                      <EditableText
-                        value={activePillar.ctaText || "En savoir plus"}
-                        onSave={(v) => onSaveItemField(activeIndex, "ctaText", v)}
-                        label="Texte du bouton"
-                      />
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </span>
+                    <div className="flex flex-col items-end gap-1.5">
+                      <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#8c591a]">
+                        <EditableText
+                          value={activePillar.ctaText || "En savoir plus"}
+                          onSave={(v) => onSaveItemField(activeIndex, "ctaText", v)}
+                          label="Texte du bouton"
+                        />
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </span>
+                      <span className="text-[11px] text-[#666] max-w-[220px] truncate">
+                        Lien :{" "}
+                        <EditableText
+                          value={activePillar.link || ""}
+                          onSave={(v) => onSaveItemField(activeIndex, "link", v.trim())}
+                          label="Lien du bouton (https://..., #evenements ou /contact)"
+                          placeholder="/contact"
+                        />
+                      </span>
+                      <span className="text-[11px] text-[#666] max-w-[220px] truncate">
+                        PDF :{" "}
+                        <EditableText
+                          value={activePillar.pdfUrl || ""}
+                          onSave={(v) => onSaveItemField(activeIndex, "pdfUrl", v.trim())}
+                          label="Lien du PDF (si renseigné, le bouton ouvre un pop-up : télécharger le PDF / ouvrir la page)"
+                          placeholder="optionnel"
+                        />
+                      </span>
+                    </div>
+                  ) : activePillar.pdfUrl ? (
+                    <button
+                      type="button"
+                      onClick={() => setCatalogOpen(true)}
+                      className="inline-flex items-center gap-2 sm:gap-3 bg-[#121212] hover:bg-[#252525] text-white rounded-full px-3.5 py-2 sm:px-6 sm:py-3 text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-md hover:scale-105 active:scale-95 group"
+                    >
+                      <span>{activePillar.ctaText || "Voir le catalogue"}</span>
+                      <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-white/20 group-hover:bg-[#d4af37] group-hover:text-black transition-colors duration-300 flex items-center justify-center shrink-0">
+                        <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                      </div>
+                    </button>
                   ) : activePillar.link?.startsWith("http") ? (
                     <a
                       href={activePillar.link}
@@ -366,6 +423,61 @@ export const ExpertisePillarsSection = ({
 
         </div>
       </div>
+
+      {/* POP-UP CATALOGUE : télécharger le PDF ou ouvrir la page */}
+      <Dialog open={catalogOpen && !!activePillar.pdfUrl} onOpenChange={setCatalogOpen}>
+        <DialogContent className="max-w-md p-0 gap-0 overflow-hidden bg-gradient-to-br from-[#100906] via-[#1f120c] to-[#3a2012] text-white border-white/10 rounded-[1.75rem] sm:rounded-[1.75rem]">
+          <div className="p-6 sm:p-8 space-y-6">
+            <DialogHeader className="text-left space-y-2">
+              <span className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#d4af37]">
+                Catalogue
+              </span>
+              <DialogTitle className="font-sans text-2xl font-bold text-white leading-snug pr-6">
+                {activePillar.title}
+              </DialogTitle>
+              <DialogDescription className="text-white/70 text-sm leading-relaxed">
+                Téléchargez le catalogue au format PDF, ou consultez-le directement en ligne.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="flex flex-col gap-2.5">
+              <a
+                href={toDownloadUrl(activePillar.pdfUrl || "")}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setCatalogOpen(false)}
+                className="inline-flex items-center justify-center gap-2 bg-[#d4af37] hover:bg-white text-black font-bold rounded-full py-3 px-5 text-xs uppercase tracking-wider transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                Télécharger le catalogue (PDF)
+              </a>
+              {activePillar.link && (
+                activePillar.link.startsWith("http") ? (
+                  <a
+                    href={activePillar.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setCatalogOpen(false)}
+                    className="inline-flex items-center justify-center gap-2 border border-white/30 hover:border-white text-white font-bold rounded-full py-3 px-5 text-xs uppercase tracking-wider transition-colors"
+                  >
+                    Ouvrir la page catalogue
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                ) : (
+                  <Link
+                    to={activePillar.link}
+                    onClick={() => setCatalogOpen(false)}
+                    className="inline-flex items-center justify-center gap-2 border border-white/30 hover:border-white text-white font-bold rounded-full py-3 px-5 text-xs uppercase tracking-wider transition-colors"
+                  >
+                    Ouvrir la page catalogue
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                )
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };

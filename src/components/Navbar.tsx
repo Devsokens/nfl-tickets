@@ -6,7 +6,11 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { NewsletterAPI } from "@/lib/api";
 import { useIsEditMode } from "@/lib/EditModeContext";
-import nflLogoWhite from "@/assets/Logo_NFL_fond_blanc-removebg-preview.png";
+// Sections de l'accueil (one-pager), dans l'ordre de la page.
+const SECTION_LINKS = [
+  { id: "formations", label: "Nos offres" },
+  { id: "evenements", label: "Événements" },
+];
 
 const Navbar = () => {
   const location = useLocation();
@@ -137,27 +141,16 @@ const Navbar = () => {
               >
                 Accueil
               </Link>
-              <a
-                href="/#formations"
-                onClick={scrollToAnchor("formations")}
-                className={navLinkClass(location.hash === "#formations")}
-              >
-                Formations
-              </a>
-              <a
-                href="/#evenements"
-                onClick={scrollToAnchor("evenements")}
-                className={navLinkClass(location.hash === "#evenements")}
-              >
-                Événements
-              </a>
-              <a
-                href="/#temoignages"
-                onClick={scrollToAnchor("temoignages")}
-                className={navLinkClass(location.hash === "#temoignages")}
-              >
-                Témoignages
-              </a>
+              {SECTION_LINKS.map((s) => (
+                <a
+                  key={s.id}
+                  href={`/#${s.id}`}
+                  onClick={scrollToAnchor(s.id)}
+                  className={navLinkClass(location.hash === `#${s.id}`)}
+                >
+                  {s.label}
+                </a>
+              ))}
               <Link to="/contact" onClick={guardNav()} className={navLinkClass(location.pathname === "/contact")}>
                 Contact
               </Link>
@@ -173,7 +166,7 @@ const Navbar = () => {
                 }`}
                 asChild
               >
-                <Link to="/contact" onClick={guardNav()}>RÉSERVER</Link>
+                <Link to="/contact" onClick={guardNav()}>Demander un devis</Link>
               </Button>
             </div>
 
@@ -192,9 +185,7 @@ const Navbar = () => {
 
                   {[
                     { to: "/", label: "Accueil", active: isHome && !location.hash, onClick: guardNav(() => { if (isHome) window.scrollTo({ top: 0, behavior: "smooth" }); else navigate("/"); }) },
-                    { to: "/#formations", label: "Formations", active: location.hash === "#formations", onClick: scrollToAnchor("formations") },
-                    { to: "/#evenements", label: "Événements", active: location.hash === "#evenements", onClick: scrollToAnchor("evenements") },
-                    { to: "/#temoignages", label: "Témoignages", active: location.hash === "#temoignages", onClick: scrollToAnchor("temoignages") },
+                    ...SECTION_LINKS.map((s) => ({ to: `/#${s.id}`, label: s.label, active: location.hash === `#${s.id}`, onClick: scrollToAnchor(s.id) })),
                     { to: "/contact", label: "Contact", active: location.pathname === "/contact", onClick: guardNav() },
                   ].map((item) => (
                     <a
@@ -216,7 +207,7 @@ const Navbar = () => {
                     onClick={guardNav()}
                     className="w-full mt-3 gradient-gold text-[#100906] font-bold uppercase tracking-wider text-sm rounded-full py-3.5 text-center shadow-lg hover:shadow-xl transition-shadow"
                   >
-                    RÉSERVER
+                    Demander un devis
                   </Link>
 
                   <div className="mt-8 pt-8 border-t border-[#d4af37]/15 space-y-4">

@@ -56,6 +56,8 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { isPushSupported, getCurrentPushSubscription, subscribeToPush, unsubscribeFromPush } from "@/lib/push";
 import { Link, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+import { ADMIN_LOGIN_PATH } from "@/lib/adminPaths";
 import {
   Dialog,
   DialogContent,
@@ -84,8 +86,8 @@ import {
 } from "@/components/ui/select";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import { Switch } from "@/components/ui/switch";
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
@@ -464,7 +466,7 @@ const AdminDashboard = () => {
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   useEffect(() => {
     if (!localStorage.getItem("nfl_token")) {
-      navigate("/admin/login", { replace: true });
+      navigate(ADMIN_LOGIN_PATH, { replace: true });
       return;
     }
     setIsAuthChecked(true);
@@ -1200,11 +1202,11 @@ const AdminDashboard = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("nfl_token");
-    navigate("/admin/login");
+    navigate(ADMIN_LOGIN_PATH);
   };
 
   // Tant que la vérification du token n'a pas eu lieu (ou en cas de
-  // redirection en cours vers /admin/login), on ne rend rien : aucune
+  // redirection en cours vers la connexion), on ne rend rien : aucune
   // fuite de la coquille du dashboard pour un visiteur non authentifié.
   if (!isAuthChecked) {
     return (
@@ -1216,6 +1218,10 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col md:flex-row overflow-hidden text-foreground">
+      <Helmet>
+        <title>Administration | Cabinet NFL</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#32140c] border-r border-sidebar-border flex flex-col transition-transform md:translate-x-0 md:static md:h-screen ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="h-20 flex items-center justify-between px-6 bg-[#32140c] shrink-0 overflow-hidden border-b border-white/10">
           <Link to="/" className="shrink-0 w-32 overflow-hidden block">
